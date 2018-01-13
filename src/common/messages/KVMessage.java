@@ -27,11 +27,29 @@ public interface KVMessage {
 	public String getValue();
 	
 	/**
+	 * Set the key
+	 * @param key
+	 */
+	public void setKey(String key);
+	/**
+	 * Set the value
+	 * @param value
+	 */
+	public void setValue(String value);
+	
+	/**
 	 * @return a status string that is used to identify request types, 
 	 * response types and error types associated to the message.
 	 */
 	public StatusType getStatus();
 	
+	/**
+	 * Set the status of the message
+	 * @param inType
+	 */
+	public void setStatus(StatusType inType);
+	public byte[] toBytes();
+	public KVMessage fromBytes(byte[] in_Bytes);
 }
 
 
