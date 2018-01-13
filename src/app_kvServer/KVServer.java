@@ -82,7 +82,4 @@ public class KVServer implements IKVServer {
     public void close(){
 		// TODO Auto-generated method stub
 	}
-	public static void main(String[] args) {
-		
-	}
 }
