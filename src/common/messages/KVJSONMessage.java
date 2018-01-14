@@ -1,11 +1,18 @@
 package common.messages;
+import jdk.nashorn.internal.parser.JSONParser;
 import org.json.*;
+
+import java.util.HashMap;
+import java.util.IllegalFormatConversionException;
+import java.util.Map;
 
 public class KVJSONMessage implements KVMessage {
 
 	private String key;
 	private String Value;
 	private StatusType status;
+	private static String KEY_PAIR_NAME = "key_pair";
+	private static String STATUS_NAME = "status_type";
 	@Override
 	public String getKey() {
 		return key;
@@ -13,27 +20,39 @@ public class KVJSONMessage implements KVMessage {
 
 	@Override
 	public String getValue() {
-		// TODO Auto-generated method stub
 		return Value;
 	}
 	
 
 	@Override
 	public StatusType getStatus() {
-		// TODO Auto-generated method stub
 		return status;
 	}
 	
 	@Override
 	public byte[] toBytes() {
-		// TODO Auto-generated method stub
-		return null;
+		JSONObject newObject = new JSONObject();
+        Map<String, String> newmap = new HashMap<String, String>();
+        newmap.put(key,Value);
+		newObject.put(KEY_PAIR_NAME,newmap);
+		newObject.put(STATUS_NAME,status.getValue());
+		return newObject.toString().getBytes();
 	}
 
 	@Override
 	public KVMessage fromBytes(byte[] in_Bytes) {
-		// TODO Auto-generated method stub
-		return null;
+		JSONObject newObject = new JSONObject(in_Bytes.toString());
+		JSONObject keypair =  newObject.getJSONObject(KEY_PAIR_NAME);
+		int new_status = newObject.getInt(STATUS_NAME);
+		if(keypair == null || status == null){
+		    throw new IllegalArgumentException();
+        }
+        else{
+            key =  keypair.keys().next();
+            Value = keypair.getString(key);
+            status = StatusType.fromInt(new_status);
+        }
+		return this;
 	}
 
 	@Override

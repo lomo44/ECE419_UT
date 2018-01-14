@@ -1,4 +1,8 @@
 *.MF
 *.class
-*.jar
 *.tgz
+m1-client.jar
+m1-server.jar
+.idea/
+.metadata/
+*.iml
