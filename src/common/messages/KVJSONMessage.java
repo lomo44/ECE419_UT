@@ -12,22 +12,37 @@ public class KVJSONMessage implements KVMessage {
 	private static String KEY_PAIR_NAME = "key_pair";
 	private static String STATUS_NAME = "status_type";
 
+    /**
+     * Return key as a string
+     * @return key (String)
+     */
 	@Override
 	public String getKey() {
 		return key;
 	}
 
+    /**
+     * Return value as a string
+     * @return value (string)
+     */
 	@Override
 	public String getValue() {
 		return Value;
 	}
-	
 
+    /**
+     * Return status type of the message
+     * @return StatusType
+     */
 	@Override
 	public StatusType getStatus() {
 		return status;
 	}
-	
+
+    /**
+     * Serialize the object into bytes array
+     * @return byte[]
+     */
 	@Override
 	public byte[] toBytes() {
 		JSONObject newObject = new JSONObject();
@@ -38,6 +53,12 @@ public class KVJSONMessage implements KVMessage {
 		return newObject.toString().getBytes();
 	}
 
+    /**
+     * De-serialize the incoming byte array
+     * @param in_Bytes incoming byte array
+     * @return base class KVMessage
+     * @throws IllegalArgumentException If the incoming byte array is not valid
+     */
 	@Override
 	public KVMessage fromBytes(byte[] in_Bytes) throws IllegalArgumentException {
         JSONObject keypair;
@@ -61,16 +82,27 @@ public class KVJSONMessage implements KVMessage {
 		return this;
 	}
 
+    /**
+     * Set the key of the message
+     * @param key String
+     */
 	@Override
 	public void setKey(String key) {
 		this.key = key;
 	}
 
+    /**
+     * Set the value of the message
+     * @param value String
+     */
 	@Override
 	public void setValue(String value) {
 		this.Value = value;
 	}
 
+    /** Set the status of the message
+     * @param inType StatusType
+     */
 	@Override
 	public void setStatus(StatusType inType) {
 		this.status = inType;

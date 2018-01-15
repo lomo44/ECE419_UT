@@ -13,12 +13,28 @@ public interface KVMessage {
 		DELETE_SUCCESS(8), /* Delete - request successful */
 		DELETE_ERROR(9); 	/* Delete - request successful */
 		private final int value;
+
+        /**
+         * Construct the StatusType and correlate it to an specific integer
+         * @param value
+         */
 		private StatusType(int value){
 			this.value = value;
 		}
+
+        /**
+         * Return the integer representation of this enumeration
+         * @return
+         */
 		public int getValue(){
 			return value;
 		}
+
+        /**
+         * Convert the integer representation to a StatusType Object
+         * @param input int - integer representation
+         * @return StatusType object
+         */
 		public static StatusType fromInt(int input){
             switch (input){
                 case 1: return GET;
@@ -68,7 +84,18 @@ public interface KVMessage {
 	 * @param inType
 	 */
 	public void setStatus(StatusType inType);
+
+    /**
+     * Serialization interface
+     * @return byte[]
+     */
 	public byte[] toBytes();
+
+    /**
+     * De-Serialization interface
+     * @param in_Bytes incoming byte array
+     * @return same interface
+     */
 	public KVMessage fromBytes(byte[] in_Bytes);
 }
 
