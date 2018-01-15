@@ -1,9 +1,7 @@
 package common.messages;
-import jdk.nashorn.internal.parser.JSONParser;
 import org.json.*;
 
 import java.util.HashMap;
-import java.util.IllegalFormatConversionException;
 import java.util.Map;
 
 public class KVJSONMessage implements KVMessage {
@@ -13,6 +11,7 @@ public class KVJSONMessage implements KVMessage {
 	private StatusType status;
 	private static String KEY_PAIR_NAME = "key_pair";
 	private static String STATUS_NAME = "status_type";
+
 	@Override
 	public String getKey() {
 		return key;
@@ -40,11 +39,18 @@ public class KVJSONMessage implements KVMessage {
 	}
 
 	@Override
-	public KVMessage fromBytes(byte[] in_Bytes) {
-		JSONObject newObject = new JSONObject(in_Bytes.toString());
-		JSONObject keypair =  newObject.getJSONObject(KEY_PAIR_NAME);
+	public KVMessage fromBytes(byte[] in_Bytes) throws IllegalArgumentException {
+        JSONObject keypair;
+        JSONObject newObject;
+        try{
+            newObject = new JSONObject(new String(in_Bytes));
+            keypair =  newObject.getJSONObject(KEY_PAIR_NAME);
+        }
+        catch (JSONException e){
+            throw new IllegalArgumentException();
+        }
 		int new_status = newObject.getInt(STATUS_NAME);
-		if(keypair == null || status == null){
+		if(keypair == null){
 		    throw new IllegalArgumentException();
         }
         else{
