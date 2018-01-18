@@ -11,7 +11,8 @@ public interface KVMessage {
 		PUT_UPDATE(6), 	/* Put - request successful, i.e. value updated */
 		PUT_ERROR(7), 		/* Put - request not successful */
 		DELETE_SUCCESS(8), /* Delete - request successful */
-		DELETE_ERROR(9); 	/* Delete - request successful */
+		DELETE_ERROR(9), 	/* Delete - request successful */
+		UNKNOWN_ERROR(0);
 		private final int value;
 
         /**
@@ -37,6 +38,7 @@ public interface KVMessage {
          */
 		public static StatusType fromInt(int input){
             switch (input){
+				case 0: return UNKNOWN_ERROR;
                 case 1: return GET;
                 case 2: return GET_ERROR;
                 case 3: return GET_SUCCESS;

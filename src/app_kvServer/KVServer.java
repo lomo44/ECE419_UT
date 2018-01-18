@@ -1,5 +1,10 @@
 package app_kvServer;
 
+import common.communication.KVCommunicationModule;
+
+import java.net.Socket;
+import java.util.Vector;
+
 public class KVServer implements IKVServer {
 
 	/**
@@ -12,26 +17,32 @@ public class KVServer implements IKVServer {
 	 *           currently not contained in the cache. Options are "FIFO", "LRU",
 	 *           and "LFU".
 	 */
-	public KVServer(int port, int cacheSize, String strategy) {
-		// TODO Auto-generated method stub
+    private Vector<Thread> liveconnection;
+	private Thread handler;
+	private int port;
+    private int cacheSize;
+	private CacheStrategy cacheStrategy;
+    public KVServer(int port, int cacheSize, String strategy) {
+        this.port = port;
+	    liveconnection = new Vector<Thread>();
+        handler = new Thread(new KVServerHandler(port, this));
+        this.cacheSize = cacheSize;
+        cacheStrategy = CacheStrategy.fromString(strategy);
 	}
 
 	@Override
 	public int getPort(){
-		// TODO Auto-generated method stub
-		return -1;
+	    return port;
 	}
 
 	@Override
     public String getHostname(){
-		// TODO Auto-generated method stub
-		return null;
+		return "localhost";
 	}
 
 	@Override
     public CacheStrategy getCacheStrategy(){
-		// TODO Auto-generated method stub
-		return IKVServer.CacheStrategy.None;
+	    return this.cacheStrategy;
 	}
 
 	@Override
@@ -75,13 +86,29 @@ public class KVServer implements IKVServer {
 
 	@Override
     public void kill(){
-		// TODO Auto-generated method stub
+		flushCache();
 	}
 
 	@Override
     public void close(){
-		// TODO Auto-generated method stub
+		kill();
 	}
+
+	@Override
+    public void flushCache(){
+
+    }
+
+	public void registerConnection(Socket newSocket){
+        liveconnection.add(new Thread(new KVServerInstance(new KVCommunicationModule(newSocket),this)));
+    }
+
 	public static void main(String[] args) {
+	    int port = Integer.parseInt(args[0]);
+	    int cachesize = Integer.parseInt(args[1]);
+	    KVServer new_server = new KVServer(port,cachesize,args[2]);
+	    while(true){
+
+        }
 	}
 }

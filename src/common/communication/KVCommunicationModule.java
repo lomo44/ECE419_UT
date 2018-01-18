@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -19,6 +20,20 @@ public class KVCommunicationModule {
 	public KVCommunicationModule(Socket in_Socket) {
 		privateSocket = in_Socket;
 	}
+
+    /**
+     * Create a empty KVMessage
+     * @return
+     */
+	public static KVMessage getEmptyMessage(){
+		return new KVJSONMessage();
+	}
+
+    /**
+     * Send a KVMessage through the module
+     * @param in_Message outbound message
+     * @throws SocketException will be thrown if socket is closed
+     */
 	public void send(KVMessage in_Message) throws SocketException {
 		if(!privateSocket.isClosed()){
 			OutputStream outputStream;
@@ -29,7 +44,6 @@ public class KVCommunicationModule {
 				data_out.write(out.length);
 				data_out.write(in_Message.toBytes());
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				throw new SocketException();
 			}
@@ -38,19 +52,26 @@ public class KVCommunicationModule {
 			throw new SocketException();
 		}
 	}
-	public KVJSONMessage receiveKVJSONMessage() throws SocketException {
+
+    /**
+     * receive message
+     * @return KVMessage
+     * @throws SocketException thrown if socket is closed
+     */
+	public KVMessage receiveMessage() throws SocketException {
 		if(!privateSocket.isClosed()){
 			try {
 				InputStream in_Message = privateSocket.getInputStream();
 				DataInputStream dInputStream = new DataInputStream(in_Message);
-				KVJSONMessage ret = new KVJSONMessage();
+				KVMessage ret = KVCommunicationModule.getEmptyMessage();
 				int bytelength = dInputStream.read();
 				byte[] array = new byte[bytelength];
 				dInputStream.read(array);
 				ret.fromBytes(array);
+				in_Message.close();
+				dInputStream.close();
 				return ret;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 				throw new SocketException();
 			}
@@ -58,5 +79,13 @@ public class KVCommunicationModule {
 		else {
 			throw new SocketException();
 		}
+	}
+
+    /**
+     * Check if the communication module is connected
+     * @return
+     */
+	public boolean isConnected(){
+		return privateSocket.isConnected();
 	}
 }
