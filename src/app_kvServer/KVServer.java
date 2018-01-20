@@ -1,9 +1,6 @@
 package app_kvServer;
 
-import common.communication.KVCommunicationModule;
-
-import java.net.Socket;
-import java.util.Vector;
+import java.io.IOException;
 
 public class KVServer implements IKVServer {
 
@@ -17,15 +14,15 @@ public class KVServer implements IKVServer {
 	 *           currently not contained in the cache. Options are "FIFO", "LRU",
 	 *           and "LFU".
 	 */
-    private Vector<Thread> liveconnection;
-	private Thread handler;
+	private Thread handlerThread;
+	private  KVServerHandler serverHandler;
 	private int port;
     private int cacheSize;
 	private CacheStrategy cacheStrategy;
     public KVServer(int port, int cacheSize, String strategy) {
         this.port = port;
-	    liveconnection = new Vector<Thread>();
-        handler = new Thread(new KVServerHandler(port, this));
+        serverHandler = createServerHandler();
+        handlerThread = new Thread(serverHandler);
         this.cacheSize = cacheSize;
         cacheStrategy = CacheStrategy.fromString(strategy);
 	}
@@ -85,12 +82,18 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override
-    public void kill(){
+    public void kill() throws InterruptedException {
 		flushCache();
+		try {
+			serverHandler.stop();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		handlerThread.join();
 	}
 
 	@Override
-    public void close(){
+    public void close() throws InterruptedException {
 		kill();
 	}
 
@@ -99,9 +102,13 @@ public class KVServer implements IKVServer {
 
     }
 
-	public void registerConnection(Socket newSocket){
-        liveconnection.add(new Thread(new KVServerInstance(new KVCommunicationModule(newSocket),this)));
-    }
+	/**
+	 * Create a server handler (listener)
+	 * @return a server handler instances
+	 */
+    public KVServerHandler createServerHandler(){
+    	return new KVServerHandler(this.port, this);
+	}
 
 	public static void main(String[] args) {
 	    int port = Integer.parseInt(args[0]);

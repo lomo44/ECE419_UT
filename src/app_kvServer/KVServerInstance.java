@@ -3,14 +3,18 @@ package app_kvServer;
 import common.communication.KVCommunicationModule;
 import common.messages.KVMessage;
 
+import java.io.IOException;
+
 public class KVServerInstance implements Runnable {
 
     private KVCommunicationModule communicationModule;
-    private KVServer serverinstance;
+    private IKVServer serverinstance;
+    private boolean isRunning;
 
-    public KVServerInstance(KVCommunicationModule communicationModule, KVServer server){
+    public KVServerInstance(KVCommunicationModule communicationModule, IKVServer server){
         this.communicationModule = communicationModule;
         serverinstance = server;
+        isRunning = false;
     }
 
     /**
@@ -18,19 +22,30 @@ public class KVServerInstance implements Runnable {
      */
     @Override
     public void run() {
-        while(communicationModule.isConnected()){
+        isRunning = true;
+        while(communicationModule.isConnected() && isRunning){
             try {
                 KVMessage in_msg = communicationModule.receiveMessage();
                 communicationModule.send(handleMessage(in_msg));
             }
             catch(Exception e){
-
             }
         }
+
     }
 
     /**
-     * Handle a input message and generate a output message
+     * Stop the current server instance. This function will try to stop the thread stub and
+     * close the communication module
+     * @throws IOException thrown when communication module fail to close
+     */
+    public void stop() throws IOException {
+        isRunning = false;
+        communicationModule.close();
+    }
+    /**
+     * Handle a input message and generate a output message. Can be override in the
+     * derived class to handle message differently
      * @param in_message inbound message
      * @return KVMessage outbound message
      */

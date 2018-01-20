@@ -1,5 +1,9 @@
 package app_kvServer;
 
+import common.communication.KVCommunicationModule;
+
+import java.net.Socket;
+
 public interface IKVServer {
     public enum CacheStrategy {
         None("None"),
@@ -95,10 +99,10 @@ public interface IKVServer {
      * Abruptly stop the server without any additional actions
      * NOTE: this includes performing saving to storage
      */
-    public void kill();
+    public void kill() throws InterruptedException;
 
     /**
      * Gracefully stop the server, can perform any additional actions
      */
-    public void close();
+    public void close() throws InterruptedException;
 }
