@@ -2,10 +2,25 @@ package app_kvServer;
 
 public interface IKVServer {
     public enum CacheStrategy {
-        None,
-        LRU,
-        LFU,
-        FIFO
+        None("None"),
+        LRU("LRU"),
+        LFU("LFU"),
+        FIFO("FIFO");
+        private String str;
+        private CacheStrategy(String str){
+            this.str = str;
+        }
+        public String toString(){
+            return str;
+        }
+        public static CacheStrategy fromString(String str){
+            switch (str){
+                case "FIFO": return FIFO;
+                case "LFU": return LFU;
+                case "LRU": return LRU;
+                default: return None;
+            }
+        }
     };
 
     /**
@@ -70,6 +85,11 @@ public interface IKVServer {
      * Clear the storage of the server
      */
     public void clearStorage();
+
+    /**
+     * Flush the local cache
+     */
+    public void flushCache();
 
     /**
      * Abruptly stop the server without any additional actions
