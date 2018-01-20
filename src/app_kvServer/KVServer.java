@@ -23,6 +23,7 @@ public class KVServer implements IKVServer {
         this.port = port;
         serverHandler = createServerHandler();
         handlerThread = new Thread(serverHandler);
+        handlerThread.start();
         this.cacheSize = cacheSize;
         cacheStrategy = CacheStrategy.fromString(strategy);
 	}
@@ -82,18 +83,14 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override
-    public void kill() throws InterruptedException {
+    public void kill() throws InterruptedException, IOException {
 		flushCache();
-		try {
-			serverHandler.stop();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		serverHandler.stop();
 		handlerThread.join();
 	}
 
 	@Override
-    public void close() throws InterruptedException {
+    public void close() throws InterruptedException, IOException {
 		kill();
 	}
 
@@ -107,7 +104,11 @@ public class KVServer implements IKVServer {
 	 * @return a server handler instances
 	 */
     public KVServerHandler createServerHandler(){
-    	return new KVServerHandler(this.port, this);
+    	return new KVServerHandler(this.port, this,0);
+	}
+
+	public boolean isHandlerRunning(){
+    	return this.serverHandler.isRunning();
 	}
 
 	public static void main(String[] args) {

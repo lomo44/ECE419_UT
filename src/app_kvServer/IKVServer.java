@@ -2,6 +2,7 @@ package app_kvServer;
 
 import common.communication.KVCommunicationModule;
 
+import java.io.IOException;
 import java.net.Socket;
 
 public interface IKVServer {
@@ -99,10 +100,10 @@ public interface IKVServer {
      * Abruptly stop the server without any additional actions
      * NOTE: this includes performing saving to storage
      */
-    public void kill() throws InterruptedException;
+    public void kill() throws InterruptedException, IOException;
 
     /**
      * Gracefully stop the server, can perform any additional actions
      */
-    public void close() throws InterruptedException;
+    public void close() throws InterruptedException, IOException;
 }

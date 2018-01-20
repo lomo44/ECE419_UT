@@ -82,7 +82,14 @@ public class KVJSONMessage implements KVMessage {
 		return this;
 	}
 
-    /**
+	@Override
+	public boolean equal(KVMessage msg) {
+        return this.Value.equals(msg.getValue()) &&
+				this.key.equals(msg.getKey()) &&
+				this.status.getValue()== msg.getStatus().getValue();
+	}
+
+	/**
      * Set the key of the message
      * @param key String
      */

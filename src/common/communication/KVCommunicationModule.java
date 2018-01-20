@@ -46,9 +46,7 @@ public class KVCommunicationModule {
 				DataOutputStream data_out = new DataOutputStream(outputStream);
 				byte[] out = in_Message.toBytes();
 				data_out.write(out.length);
-				data_out.write(in_Message.toBytes());
-				outputStream.close();
-				data_out.close();
+				data_out.write(out);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new SocketException();
@@ -77,11 +75,9 @@ public class KVCommunicationModule {
 				byte[] array = new byte[bytelength];
 				dInputStream.read(array);
 				ret.fromBytes(array);
-				in_Message.close();
-				dInputStream.close();
 				return ret;
 			} catch (IOException e) {
-				e.printStackTrace();
+				//e.printStackTrace();
 				throw new SocketException();
 			}
 		}

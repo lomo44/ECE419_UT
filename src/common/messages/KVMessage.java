@@ -99,6 +99,8 @@ public interface KVMessage {
      * @return same interface
      */
 	public KVMessage fromBytes(byte[] in_Bytes);
+
+	public boolean equal(KVMessage msg);
 }
 
 

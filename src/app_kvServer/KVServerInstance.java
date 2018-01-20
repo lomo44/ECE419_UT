@@ -4,6 +4,8 @@ import common.communication.KVCommunicationModule;
 import common.messages.KVMessage;
 
 import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 public class KVServerInstance implements Runnable {
 
@@ -28,7 +30,11 @@ public class KVServerInstance implements Runnable {
                 KVMessage in_msg = communicationModule.receiveMessage();
                 communicationModule.send(handleMessage(in_msg));
             }
+            catch (SocketException e){
+                isRunning = false;
+            }
             catch(Exception e){
+
             }
         }
 
