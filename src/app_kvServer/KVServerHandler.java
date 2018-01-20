@@ -48,8 +48,13 @@ public class KVServerHandler implements Runnable {
                 }
                 catch (SocketTimeoutException e){
 
-                } catch (IOException e) {
-                    e.printStackTrace();
+                }
+                catch (SocketException e){
+                    // Socket close
+                    isRunning = false;
+                }
+                catch (IOException e) {
+
                 }
 
             }
@@ -107,6 +112,8 @@ public class KVServerHandler implements Runnable {
         for (int i = 0; i < this.aliveinstancethreads.size() ; i++) {
             aliveinstancethreads.elementAt(i).join();
         }
+        if(serverSocket!=null)
+            serverSocket.close();
     }
 
     /**

@@ -75,8 +75,11 @@ public class KVJSONMessage implements KVMessage {
 		    throw new IllegalArgumentException();
         }
         else{
-            key =  keypair.keys().next();
-            Value = keypair.getString(key);
+
+		    if(keypair.keys().hasNext()) {
+                key = keypair.keys().next();
+                Value = keypair.getString(key);
+            }
             status = StatusType.fromInt(new_status);
         }
 		return this;

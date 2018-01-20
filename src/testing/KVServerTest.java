@@ -16,14 +16,14 @@ import java.util.concurrent.TimeUnit;
 public class KVServerTest extends TestCase {
     @Test
     public void testServerBasic_Initialization() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(50000,10,"NULL");
+        KVServerEcho serverEcho = new KVServerEcho(50001,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
         serverEcho.close();
     }
     @Test
     public void testServerBasic_TearDown() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(50000,10,"NULL");
+        KVServerEcho serverEcho = new KVServerEcho(50002,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
         serverEcho.close();
@@ -32,9 +32,9 @@ public class KVServerTest extends TestCase {
     }
     @Test
     public void testServerBasic_Echo() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(50000,10,"NULL");
+        KVServerEcho serverEcho = new KVServerEcho(50003,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
-        KVTestClient client = new KVTestClient("localhost",50000);
+        KVTestClient client = new KVTestClient("localhost",50003);
         client.init(0);
         KVMessage newmessage = client.createKVMessage();
         newmessage.setStatus(KVMessage.StatusType.PUT);
@@ -49,11 +49,11 @@ public class KVServerTest extends TestCase {
     }
     @Test
     public void testServerBasic_Mutiple_Clinet_Echo() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(50000,10,"NULL");
+        KVServerEcho serverEcho = new KVServerEcho(50004,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
-        KVTestClient client1 = new KVTestClient("localhost",50000);
+        KVTestClient client1 = new KVTestClient("localhost",50004);
         client1.init(0);
-        KVTestClient client2 = new KVTestClient("localhost",50000);
+        KVTestClient client2 = new KVTestClient("localhost",50004);
         client2.init(0);
 
         KVMessage newmessage1 = client1.createKVMessage();
