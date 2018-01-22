@@ -29,7 +29,7 @@ public class KVClient implements IKVClient {
             KVCommand cmdInstance = cmdParser.getParsedCommand(keyboard.nextLine());
             if(cmdInstance!=null){
                 // Command line correctly parsed
-                cmdInstance.execute(this);
+                cmdInstance.handleResponse(executeCommand(cmdInstance));
             }
             else{
                 printHelp();
@@ -45,6 +45,12 @@ public class KVClient implements IKVClient {
             client.disconnect();
             client = null;
         }
+    }
+    public boolean isConnected() {
+        if (client != null) {
+            return client.isRunning();
+        }
+        return false;
     }
     public String setLevel(String levelString) {
 		
@@ -84,6 +90,10 @@ public class KVClient implements IKVClient {
     @Override
     public KVCommInterface getStore(){
         return client;
+    }
+
+    public KVMessage executeCommand(KVCommand cmdInstance){
+        return cmdInstance.execute(this);
     }
 
     /**
