@@ -10,36 +10,39 @@ public class KVCommandPut extends KVCommand {
     }
 
     @Override
-    public void execute(KVClient clientInstance) {
+    public KVMessage execute(KVClient clientInstance) {
         KVMessage message = null;
         try {
-            message = clientInstance.getStore().put(getKey(),getValue());
+            return clientInstance.getStore().put(getKey(),getValue());
         } catch (Exception e) {
+            System.out.println("Error! No status response received!");
             e.printStackTrace();
         }
-        if(message!=null){
-            KVMessage.StatusType statusType = message.getStatus();
-            String key = message.getKey();
-            String value = message.getValue();
-            switch (statusType) {
-                case PUT_SUCCESS:{
-                    System.out.println("Success!");
-                }
-                case PUT_UPDATE:{
-                    System.out.println("Success (update)!");
-                }
-                case PUT_ERROR:{
-                    System.out.println("Error! Key " + key + " does not exist!");
-                }
-                case UNKNOWN_ERROR:{
-                    System.out.println("Error! " + value);
-                }
-                default:{
-                    System.out.println("Error! " + value);
-                }
+    }
+
+    @Override
+    public void handleResponse(KVMessage response) {
+        KVMessage.StatusType statusType = message.getStatus();
+        String key = message.getKey();
+        String value = message.getValue();
+        switch (statusType) {
+            case PUT_SUCCESS:{
+                System.out.println("Success!");
             }
-            printPrompt();
+            case PUT_UPDATE:{
+                System.out.println("Success (update)!");
+            }
+            case PUT_ERROR:{
+                System.out.println("Error! Key " + key + " does not exist!");
+            }
+            case UNKNOWN_ERROR:{
+                System.out.println("Error! " + value);
+            }
+            default:{
+                System.out.println("Error! " + value);
+            }
         }
+        printPrompt();
     }
 
     public void setKey(String key){

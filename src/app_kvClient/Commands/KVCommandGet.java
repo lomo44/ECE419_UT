@@ -10,34 +10,36 @@ public class KVCommandGet extends KVCommand {
     }
 
     @Override
-    public void execute(KVClient clientInstance) {
-        KVMessage message = null;
+    public KVMessage execute(KVClient clientInstance) {
         try {
-            message = clientInstance.getStore().get(getKey());
+            return clientInstance.getStore().get(getKey());
 
         } catch (Exception e) {
+            System.out.println("Erro! No status response received!");
             e.printStackTrace();
         }
-        if(message!=null){
-            KVMessage.StatusType statusType = message.getStatus();
-            String key = message.getKey();
-            String value = message.getValue();
-            switch(statusType) {
-                case GET_SUCCESS:{
-                    System.out.println(value);
-                }
-                case GET_ERROR:{
-                    System.out.println("Error! Key " + key + " does not exist!");
-                }
-                case UNKNOWN_ERROR:{
-                    System.out.println("Error! " + value);
-                }
-                default:{
-                    System.out.println("Error! " + value);
-                }
+    }
+
+    @Override
+    public void handlResponse(KVMessage response) {
+        KVMessage.StatusType statusType = response.getStatus();
+        String key = response.getKey();
+        String value = response.getValue();
+        switch(statusType) {
+            case GET_SUCCESS:{
+                System.out.println(value);
             }
-            printPrompt();
+            case GET_ERROR:{
+                System.out.println("Error! Key " + key + " does not exist!");
+            }
+            case UNKNOWN_ERROR:{
+                System.out.println("Error! " + value);
+            }
+            default:{
+                System.out.println("Error! " + value);
+            }
         }
+        printPrompt();
     }
 
     public void setKey(String key){

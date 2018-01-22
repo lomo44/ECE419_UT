@@ -11,15 +11,27 @@ public class KVCommandEcho extends KVCommand {
     }
 
     @Override
-    public void execute(KVClient clientInstance) {
+    public KVMessage execute(KVClient clientInstance) {
         KVMessage newmsg = KVCommunicationModule.getEmptyMessage();
         newmsg.setStatus(KVMessage.StatusType.ECHO);
+        KVMessage inbound = null;
         try {
-            KVMessage inbound = clientInstance.getStore().send(newmsg);
+            inbound = clientInstance.getStore().send(newmsg);
+        } catch (Exception e) {
+        }
+        finally{
+            return inbound;
+        }
+    }
+    @Override
+    public void handleResponse(KVMessage response){
+        if(response!=null){
             if(inbound.getStatus() == KVMessage.StatusType.ECHO){
                 System.out.println(inbound.getStatus().toString());
             }
-        } catch (Exception e) {
+        }
+        else{
+
         }
     }
 }
