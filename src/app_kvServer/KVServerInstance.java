@@ -31,10 +31,10 @@ public class KVServerInstance implements Runnable {
                 communicationModule.send(handleMessage(in_msg));
             }
             catch (SocketException e){
-                isRunning = false;
+
             }
             catch(Exception e){
-
+                
             }
         }
 
