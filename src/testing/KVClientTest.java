@@ -166,5 +166,24 @@ public class KVClientTest extends TestCase {
         client.disconnect();
         serverEcho.close();
     }
+    @Test
+    public void testClientBasic_Echo() throws InterruptedException, IOException {
+        KVServerEcho serverEcho = new KVServerEcho(40007,10,"NULL");
+        TimeUnit.SECONDS.sleep(1);
+        assertTrue(serverEcho.isHandlerRunning());
+        KVClient client = new KVClient();
+        try {
+            client.newConnection("localhost",40007);
+        } catch (Exception e) {
+            System.out.println("Error! Could not connect to server!");
+        }
+        TimeUnit.SECONDS.sleep(1);
+        assertTrue(client.isConnected());
+        KVCommandEcho echoInstance = new KVCommandEcho();
+        KVMessage echoResponse = client.executeCommand(echoInstance);
+        assertTrue(echoResponse.getStatus() == KVMessage.StatusType.ECHO);
+        client.disconnect();
+        serverEcho.close();
+    }
 }
 
