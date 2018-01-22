@@ -2,6 +2,8 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
+import common.messages.KVJSONMessage;
+import common.messages.KVMessage;
 
 public class KVCommandConnect extends KVCommand{
     public KVCommandConnect() {
@@ -9,11 +11,24 @@ public class KVCommandConnect extends KVCommand{
     }
 
     @Override
-    public void execute(KVClient clientInstance) {
+    public KVMessage execute(KVClient clientInstance) {
+        KVMessage ret = clientInstance.getStore().createEmptyMessage();
         try {
             clientInstance.newConnection(getHostName(),Integer.parseInt(getPort()));
+            ret.setStatus(KVMessage.StatusType.CONNECT_SUCCESS);
         } catch (Exception e) {
-            e.printStackTrace();
+            ret.setStatus(KVMessage.StatusType.CONNECT_FAIL);
+        }
+        return ret;
+    }
+
+    @Override
+    public void handleResponse(KVMessage response) {
+        if(response.getStatus() == KVMessage.StatusType.CONNECT_SUCCESS){
+            System.out.println("Connection Success.");
+        }
+        else{
+            System.out.println("Connection Failed.");
         }
     }
 

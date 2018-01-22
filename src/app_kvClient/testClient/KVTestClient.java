@@ -41,6 +41,6 @@ public class KVTestClient {
         return communicationModule.receiveMessage();
     }
     public KVMessage createKVMessage(){
-        return KVCommunicationModule.getEmptyMessage();
+        return communicationModule.getEmptyMessage();
     }
 }

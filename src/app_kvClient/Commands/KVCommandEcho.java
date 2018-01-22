@@ -12,7 +12,7 @@ public class KVCommandEcho extends KVCommand {
 
     @Override
     public KVMessage execute(KVClient clientInstance) {
-        KVMessage newmsg = KVCommunicationModule.getEmptyMessage();
+        KVMessage newmsg = clientInstance.getStore().createEmptyMessage();
         newmsg.setStatus(KVMessage.StatusType.ECHO);
         KVMessage inbound = null;
         try {
@@ -26,12 +26,12 @@ public class KVCommandEcho extends KVCommand {
     @Override
     public void handleResponse(KVMessage response){
         if(response!=null){
-            if(inbound.getStatus() == KVMessage.StatusType.ECHO){
-                System.out.println(inbound.getStatus().toString());
+            if(response.getStatus() == KVMessage.StatusType.ECHO){
+                System.out.println(response.getStatus().toString());
             }
         }
         else{
-
+            System.out.println("Failed to retrieve echo");
         }
     }
 }

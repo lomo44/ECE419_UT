@@ -15,13 +15,17 @@ public class KVCommandGet extends KVCommand {
             return clientInstance.getStore().get(getKey());
 
         } catch (Exception e) {
-            System.out.println("Erro! No status response received!");
+            System.out.println("Error! No status response received!");
             e.printStackTrace();
+            KVMessage newmsg = clientInstance.getStore().createEmptyMessage();
+            newmsg.setStatus(KVMessage.StatusType.NORESPONSE);
+            return newmsg;
         }
     }
 
+
     @Override
-    public void handlResponse(KVMessage response) {
+    public void handleResponse(KVMessage response) {
         KVMessage.StatusType statusType = response.getStatus();
         String key = response.getKey();
         String value = response.getValue();
@@ -34,6 +38,9 @@ public class KVCommandGet extends KVCommand {
             }
             case UNKNOWN_ERROR:{
                 System.out.println("Error! " + value);
+            }
+            case NORESPONSE:{
+                System.out.println("No response! ");
             }
             default:{
                 System.out.println("Error! " + value);

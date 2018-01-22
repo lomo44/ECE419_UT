@@ -2,6 +2,7 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
+import common.messages.KVMessage;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +25,6 @@ public abstract class KVCommand {
     }
     public abstract KVMessage execute(KVClient clientInstance);
     public abstract void handleResponse(KVMessage response);
-
     public void printPrompt() {
         System.out.print("Client> ");
     }

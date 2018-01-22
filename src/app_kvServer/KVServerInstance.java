@@ -57,7 +57,7 @@ public class KVServerInstance implements Runnable {
      */
     public KVMessage handleMessage(KVMessage in_message){
         KVMessage.StatusType statusType = in_message.getStatus();
-        KVMessage retMessage = KVCommunicationModule.getEmptyMessage();
+        KVMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
             case GET:{
                 if(serverinstance.inCache(in_message.getKey())){

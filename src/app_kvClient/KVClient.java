@@ -36,11 +36,11 @@ public class KVClient implements IKVClient {
             }
         }
     }
-    public void stop(){
+    public void stop() throws IOException {
         stop = true;
         disconnect();
     }
-    public void disconnect() {
+    public void disconnect() throws IOException {
         if (client != null) {
             client.disconnect();
             client = null;

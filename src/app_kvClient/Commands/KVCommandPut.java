@@ -11,20 +11,22 @@ public class KVCommandPut extends KVCommand {
 
     @Override
     public KVMessage execute(KVClient clientInstance) {
-        KVMessage message = null;
         try {
             return clientInstance.getStore().put(getKey(),getValue());
         } catch (Exception e) {
             System.out.println("Error! No status response received!");
             e.printStackTrace();
+            KVMessage newmsg = clientInstance.getStore().createEmptyMessage();
+            newmsg.setStatus(KVMessage.StatusType.NORESPONSE);
+            return newmsg;
         }
     }
 
     @Override
     public void handleResponse(KVMessage response) {
-        KVMessage.StatusType statusType = message.getStatus();
-        String key = message.getKey();
-        String value = message.getValue();
+        KVMessage.StatusType statusType = response.getStatus();
+        String key = response.getKey();
+        String value = response.getValue();
         switch (statusType) {
             case PUT_SUCCESS:{
                 System.out.println("Success!");
@@ -37,6 +39,9 @@ public class KVCommandPut extends KVCommand {
             }
             case UNKNOWN_ERROR:{
                 System.out.println("Error! " + value);
+            }
+            case NORESPONSE:{
+                System.out.println("No response!");
             }
             default:{
                 System.out.println("Error! " + value);

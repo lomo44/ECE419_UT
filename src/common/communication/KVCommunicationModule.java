@@ -26,7 +26,7 @@ public class KVCommunicationModule {
      * Create a empty KVMessage
      * @return
      */
-	public static KVMessage getEmptyMessage(){
+	public KVMessage getEmptyMessage(){
 		return new KVJSONMessage();
 	}
 
@@ -70,7 +70,7 @@ public class KVCommunicationModule {
 			try {
 				InputStream in_Message = privateSocket.getInputStream();
 				DataInputStream dInputStream = new DataInputStream(in_Message);
-				KVMessage ret = KVCommunicationModule.getEmptyMessage();
+				KVMessage ret = getEmptyMessage();
 				int bytelength = dInputStream.read();
 				byte[] array = new byte[bytelength];
 				dInputStream.read(array);

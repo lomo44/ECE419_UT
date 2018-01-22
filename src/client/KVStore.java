@@ -60,24 +60,18 @@ public class KVStore implements KVCommInterface {
 	}
 
 	@Override
-	public void disconnect() {
+	public void disconnect() throws IOException {
 		setRunning(false);
-		logger.info("Try to close connection ...");
 		if (clientSocket != null) {
-				try {
-					clientSocket.close();
-					communicationModule = null;
-					clientSocket = null;
-					logger.info("Connection closed!");
-				} catch (IOException e) {
-					logger.error("Unable to close connection!");
-				}
+			clientSocket.close();
+			communicationModule = null;
+			clientSocket = null;
 		}
 	}
 
 	@Override
 	public KVMessage put(String key, String value) throws SocketException {
-		KVMessage newmessage = KVCommunicationModule.getEmptyMessage();
+		KVMessage newmessage = createEmptyMessage();
 		newmessage.setValue(value);
 		newmessage.setKey(key);
 		newmessage.setStatus(KVMessage.StatusType.PUT);
@@ -87,7 +81,7 @@ public class KVStore implements KVCommInterface {
 
 	@Override
 	public KVMessage get(String key) throws Exception {
-		KVMessage newmessage = KVCommunicationModule.getEmptyMessage();
+		KVMessage newmessage = createEmptyMessage();
 		newmessage.setKey(key);
 		newmessage.setValue("");
 		newmessage.setStatus(KVMessage.StatusType.GET);
@@ -99,5 +93,10 @@ public class KVStore implements KVCommInterface {
 	public KVMessage send(KVMessage outboundmsg) throws SocketException {
 		communicationModule.send(outboundmsg);
 		return communicationModule.receiveMessage();
+	}
+
+	@Override
+	public KVMessage createEmptyMessage() {
+		return communicationModule.getEmptyMessage();
 	}
 }
