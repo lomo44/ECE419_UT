@@ -34,10 +34,10 @@ public class KVServerInstance implements Runnable {
                 System.out.println("Received timeout");
             }
             catch (SocketException e){
-                isRunning = false;
+
             }
             catch(Exception e){
-
+                
             }
         }
 
