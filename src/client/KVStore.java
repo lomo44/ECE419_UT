@@ -126,6 +126,13 @@ public class KVStore implements KVCommInterface {
 		newmessage.setKey(key);
 		newmessage.setValue("");
 		newmessage.setStatus(KVMessage.StatusType.GET);
+		communicationModule.send(newmessage);
+		return communicationModule.receiveMessage();
+	}
+
+	@Override
+	public KVMessage send(KVMessage outboundmsg) throws SocketException {
+		communicationModule.send(outboundmsg);
 		return communicationModule.receiveMessage();
 	}
 }

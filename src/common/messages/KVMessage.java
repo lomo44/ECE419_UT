@@ -12,6 +12,7 @@ public interface KVMessage {
 		PUT_ERROR(7), 		/* Put - request not successful */
 		DELETE_SUCCESS(8), /* Delete - request successful */
 		DELETE_ERROR(9), 	/* Delete - request successful */
+		ECHO(10),
 		UNKNOWN_ERROR(0);
 		private final int value;
 
@@ -44,9 +45,11 @@ public interface KVMessage {
                 case 3: return GET_SUCCESS;
                 case 4: return PUT;
                 case 5: return PUT_SUCCESS;
-                case 6: return PUT_ERROR;
-                case 7: return DELETE_SUCCESS;
-                case 8: return DELETE_ERROR;
+                case 6: return PUT_UPDATE;
+				case 7: return PUT_ERROR;
+                case 8: return DELETE_SUCCESS;
+                case 9: return DELETE_ERROR;
+				case 10: return ECHO;
             }
             return null;
 		}
