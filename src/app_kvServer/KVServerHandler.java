@@ -112,8 +112,10 @@ public class KVServerHandler implements Runnable {
         for (int i = 0; i < this.aliveinstancethreads.size() ; i++) {
             aliveinstancethreads.elementAt(i).join();
         }
-        if(serverSocket!=null)
+        if(serverSocket!=null){
             serverSocket.close();
+            serverSocket = null;
+        }
     }
 
     /**
