@@ -47,7 +47,7 @@ public class KVServerHandler implements Runnable {
                     initiateServerInstance(serverSocket.accept());
                 }
                 catch (SocketTimeoutException e){
-                    System.out.println("Server timeout");
+                    //System.out.println("Server timeout");
                 }
                 catch (SocketException e){
                     // Socket close

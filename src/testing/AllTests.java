@@ -30,6 +30,7 @@ public class AllTests {
 		clientSuite.addTestSuite(AdditionalTest.class);
 		clientSuite.addTestSuite(KVJSONMessageTest.class);
 		clientSuite.addTestSuite(KVServerTest.class);
+		clientSuite.addTestSuite(KVClientTest.class);
 		clientSuite.addTestSuite(CommandPatternTest.class);
 		return clientSuite;
 	}

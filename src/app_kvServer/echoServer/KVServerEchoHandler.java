@@ -15,7 +15,7 @@ public class KVServerEchoHandler extends KVServerHandler {
      */
 
     public KVServerEchoHandler(int port, KVServer managerServer) {
-        super(port, managerServer, 5000);
+        super(port, managerServer, 500);
     }
     @Override
     public KVServerInstance createServerInstance(KVCommunicationModule com, IKVServer master){
