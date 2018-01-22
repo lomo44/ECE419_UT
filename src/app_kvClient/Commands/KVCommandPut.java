@@ -18,7 +18,27 @@ public class KVCommandPut extends KVCommand {
             e.printStackTrace();
         }
         if(message!=null){
-            clientInstance.handleMessage(message);
+            KVMessage.StatusType statusType = message.getStatus();
+            String key = message.getKey();
+            String value = message.getValue();
+            switch (statusType) {
+                case PUT_SUCCESS:{
+                    System.out.println("Success!");
+                }
+                case PUT_UPDATE:{
+                    System.out.println("Success (update)!");
+                }
+                case PUT_ERROR:{
+                    System.out.println("Error! Key " + key + " does not exist!");
+                }
+                case UNKNOWN_ERROR:{
+                    System.out.println("Error! " + value);
+                }
+                default:{
+                    System.out.println("Error! " + value);
+                }
+            }
+            printPrompt();
         }
     }
 

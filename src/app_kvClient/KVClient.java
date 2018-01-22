@@ -36,13 +36,6 @@ public class KVClient implements IKVClient {
             }
         }
     }
-    public void handleMessage(KVMessage msg) {
-        if (client != null && client.isRunning()) {
-            String str = client.handleMessage(msg);
-            System.out.println(str);
-            System.out.print(PROMPT);
-        }
-    }
     public void stop(){
         stop = true;
         disconnect();

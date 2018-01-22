@@ -23,4 +23,8 @@ public abstract class KVCommand {
         return parameterMap.get(key);
     }
     public abstract void execute(KVClient clientInstance);
+
+    public void printPrompt() {
+        System.out.print("Client> ");
+    }
 }

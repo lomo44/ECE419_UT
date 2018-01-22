@@ -33,41 +33,6 @@ public class KVStore implements KVCommInterface {
 		listeners = new HashSet<app_kvClient.IKVClient>();
 	}
 
-	public String handleMessage(KVMessage incoming_msg) {
-		KVMessage.StatusType statusType = incoming_msg.getStatus();
-		StringBuilder incoming_str = new StringBuilder();
-		switch (statusType) {
-			case PUT_SUCCESS:{
-				// TODO
-			}
-			case PUT_UPDATE:{
-				// TODO
-			}
-			case PUT_ERROR:{
-				// TODO
-			}
-			case GET_SUCCESS:{
-				// TODO
-			}
-			case GET_ERROR:{
-				// TODO
-			}
-			case DELETE_SUCCESS:{
-				// TODO
-			}
-			case DELETE_ERROR:{
-				// TODO
-			}
-			case UNKNOWN_ERROR:{
-				// TODO
-			}
-			default:{
-				// TODO (same as UNKNOWN_ERROR)
-			}
-		}
-		return incoming_str.toString();
-	}
-
 	//TODO: Handle connection exception
 	@Override
 	public void connect() throws Exception {
