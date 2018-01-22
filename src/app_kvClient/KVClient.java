@@ -91,7 +91,6 @@ public class KVClient implements IKVClient {
     public KVCommInterface getStore(){
         return client;
     }
-
     public KVMessage executeCommand(KVCommand cmdInstance){
         return cmdInstance.execute(this);
     }

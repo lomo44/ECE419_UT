@@ -47,7 +47,7 @@ public class KVServerHandler implements Runnable {
                     initiateServerInstance(serverSocket.accept());
                 }
                 catch (SocketTimeoutException e){
-
+                    System.out.println("Server timeout");
                 }
                 catch (SocketException e){
                     // Socket close
@@ -90,7 +90,7 @@ public class KVServerHandler implements Runnable {
      * @return KVCommunication module instance
      */
     public KVCommunicationModule createCommunicationModule(Socket socket){
-        return new KVCommunicationModule(socket,500);
+        return new KVCommunicationModule(socket,listenerTimerout);
     }
 
     /**

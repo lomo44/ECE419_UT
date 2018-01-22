@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
@@ -35,7 +36,7 @@ public class KVCommunicationModule {
      * @param in_Message outbound message
      * @throws SocketException will be thrown if socket is closed
      */
-	public void send(KVMessage in_Message) throws SocketException {
+	public void send(KVMessage in_Message) throws SocketException, SocketTimeoutException {
 		if(!isInitialized){
 			initialize();
 		}
@@ -47,7 +48,11 @@ public class KVCommunicationModule {
 				byte[] out = in_Message.toBytes();
 				data_out.write(out.length);
 				data_out.write(out);
-			} catch (IOException e) {
+			}
+			catch (SocketTimeoutException e){
+				throw e;
+			}
+			catch (IOException e) {
 				e.printStackTrace();
 				throw new SocketException();
 			}
@@ -62,7 +67,7 @@ public class KVCommunicationModule {
      * @return KVMessage
      * @throws SocketException thrown if socket is closed
      */
-	public KVMessage receiveMessage() throws SocketException {
+	public KVMessage receiveMessage() throws SocketException, SocketTimeoutException {
 		if(!isInitialized){
 			initialize();
 		}
@@ -76,7 +81,11 @@ public class KVCommunicationModule {
 				dInputStream.read(array);
 				ret.fromBytes(array);
 				return ret;
-			} catch (IOException e) {
+			}
+			catch (SocketTimeoutException e){
+				throw e;
+			}
+			catch (IOException e) {
 				//e.printStackTrace();
 				throw new SocketException();
 			}

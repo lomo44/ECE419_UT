@@ -2,6 +2,7 @@ package client;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.HashSet;
 import java.util.Set;
 import java.net.SocketException;
@@ -37,7 +38,7 @@ public class KVStore implements KVCommInterface {
 	@Override
 	public void connect() throws Exception {
 		clientSocket = new Socket(serverAddress, serverPort);
-		communicationModule = new KVCommunicationModule(clientSocket,500);
+		communicationModule = new KVCommunicationModule(clientSocket,5000);
 		setRunning(true);
 		logger.info("Connection established");
 
@@ -70,7 +71,7 @@ public class KVStore implements KVCommInterface {
 	}
 
 	@Override
-	public KVMessage put(String key, String value) throws SocketException {
+	public KVMessage put(String key, String value) throws SocketException, SocketTimeoutException {
 		KVMessage newmessage = createEmptyMessage();
 		newmessage.setValue(value);
 		newmessage.setKey(key);
@@ -80,7 +81,7 @@ public class KVStore implements KVCommInterface {
 	}
 
 	@Override
-	public KVMessage get(String key) throws Exception {
+	public KVMessage get(String key) throws SocketTimeoutException, SocketException {
 		KVMessage newmessage = createEmptyMessage();
 		newmessage.setKey(key);
 		newmessage.setValue("");
@@ -90,7 +91,7 @@ public class KVStore implements KVCommInterface {
 	}
 
 	@Override
-	public KVMessage send(KVMessage outboundmsg) throws SocketException {
+	public KVMessage send(KVMessage outboundmsg) throws SocketException, SocketTimeoutException {
 		communicationModule.send(outboundmsg);
 		return communicationModule.receiveMessage();
 	}
