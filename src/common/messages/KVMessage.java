@@ -13,6 +13,11 @@ public interface KVMessage {
 		DELETE_SUCCESS(8), /* Delete - request successful */
 		DELETE_ERROR(9), 	/* Delete - request successful */
 		ECHO(10),
+        CONNECT_SUCCESS(11),
+        CONNECT_FAIL(12),
+        DISCONNECT_SUCCESS(13),
+        DISCONNECT_FAIL(14),
+        NORESPONSE(15),
 		UNKNOWN_ERROR(0);
 		private final int value;
 
@@ -50,6 +55,11 @@ public interface KVMessage {
                 case 8: return DELETE_SUCCESS;
                 case 9: return DELETE_ERROR;
 				case 10: return ECHO;
+                case 11: return CONNECT_SUCCESS;
+                case 12: return CONNECT_FAIL;
+                case 13: return DISCONNECT_SUCCESS;
+                case 14: return DISCONNECT_FAIL;
+                case 15: return NORESPONSE;
             }
             return null;
 		}
