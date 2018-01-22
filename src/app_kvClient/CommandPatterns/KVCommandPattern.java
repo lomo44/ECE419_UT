@@ -14,6 +14,7 @@ public abstract class KVCommandPattern {
         LOG_LEVEL,
         HELP,
         QUIT,
+        ECHO,
         UNKNOWN
     }
     protected KVCommandType commandType;

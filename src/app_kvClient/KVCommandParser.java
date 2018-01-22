@@ -21,6 +21,7 @@ public class KVCommandParser {
         commandPatterns.add(new KVCommandPatternLogLevel());
         commandPatterns.add(new KVCommandPatternPut());
         commandPatterns.add(new KVCommandPatternQuit());
+        commandPatterns.add(new KVCommandPatternEcho());
     }
 
     public KVCommand getParsedCommand(String command){

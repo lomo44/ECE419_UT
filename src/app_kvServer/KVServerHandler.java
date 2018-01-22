@@ -90,7 +90,7 @@ public class KVServerHandler implements Runnable {
      * @return KVCommunication module instance
      */
     public KVCommunicationModule createCommunicationModule(Socket socket){
-        return new KVCommunicationModule(socket,0);
+        return new KVCommunicationModule(socket,500);
     }
 
     /**

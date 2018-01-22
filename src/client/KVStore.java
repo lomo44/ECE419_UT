@@ -37,7 +37,7 @@ public class KVStore implements KVCommInterface {
 	@Override
 	public void connect() throws Exception {
 		clientSocket = new Socket(serverAddress, serverPort);
-		communicationModule = new KVCommunicationModule(clientSocket,0);
+		communicationModule = new KVCommunicationModule(clientSocket,500);
 		setRunning(true);
 		logger.info("Connection established");
 
@@ -91,6 +91,13 @@ public class KVStore implements KVCommInterface {
 		newmessage.setKey(key);
 		newmessage.setValue("");
 		newmessage.setStatus(KVMessage.StatusType.GET);
+		communicationModule.send(newmessage);
+		return communicationModule.receiveMessage();
+	}
+
+	@Override
+	public KVMessage send(KVMessage outboundmsg) throws SocketException {
+		communicationModule.send(outboundmsg);
 		return communicationModule.receiveMessage();
 	}
 }
