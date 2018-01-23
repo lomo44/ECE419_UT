@@ -20,7 +20,7 @@ public class FIFOCache implements KVCache{
             private static final long serialVersionUID = -2L;
 			@Override
 			 protected boolean removeEldestEntry(Map.Entry<String,String> eldest) {
-                return size() > size;
+                return size() > cacheSize;
 			}
 		};
 	}
