@@ -10,3 +10,4 @@ m1-server.jar
 *.log
 .DS_Store
 .recommenders/
+bin
