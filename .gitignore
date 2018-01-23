@@ -7,3 +7,5 @@ m1-server.jar
 .metadata/
 *.iml
 *.log
+.DS_Store
+.recommenders/
