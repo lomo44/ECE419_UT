@@ -5,17 +5,17 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 
-public class FIFOCache implements KVCache{
+public class KVFIFOCache extends KVCache{
 
 	private int cacheSize;
-	private KV_CacheStrategy cacheStrategy;
+	private KVCacheStrategy cacheStrategy;
 	private Map<String, String> cache;
     private float loadfactor = 0.75f;
 
 	
-	public FIFOCache(int size, String strategy) {
+	public KVFIFOCache(int size) {
 		this.cacheSize = size;
-		this.cacheStrategy = KV_CacheStrategy.fromString("FIFO");
+		this.cacheStrategy = KVCacheStrategy.fromString("FIFO");
 		cache = new LinkedHashMap<String,String>(cacheSize,loadfactor,false) {
             private static final long serialVersionUID = -2L;
 			@Override
@@ -25,33 +25,22 @@ public class FIFOCache implements KVCache{
 		};
 	}
 	
-	
-	@Override
-	public KV_CacheStrategy KV_getCacheStrategy() {
-	    return cacheStrategy;
-	}
-	
-	@Override
-	public int KV_getCacheSize() {
-		return cacheSize;
-	}
-	
-	@Override
-	public boolean KV_inCache(String key) {
-		return cache.containsKey(key);
-	}
-	
 	public void printCache() {
 		System.out.println(cache.toString());
 	}
-	
+
 	@Override
-	public synchronized void KV_clearCache() {
+	public boolean inCache(String key) {
+		return cache.containsKey(key);
+	}
+
+	@Override
+	public synchronized void clearCache() {
 		cache.clear();
 	}
 	
 	@Override
-	public synchronized void KV_flushCache() {
+	public synchronized void flushCache() {
 		// TODO Auto-generated method stub
 		
 	}
@@ -68,6 +57,4 @@ public class FIFOCache implements KVCache{
 	public synchronized void putToCache(String key, String value) throws Exception {
 		cache.put(key, value);
 	}
-	
-	
 }

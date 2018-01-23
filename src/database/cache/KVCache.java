@@ -1,12 +1,12 @@
 package database.cache;
 
-public interface KVCache {
+public abstract class KVCache {
 	
-	public enum KV_CacheStrategy {
+	public enum KVCacheStrategy {
 		None("None"), LRU("LRU"), LFU("LFU"), FIFO("FIFO");
 		private String str;
 
-		private KV_CacheStrategy(String str) {
+		private KVCacheStrategy(String str) {
 			this.str = str;
 		}
 
@@ -14,7 +14,7 @@ public interface KVCache {
 			return str;
 		}
 
-		public static KV_CacheStrategy fromString(String str) {
+		public static KVCacheStrategy fromString(String str) {
 			switch (str) {
 			case "FIFO":
 				return FIFO;
@@ -27,32 +27,34 @@ public interface KVCache {
 			}
 		}
 	};
-	
+
+	protected KVCacheStrategy cacheStrategy;
+	protected int			  cacheSize;
 	/**
 	 * Get the cache strategy of the server
 	 * 
 	 * @return cache strategy
 	 */
-	public KV_CacheStrategy KV_getCacheStrategy();
+	public KVCacheStrategy getCacheStrategy(){return cacheStrategy;};
 
 	/**
 	 * Get the cache size
 	 * 
 	 * @return cache size
 	 */
-	public int KV_getCacheSize();
+	public int getCacheSize(){return cacheSize;}
 	
 	/**
 	 * Check if key is in storage. NOTE: does not modify any other properties
 	 * 
 	 * @return true if key in storage, false otherwise
 	 */
-	public boolean KV_inCache(String key);
+	public abstract boolean inCache(String key);
 	
 	/**
 	 * Clear the local cache of the server
 	 */
-	public void KV_clearCache();
+	public abstract void clearCache();
 	
 	/**
 	 * Get the value associated with the key
@@ -61,7 +63,7 @@ public interface KVCache {
 	 * @throws Exception
 	 *             when key not in the key range of the server
 	 */
-	public String getFromCache(String key) throws Exception;
+	public abstract String getFromCache(String key) throws Exception;
 
 	/**
 	 * Put the key-value pair into storage
@@ -69,11 +71,11 @@ public interface KVCache {
 	 * @throws Exception
 	 *             when key not in the key range of the server
 	 */
-	public void putToCache(String key, String value) throws Exception;
+	public abstract void putToCache(String key, String value) throws Exception;
 	
 	/**
 	 * Flush the local cache
 	 */
-	public void KV_flushCache();
+	public abstract void flushCache();
 
 }

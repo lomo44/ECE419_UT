@@ -2,7 +2,8 @@ package testing;
 
 import java.io.IOException;
 
-import common.messages.KVJSONMessage;
+import database.cache.KVFIFOCache;
+import database.cache.KVLRUCache;
 import org.apache.log4j.Level;
 
 import app_kvServer.KVServer;
@@ -31,7 +32,9 @@ public class AllTests {
 		clientSuite.addTestSuite(KVJSONMessageTest.class);
 		clientSuite.addTestSuite(KVServerTest.class);
 		clientSuite.addTestSuite(KVClientTest.class);
-		clientSuite.addTestSuite(CommandPatternTest.class);
+		clientSuite.addTestSuite(KVCommandPatternTest.class);
+		clientSuite.addTestSuite(KVLRUCacheTest.class);
+		clientSuite.addTestSuite(KVFIFOCacheTest.class);
 		return clientSuite;
 	}
 	

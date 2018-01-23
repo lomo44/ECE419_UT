@@ -5,7 +5,7 @@ import app_kvClient.Commands.KVCommand;
 import junit.framework.TestCase;
 import org.junit.Test;
 
-public class CommandPatternTest extends TestCase {
+public class KVCommandPatternTest extends TestCase {
     @Test
     public void testCommandPattern_Connect_Match(){
         KVCommandPatternConnect connect = new KVCommandPatternConnect();

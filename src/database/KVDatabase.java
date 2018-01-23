@@ -1,16 +1,13 @@
 package database;
 
-import java.util.concurrent.ConcurrentHashMap;
-
-import database.cache.FIFOCache;
+import database.cache.KVFIFOCache;
 import database.cache.KVCache;
-import database.cache.LRUCache;
+import database.cache.KVLRUCache;
 import database.storage.KVStorage;
 import database.storage.MMStorage;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
- 
+
 
 public class KVDatabase implements IKVDatabase {
 
@@ -27,9 +24,9 @@ public class KVDatabase implements IKVDatabase {
 		storage = new MMStorage(storageSize);
 		switch(cacheStrategy) {
 			default:LRU:
-				cache = new LRUCache(cacheSize,"LRU") ;
+				cache = new KVLRUCache(cacheSize) ;
 			FIFO:
-				cache = new FIFOCache(cacheSize,"FIFO");
+				cache = new KVFIFOCache(cacheSize);
 			LFU:
 				//not yet finished
 				cache = null;
