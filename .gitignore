@@ -6,3 +6,4 @@ m1-server.jar
 .idea/
 .metadata/
 *.iml
+*.log

@@ -7,6 +7,7 @@ import common.messages.KVMessage;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 public class KVTestClient {
     private String hostname;
@@ -34,13 +35,13 @@ public class KVTestClient {
         return new KVCommunicationModule(socket,0);
     }
 
-    public void send(KVMessage msg) throws SocketException {
+    public void send(KVMessage msg) throws SocketException, SocketTimeoutException {
         communicationModule.send(msg);
     }
-    public KVMessage get() throws SocketException {
+    public KVMessage get() throws SocketException, SocketTimeoutException {
         return communicationModule.receiveMessage();
     }
     public KVMessage createKVMessage(){
-        return KVCommunicationModule.getEmptyMessage();
+        return communicationModule.getEmptyMessage();
     }
 }

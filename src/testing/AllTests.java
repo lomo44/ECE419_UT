@@ -2,6 +2,7 @@ package testing;
 
 import java.io.IOException;
 
+import common.messages.KVJSONMessage;
 import org.apache.log4j.Level;
 
 import app_kvServer.KVServer;
@@ -27,7 +28,10 @@ public class AllTests {
 		clientSuite.addTestSuite(ConnectionTest.class);
 		clientSuite.addTestSuite(InteractionTest.class);
 		clientSuite.addTestSuite(AdditionalTest.class);
+		clientSuite.addTestSuite(KVJSONMessageTest.class);
 		clientSuite.addTestSuite(KVServerTest.class);
+		clientSuite.addTestSuite(KVClientTest.class);
+		clientSuite.addTestSuite(CommandPatternTest.class);
 		return clientSuite;
 	}
 	
