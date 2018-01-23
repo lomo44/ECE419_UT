@@ -30,11 +30,14 @@ public class KVServerInstance implements Runnable {
                 KVMessage in_msg = communicationModule.receiveMessage();
                 communicationModule.send(handleMessage(in_msg));
             }
+            catch (SocketTimeoutException e){
+                //System.out.println("Received timeout");
+            }
             catch (SocketException e){
                 isRunning = false;
             }
             catch(Exception e){
-
+                
             }
         }
 
@@ -57,7 +60,7 @@ public class KVServerInstance implements Runnable {
      */
     public KVMessage handleMessage(KVMessage in_message){
         KVMessage.StatusType statusType = in_message.getStatus();
-        KVMessage retMessage = KVCommunicationModule.getEmptyMessage();
+        KVMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
             case GET:{
                 if(serverinstance.inCache(in_message.getKey())){

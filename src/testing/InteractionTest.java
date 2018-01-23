@@ -7,6 +7,8 @@ import junit.framework.TestCase;
 import common.messages.KVMessage;
 import common.messages.KVMessage.StatusType;
 
+import java.io.IOException;
+
 
 public class InteractionTest extends TestCase {
 
@@ -20,7 +22,7 @@ public class InteractionTest extends TestCase {
 		}
 	}
 
-	public void tearDown() {
+	public void tearDown() throws IOException {
 		kvClient.disconnect();
 	}
 	
@@ -42,7 +44,7 @@ public class InteractionTest extends TestCase {
 	}
 	
 	@Test
-	public void testPutDisconnected() {
+	public void testPutDisconnected() throws IOException {
 		kvClient.disconnect();
 		String key = "foo";
 		String value = "bar";
