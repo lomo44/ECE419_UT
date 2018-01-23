@@ -12,7 +12,7 @@ import java.io.IOException;
 public class KVDatabase implements IKVDatabase {
 
 	private int cacheSize;
-	private KV_CacheStrategy cacheStrategy;
+	private KVCache.KVCacheStrategy cacheStrategy;
 	private long storageSize;
 	private KVCache cache;
 	private KVStorage storage;
@@ -20,7 +20,7 @@ public class KVDatabase implements IKVDatabase {
 	public KVDatabase (int sizeofCache,long sizeofStorage,String cacheStrat) throws ClassNotFoundException, IOException {
 		storageSize =sizeofStorage;
 		cacheSize = sizeofCache;
-		cacheStrategy = KV_CacheStrategy.fromString(cacheStrat);
+		cacheStrategy = KVCache.KVCacheStrategy.fromString(cacheStrat);
 		storage = new MMStorage(storageSize);
 		switch(cacheStrategy) {
 			default:LRU:
@@ -36,7 +36,7 @@ public class KVDatabase implements IKVDatabase {
 
 
 	@Override
-	public synchronized String KV_getKV(String key) throws Exception {
+	public synchronized String getKV(String key) throws Exception {
 			String value=cache.getFromCache(key);
 			if (value==null) {
 				value=storage.getFromStorage(key);
@@ -46,22 +46,42 @@ public class KVDatabase implements IKVDatabase {
 	}
 
 	@Override
-	public synchronized void KV_putKV(String key, String value) throws Exception {
+	public synchronized void putKV(String key, String value) throws Exception {
 			cache.putToCache(key, value);
 			storage.putToStorage(key, value);
 	}
 
 
 	@Override
-	public void KV_kill() {
+	public void kill() {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void KV_close() {
+	public void close() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public boolean inStorage(String key) {
+		return storage.inStorage(key);
+	}
+
+	@Override
+	public boolean inCache(String key) {
+		return cache.inCache(key);
+	}
+
+	@Override
+	public void flushCache() {
+		cache.flushCache();
+	}
+
+	@Override
+	public void flushStorage() {
+		storage.clearStorage();
 	}
 
 }

@@ -20,6 +20,8 @@ public class AllTests {
 			new KVServer(50000, 10, "FIFO");
 		} catch (IOException e) {
 			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
 	}
 	

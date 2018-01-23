@@ -6,7 +6,7 @@ public interface KVStorage {
 	 * 
 	 * @return true if key in storage, false otherwise
 	 */
-	public boolean KV_inStorage(String key);
+	public boolean inStorage(String key);
 
 
 
@@ -32,7 +32,7 @@ public interface KVStorage {
 	/**
 	 * Clear the storage of the server
 	 */
-	public void KV_clearStorage();
+	public void clearStorage();
 
 	
 	/**

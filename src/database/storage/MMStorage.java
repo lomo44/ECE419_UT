@@ -60,7 +60,7 @@ public class MMStorage implements KVStorage{
 	}
 	
 	@Override
-	public boolean KV_inStorage(String key) {
+	public boolean inStorage(String key) {
 		return this.storageOnMem.containsKey(key);
 
 	}
@@ -82,7 +82,7 @@ public class MMStorage implements KVStorage{
 	}
 
 	@Override
-	public synchronized void KV_clearStorage() {
+	public synchronized void clearStorage() {
 		buffer.clear();
 		storageOnMem.clear();
 	}

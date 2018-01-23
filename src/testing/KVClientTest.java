@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 public class KVClientTest extends TestCase {
     @Test
-    public void testClientBasic_Connection() throws InterruptedException, IOException {
+    public void testClientBasic_Connection() throws InterruptedException, IOException, ClassNotFoundException {
         KVServerEcho serverEcho = new KVServerEcho(40001,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
@@ -31,7 +31,7 @@ public class KVClientTest extends TestCase {
         serverEcho.close();
     }
     @Test
-    public void testClientBasic_PutSuccess() throws InterruptedException, IOException {
+    public void testClientBasic_PutSuccess() throws InterruptedException, IOException, ClassNotFoundException {
         KVServerEcho serverEcho = new KVServerEcho(40002,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
@@ -52,7 +52,7 @@ public class KVClientTest extends TestCase {
         serverEcho.close();
     }
     @Test
-    public void testClientBasic_GetError() throws InterruptedException, IOException {
+    public void testClientBasic_GetError() throws InterruptedException, IOException, ClassNotFoundException {
         KVServerEcho serverEcho = new KVServerEcho(40003,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
@@ -72,7 +72,7 @@ public class KVClientTest extends TestCase {
         serverEcho.close();
     }
     @Test
-    public void testClientBasic_GetSuccess() throws InterruptedException, IOException {
+    public void testClientBasic_GetSuccess() throws InterruptedException, IOException, ClassNotFoundException {
         KVServerEcho serverEcho = new KVServerEcho(40004,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
@@ -98,7 +98,7 @@ public class KVClientTest extends TestCase {
         serverEcho.close();
     }
     @Test
-    public void testClientBasic_DeleteSuccess() throws InterruptedException, IOException {
+    public void testClientBasic_DeleteSuccess() throws InterruptedException, IOException, ClassNotFoundException {
         KVServerEcho serverEcho = new KVServerEcho(40005,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
@@ -122,7 +122,7 @@ public class KVClientTest extends TestCase {
         serverEcho.close();
     }
     @Test
-    public void testClientBasic_DeleteError() throws InterruptedException, IOException {
+    public void testClientBasic_DeleteError() throws InterruptedException, IOException, ClassNotFoundException {
         KVServerEcho serverEcho = new KVServerEcho(40006,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
@@ -143,7 +143,7 @@ public class KVClientTest extends TestCase {
         serverEcho.close();
     }
     @Test
-    public void testClientBasic_UpdateSuccess() throws InterruptedException, IOException {
+    public void testClientBasic_UpdateSuccess() throws InterruptedException, IOException, ClassNotFoundException {
         KVServerEcho serverEcho = new KVServerEcho(40007,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
@@ -167,7 +167,7 @@ public class KVClientTest extends TestCase {
         serverEcho.close();
     }
     @Test
-    public void testClientBasic_Echo() throws InterruptedException, IOException {
+    public void testClientBasic_Echo() throws InterruptedException, IOException, ClassNotFoundException {
         KVServerEcho serverEcho = new KVServerEcho(40007,10,"NULL");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());

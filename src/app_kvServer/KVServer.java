@@ -1,5 +1,7 @@
 package app_kvServer;
 
+import database.KVDatabase;
+
 import java.io.IOException;
 
 public class KVServer implements IKVServer {
@@ -19,13 +21,15 @@ public class KVServer implements IKVServer {
 	private int port;
     private int cacheSize;
 	private CacheStrategy cacheStrategy;
-    public KVServer(int port, int cacheSize, String strategy) {
+	private KVDatabase database;
+    public KVServer(int port, int cacheSize, String strategy) throws IOException, ClassNotFoundException {
         this.port = port;
         serverHandler = createServerHandler();
         handlerThread = new Thread(serverHandler);
         handlerThread.start();
         this.cacheSize = cacheSize;
         cacheStrategy = CacheStrategy.fromString(strategy);
+        database = new KVDatabase(cacheSize,500,strategy);
 	}
 
 	@Override
@@ -51,35 +55,32 @@ public class KVServer implements IKVServer {
 
 	@Override
     public boolean inStorage(String key){
-		// TODO Auto-generated method stub
-		return false;
+		return database.inStorage(key);
 	}
 
 	@Override
     public boolean inCache(String key){
-		// TODO Auto-generated method stub
-		return false;
+		return database.inCache(key);
 	}
 
 	@Override
     public String getKV(String key) throws Exception{
-		// TODO Auto-generated method stub
-		return "";
+		return database.getKV(key);
 	}
 
 	@Override
     public void putKV(String key, String value) throws Exception{
-		// TODO Auto-generated method stub
+		database.putKV(key,value);
 	}
 
 	@Override
     public void clearCache(){
-		// TODO Auto-generated method stub
+		database.flushCache();
 	}
 
 	@Override
     public void clearStorage(){
-		// TODO Auto-generated method stub
+		database.flushStorage();
 	}
 
 	@Override
@@ -96,7 +97,7 @@ public class KVServer implements IKVServer {
 
 	@Override
     public void flushCache(){
-
+		database.flushCache();
     }
 
 	/**
@@ -114,8 +115,16 @@ public class KVServer implements IKVServer {
 	public static void main(String[] args) {
 	    int port = Integer.parseInt(args[0]);
 	    int cachesize = Integer.parseInt(args[1]);
-	    KVServer new_server = new KVServer(port,cachesize,args[2]);
-	    while(true){
+		try {
+			KVServer new_server = new KVServer(port,cachesize,args[2]);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return;
+		}
+		while(true){
 
         }
 	}
