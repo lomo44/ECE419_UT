@@ -38,7 +38,7 @@ public class KVStore implements KVCommInterface {
 	@Override
 	public void connect() throws Exception {
 		clientSocket = new Socket(serverAddress, serverPort);
-		communicationModule = new KVCommunicationModule(clientSocket,5000);
+		communicationModule = new KVCommunicationModule(clientSocket,1000);
 		setRunning(true);
 		logger.info("Connection established");
 

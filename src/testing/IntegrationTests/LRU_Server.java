@@ -1,4 +1,4 @@
-package testing;
+package testing.IntegrationTests;
 
 
 import app_kvClient.KVClient;
@@ -13,7 +13,7 @@ import junit.framework.TestCase;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class KVClientTest extends TestCase {
+public class LRU_Server extends TestCase {
 
 
     private KVServer server = null;
@@ -22,7 +22,7 @@ public class KVClientTest extends TestCase {
 
     @Override
     protected void setUp() throws Exception{
-        server = new KVServer(40000, 10, "NULL");
+        server = new KVServer(40000, 10, "LRU");
         TimeUnit.SECONDS.sleep(1);
         client = new KVClient();
         client.newConnection("localhost",40000);
@@ -84,7 +84,7 @@ public class KVClientTest extends TestCase {
         putInstance.setValue("World");
         KVMessage putResponse = client.executeCommand(putInstance);
         assertTrue(putResponse.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
-        putInstance.setValue("");
+        putInstance.setValue("null");
         KVMessage deleteResponse = client.executeCommand(putInstance);
         assertEquals(deleteResponse.getStatus(),KVMessage.StatusType.DELETE_SUCCESS);
     }
@@ -94,7 +94,7 @@ public class KVClientTest extends TestCase {
         assertTrue(client.isConnected());
         KVCommandPut putInstance = new KVCommandPut();
         putInstance.setKey("Hello");
-        putInstance.setValue("");
+        putInstance.setValue("null");
         KVMessage putResponse = client.executeCommand(putInstance);
         assertEquals(putResponse.getStatus(),KVMessage.StatusType.DELETE_ERROR);
     }

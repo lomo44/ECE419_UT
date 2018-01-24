@@ -1,4 +1,4 @@
-package testing;
+package testing.CommunicationTests;
 
 
 import common.messages.KVMessage;

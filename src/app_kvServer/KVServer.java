@@ -104,7 +104,7 @@ public class KVServer implements IKVServer {
 	 * @return a server handler instances
 	 */
     public KVServerHandler createServerHandler(){
-    	return new KVServerHandler(this.port, this,5000);
+    	return new KVServerHandler(this.port, this,1000);
 	}
 
 	public boolean isHandlerRunning(){

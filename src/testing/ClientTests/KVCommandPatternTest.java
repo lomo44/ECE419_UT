@@ -1,4 +1,4 @@
-package testing;
+package testing.ClientTests;
 
 import app_kvClient.CommandPatterns.*;
 import app_kvClient.Commands.KVCommand;
