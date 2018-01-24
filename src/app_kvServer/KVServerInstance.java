@@ -14,6 +14,7 @@ public class KVServerInstance implements Runnable {
     private KVCommunicationModule communicationModule;
     private IKVServer serverinstance;
     private boolean isRunning;
+    private static final String DELETE_IDENTIFIER = "null";
 
     public KVServerInstance(KVCommunicationModule communicationModule, IKVServer server){
         this.communicationModule = communicationModule;
@@ -82,11 +83,13 @@ public class KVServerInstance implements Runnable {
                 try {
                     String value = serverinstance.getKV(in_message.getKey());
                     if(!value.matches(update_value)) {
-                        if(update_value.matches("")){
+                        if(update_value.matches(DELETE_IDENTIFIER)){
                             retMessage.setStatus(DELETE_SUCCESS);
                         }
                         else{
                             retMessage.setStatus(PUT_UPDATE);
+                            retMessage.setKey(in_message.getKey());
+                            retMessage.setValue(in_message.getValue());
                         }
                     }
                     else {
@@ -94,7 +97,7 @@ public class KVServerInstance implements Runnable {
                         break;
                     }
                 } catch (Exception e) {
-                    if(update_value.matches("")) {
+                    if(update_value.matches(DELETE_IDENTIFIER)) {
                         retMessage.setStatus(DELETE_ERROR);
                         break;
                     }
@@ -105,7 +108,7 @@ public class KVServerInstance implements Runnable {
                 try {
                     serverinstance.putKV(in_message.getKey(),in_message.getValue());
                 } catch (Exception e) {
-                    if(in_message.getValue().matches("")){
+                    if(in_message.getValue().matches(DELETE_IDENTIFIER)){
                         retMessage.setStatus(DELETE_ERROR);
                     }else {
                         retMessage.setStatus(PUT_ERROR);

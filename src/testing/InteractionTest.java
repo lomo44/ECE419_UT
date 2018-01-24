@@ -1,5 +1,6 @@
 package testing;
 
+import app_kvServer.KVServer;
 import org.junit.Test;
 
 import client.KVStore;
@@ -8,22 +9,26 @@ import common.messages.KVMessage;
 import common.messages.KVMessage.StatusType;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 
 public class InteractionTest extends TestCase {
 
 	private KVStore kvClient;
-	
-	public void setUp() {
-		kvClient = new KVStore("localhost", 30000);
-		try {
-			kvClient.connect();
-		} catch (Exception e) {
-		}
-	}
+	private KVServer kvServer;
 
-	public void tearDown() throws IOException {
+	@Override
+	public void setUp() throws Exception {
+		kvServer = new KVServer(30000,10,"FIFO");
+		TimeUnit.SECONDS.sleep(1);
+		kvClient = new KVStore("localhost", 30000);
+		kvClient.connect();
+	}
+	@Override
+	public void tearDown() throws IOException, InterruptedException {
 		kvClient.disconnect();
+		kvServer.clearStorage();
+		kvServer.close();
 	}
 	
 	
