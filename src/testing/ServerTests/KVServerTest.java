@@ -1,4 +1,4 @@
-package testing;
+package testing.ServerTests;
 
 
 import app_kvClient.testClient.KVTestClient;

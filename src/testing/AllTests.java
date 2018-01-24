@@ -1,15 +1,15 @@
 package testing;
 
-import java.io.IOException;
-
-import database.cache.KVFIFOCache;
-import database.cache.KVLRUCache;
-import org.apache.log4j.Level;
-
-import app_kvServer.KVServer;
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import logger.LogSetup;
+import testing.ClientTests.KVCommandPatternTest;
+import testing.CommunicationTests.ConnectionTest;
+import testing.CommunicationTests.InteractionTest;
+import testing.CommunicationTests.KVJSONMessageTest;
+import testing.DatabaseTests.KVFIFOCacheTest;
+import testing.DatabaseTests.KVLRUCacheTest;
+import testing.IntegrationTests.ClientServerIntegrationTest;
+import testing.ServerTests.KVServerTest;
 
 
 public class AllTests {
@@ -24,7 +24,7 @@ public class AllTests {
 		clientSuite.addTestSuite(AdditionalTest.class);
 		clientSuite.addTestSuite(KVJSONMessageTest.class);
 		clientSuite.addTestSuite(KVServerTest.class);
-		clientSuite.addTestSuite(KVClientTest.class);
+		clientSuite.addTestSuite(ClientServerIntegrationTest.class);
 		clientSuite.addTestSuite(KVCommandPatternTest.class);
 		clientSuite.addTestSuite(KVLRUCacheTest.class);
 		clientSuite.addTestSuite(KVFIFOCacheTest.class);

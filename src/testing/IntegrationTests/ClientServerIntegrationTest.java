@@ -1,4 +1,4 @@
-package testing;
+package testing.IntegrationTests;
 
 
 import app_kvClient.KVClient;
@@ -13,7 +13,7 @@ import junit.framework.TestCase;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class KVClientTest extends TestCase {
+public class ClientServerIntegrationTest extends TestCase {
 
 
     private KVServer server = null;
