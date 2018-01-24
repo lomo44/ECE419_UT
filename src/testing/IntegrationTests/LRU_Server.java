@@ -13,7 +13,7 @@ import junit.framework.TestCase;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class ClientServerIntegrationTest extends TestCase {
+public class LRU_Server extends TestCase {
 
 
     private KVServer server = null;
@@ -22,7 +22,7 @@ public class ClientServerIntegrationTest extends TestCase {
 
     @Override
     protected void setUp() throws Exception{
-        server = new KVServer(40000, 10, "NULL");
+        server = new KVServer(40000, 10, "LRU");
         TimeUnit.SECONDS.sleep(1);
         client = new KVClient();
         client.newConnection("localhost",40000);
