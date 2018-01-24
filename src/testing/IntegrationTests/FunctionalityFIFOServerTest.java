@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 
-public class FIFO_Server extends TestCase {
+public class FunctionalityFIFOServerTest extends TestCase {
 
 
     private KVServer server = null;

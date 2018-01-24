@@ -52,10 +52,11 @@ public class MMStorage implements KVStorage{
 	private void injectFileToMem( MappedByteBuffer buf , Map<String, String> map) throws ClassNotFoundException, IOException {
 		int limit = buf.getInt();
 		if (limit!=0) {
-		buf.limit(limit);
-		byte[] input1= new byte[buf.remaining()];
-		buf.get(input1);
-		//System.out.print(deserialize(input1));
+			buf.limit(limit);
+			byte[] input1= new byte[buf.remaining()];
+			buf.get(input1);
+			storageOnMem = (ConcurrentHashMap<String, String>) deserialize(input1);
+			//System.out.print();
 		}
 	}
 	

@@ -8,8 +8,10 @@ import testing.CommunicationTests.InteractionTest;
 import testing.CommunicationTests.KVJSONMessageTest;
 import testing.DatabaseTests.KVFIFOCacheTest;
 import testing.DatabaseTests.KVLRUCacheTest;
-import testing.IntegrationTests.FIFO_Server;
-import testing.IntegrationTests.LRU_Server;
+import testing.IntegrationTests.FunctionalityFIFOServerTest;
+import testing.IntegrationTests.FunctionalityLRUServerTest;
+import testing.IntegrationTests.PersistencyFIFOServerTest;
+import testing.IntegrationTests.PersistencyLRUServerTest;
 import testing.ServerTests.KVServerTest;
 
 
@@ -21,11 +23,13 @@ public class AllTests {
 		clientSuite.addTestSuite(AdditionalTest.class);
 		clientSuite.addTestSuite(KVJSONMessageTest.class);
 		clientSuite.addTestSuite(KVServerTest.class);
-		clientSuite.addTestSuite(LRU_Server.class);
-		clientSuite.addTestSuite(FIFO_Server.class);
+		clientSuite.addTestSuite(FunctionalityLRUServerTest.class);
+		clientSuite.addTestSuite(FunctionalityFIFOServerTest.class);
 		clientSuite.addTestSuite(KVCommandPatternTest.class);
 		clientSuite.addTestSuite(KVLRUCacheTest.class);
 		clientSuite.addTestSuite(KVFIFOCacheTest.class);
+		clientSuite.addTestSuite(PersistencyFIFOServerTest.class);
+		clientSuite.addTestSuite(PersistencyLRUServerTest.class);
 		return clientSuite;
 	}
 	

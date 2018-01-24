@@ -23,7 +23,9 @@ public class KVClient implements IKVClient {
     private boolean stop = false;
     private KVCommandParser cmdParser = new KVCommandParser();
     private Scanner keyboard = new Scanner(System.in);
-    public void run() {
+    private KVClientAttribute attribute = new KVClientAttribute();
+
+    public void     run() {
         while (!stop) {
             System.out.print(PROMPT);
             KVCommand cmdInstance = cmdParser.getParsedCommand(keyboard.nextLine());
@@ -36,23 +38,23 @@ public class KVClient implements IKVClient {
             }
         }
     }
-    public void stop() throws IOException {
+    public void     stop() throws IOException {
         stop = true;
         disconnect();
     }
-    public void disconnect() throws IOException {
+    public void     disconnect() throws IOException {
         if (client != null) {
             client.disconnect();
             client = null;
         }
     }
-    public boolean isConnected() {
+    public boolean  isConnected() {
         if (client != null) {
             return client.isRunning();
         }
         return false;
     }
-    public String setLevel(String levelString) {
+    public String   setLevel(String levelString) {
 		
 		if(levelString.equals(Level.ALL.toString())) {
 			logger.setLevel(Level.ALL);
@@ -79,11 +81,15 @@ public class KVClient implements IKVClient {
 			return LogSetup.UNKNOWN_LEVEL;
 		}
 	}
-	public void printHelp() {
+	public void     printHelp() {
         cmdParser.printHelpMessages();
 	}
+    public KVClientAttribute getAttribute() {
+        return attribute;
+    }
+
     @Override
-    public void newConnection(String hostname, int port) throws Exception {
+    public void     newConnection(String hostname, int port) throws Exception {
         client = new KVStore(hostname, port);
         client.connect();
     }

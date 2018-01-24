@@ -13,12 +13,11 @@ import junit.framework.TestCase;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-public class LRU_Server extends TestCase {
+public class FunctionalityLRUServerTest extends TestCase {
 
 
     private KVServer server = null;
     private KVClient client = null;
-
 
     @Override
     protected void setUp() throws Exception{
@@ -111,6 +110,7 @@ public class LRU_Server extends TestCase {
         KVMessage deleteResponse = client.executeCommand(putInstance);
         assertTrue(deleteResponse.getStatus() == KVMessage.StatusType.PUT_UPDATE);
     }
+
     @Test
     public void testClientBasic_Echo() {
         assertTrue(server.isHandlerRunning());

@@ -30,6 +30,8 @@ public class KVServer implements IKVServer {
         this.cacheSize = cacheSize;
         cacheStrategy = CacheStrategy.fromString(strategy);
         database = new KVDatabase(cacheSize,5000,strategy);
+        // Pull the handler and check if the handler is running
+		while(!serverHandler.isRunning()){}
 	}
 
 	@Override
@@ -87,6 +89,7 @@ public class KVServer implements IKVServer {
     public void kill() throws InterruptedException, IOException {
 		serverHandler.stop();
 		handlerThread.join();
+		database.close();
 	}
 
 	@Override
