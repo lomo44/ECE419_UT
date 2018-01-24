@@ -79,13 +79,12 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override
-    public void clearStorage(){
+    public void clearStorage() throws IOException {
 		database.flushStorage();
 	}
 
 	@Override
     public void kill() throws InterruptedException, IOException {
-		flushCache();
 		serverHandler.stop();
 		handlerThread.join();
 	}
@@ -105,7 +104,7 @@ public class KVServer implements IKVServer {
 	 * @return a server handler instances
 	 */
     public KVServerHandler createServerHandler(){
-    	return new KVServerHandler(this.port, this,0);
+    	return new KVServerHandler(this.port, this,5000);
 	}
 
 	public boolean isHandlerRunning(){

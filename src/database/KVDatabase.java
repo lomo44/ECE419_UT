@@ -55,13 +55,13 @@ public class KVDatabase implements IKVDatabase {
 
 
 	@Override
-	public void kill() {
+	public void kill() throws IOException {
 		cache.clearCache();
 		storage.clearStorage();
 	}
 
 	@Override
-	public void close() {
+	public void close() throws IOException {
 		cache.clearCache();
 		storage.clearStorage();
 	}
@@ -82,7 +82,7 @@ public class KVDatabase implements IKVDatabase {
 	}
 
 	@Override
-	public void flushStorage() {
+	public void flushStorage() throws IOException {
 		storage.clearStorage();
 	}
 

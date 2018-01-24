@@ -15,7 +15,7 @@ public class InteractionTest extends TestCase {
 	private KVStore kvClient;
 	
 	public void setUp() {
-		kvClient = new KVStore("localhost", 50000);
+		kvClient = new KVStore("localhost", 30000);
 		try {
 			kvClient.connect();
 		} catch (Exception e) {

@@ -29,8 +29,6 @@ public class MMStorage implements KVStorage{
 		storage.createNewFile();
 	    fileChannel = new RandomAccessFile(storage,"rw").getChannel();
 	    buffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, sizeofStorage);
-	    System.out.print(buffer.capacity());
-		System.out.println();
 	    storageOnMem = new ConcurrentHashMap<>();
 	    injectFileToMem(buffer,storageOnMem);
 	}
@@ -84,28 +82,13 @@ public class MMStorage implements KVStorage{
 	}
 
 	@Override
-	public synchronized void clearStorage() {
+	public synchronized void clearStorage() throws IOException {
 		buffer.clear();
 		storageOnMem.clear();
+		byte[] output = serialize(storageOnMem);
+		buffer.putInt(output.length+4);
+		buffer.put(output);
 	}
-	
-
-	/*public void test() throws IOException {
-		buffer.put("abcd".getBytes());
-		buffer.flip();
-		System.out.println(buffer.hasRemaining());
-		byte[] array = new byte[buffer.remaining()];
-		buffer.get(array);
-		String v = new String( array, Charset.forName("UTF-8") );
-		System.out.println(v);
-		buffer.clear();
-		buffer.put("ef".getBytes());
-		buffer.flip();
-		array = new byte[buffer.remaining()];
-		buffer.get(array);
-		v= new String( array, Charset.forName("UTF-8") );
-		System.out.println(v);
-	}*/
 
 }
 

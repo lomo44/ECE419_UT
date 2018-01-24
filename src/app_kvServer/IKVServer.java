@@ -89,7 +89,7 @@ public interface IKVServer {
     /**
      * Clear the storage of the server
      */
-    public void clearStorage();
+    public void clearStorage() throws IOException;
 
     /**
      * Flush the local cache
