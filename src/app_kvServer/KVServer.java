@@ -29,7 +29,7 @@ public class KVServer implements IKVServer {
         handlerThread.start();
         this.cacheSize = cacheSize;
         cacheStrategy = CacheStrategy.fromString(strategy);
-        database = new KVDatabase(cacheSize,500,strategy);
+        database = new KVDatabase(cacheSize,5000,strategy);
 	}
 
 	@Override
