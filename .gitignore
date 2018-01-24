@@ -4,6 +4,10 @@
 m1-client.jar
 m1-server.jar
 .idea/
-.metadata/
+.metadata
+.plugins/
 *.iml
 *.log
+.DS_Store
+.recommenders/
+bin

@@ -14,75 +14,55 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 public class KVClientTest extends TestCase {
-    @Test
-    public void testClientBasic_Connection() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(40001,10,"NULL");
+
+
+    private KVServer server = null;
+    private KVClient client = null;
+
+
+    @Override
+    protected void setUp() throws Exception{
+        server = new KVServer(40000, 10, "NULL");
         TimeUnit.SECONDS.sleep(1);
-        assertTrue(serverEcho.isHandlerRunning());
-        KVClient client = new KVClient();
-        try {
-            client.newConnection("localhost",40001);
-        } catch (Exception e) {
-            System.out.println("Error! Could not connect to server!");
-        }
-        TimeUnit.SECONDS.sleep(1);
-        assertTrue(client.isConnected());
+        client = new KVClient();
+        client.newConnection("localhost",40000);
+    }
+
+    @Override
+    protected void tearDown() throws Exception{
         client.disconnect();
-        serverEcho.close();
+        server.clearStorage();
+        server.close();
+        server = null;
+        client = null;
+    }
+
+    @Test
+    public void testClientBasic_Connection(){
+        assertTrue(client.isConnected());
     }
     @Test
-    public void testClientBasic_PutSuccess() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(40002,10,"NULL");
-        TimeUnit.SECONDS.sleep(1);
-        assertTrue(serverEcho.isHandlerRunning());
-        KVClient client = new KVClient();
-        try {
-            client.newConnection("localhost",40002);
-        } catch (Exception e) {
-            System.out.println("Error! Could not connect to server!");
-        }
-        TimeUnit.SECONDS.sleep(1);
+    public void testClientBasic_PutSuccess(){
         assertTrue(client.isConnected());
+        assertTrue(server.isHandlerRunning());
         KVCommandPut cmdInstance = new KVCommandPut();
         cmdInstance.setKey("Hello");
         cmdInstance.setValue("World");
         KVMessage response = client.executeCommand(cmdInstance);
         assertTrue(response.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
-        client.disconnect();
-        serverEcho.close();
     }
     @Test
-    public void testClientBasic_GetError() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(40003,10,"NULL");
-        TimeUnit.SECONDS.sleep(1);
-        assertTrue(serverEcho.isHandlerRunning());
-        KVClient client = new KVClient();
-        try {
-            client.newConnection("localhost",40003);
-        } catch (Exception e) {
-            System.out.println("Error! Could not connect to server!");
-        }
-        TimeUnit.SECONDS.sleep(1);
+    public void testClientBasic_GetError(){
+        assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
         KVCommandGet cmdInstance = new KVCommandGet();
         cmdInstance.setKey("Hello");
         KVMessage response = client.executeCommand(cmdInstance);
         assertTrue(response.getStatus() == KVMessage.StatusType.GET_ERROR);
-        client.disconnect();
-        serverEcho.close();
     }
     @Test
-    public void testClientBasic_GetSuccess() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(40004,10,"NULL");
-        TimeUnit.SECONDS.sleep(1);
-        assertTrue(serverEcho.isHandlerRunning());
-        KVClient client = new KVClient();
-        try {
-            client.newConnection("localhost",40004);
-        } catch (Exception e) {
-            System.out.println("Error! Could not connect to server!");
-        }
-        TimeUnit.SECONDS.sleep(1);
+    public void testClientBasic_GetSuccess(){
+        assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
         KVCommandPut putInstance = new KVCommandPut();
         putInstance.setKey("Hello");
@@ -93,67 +73,34 @@ public class KVClientTest extends TestCase {
         getInstance.setKey("Hello");
         KVMessage getResponse = client.executeCommand(getInstance);
         assertTrue(getResponse.getStatus() == KVMessage.StatusType.GET_SUCCESS);
-        assertTrue(getResponse.getValue() == putInstance.getValue());
-        client.disconnect();
-        serverEcho.close();
+        assertTrue(getResponse.getValue().matches(putInstance.getValue()));
     }
     @Test
-    public void testClientBasic_DeleteSuccess() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(40005,10,"NULL");
-        TimeUnit.SECONDS.sleep(1);
-        assertTrue(serverEcho.isHandlerRunning());
-        KVClient client = new KVClient();
-        try {
-            client.newConnection("localhost",40005);
-        } catch (Exception e) {
-            System.out.println("Error! Could not connect to server!");
-        }
-        TimeUnit.SECONDS.sleep(1);
+    public void testClientBasic_DeleteSuccess(){
+        assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
         KVCommandPut putInstance = new KVCommandPut();
         putInstance.setKey("Hello");
         putInstance.setValue("World");
         KVMessage putResponse = client.executeCommand(putInstance);
         assertTrue(putResponse.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
-        putInstance.setValue(null);
+        putInstance.setValue("");
         KVMessage deleteResponse = client.executeCommand(putInstance);
-        assertTrue(deleteResponse.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
-        client.disconnect();
-        serverEcho.close();
+        assertEquals(deleteResponse.getStatus(),KVMessage.StatusType.DELETE_SUCCESS);
     }
     @Test
-    public void testClientBasic_DeleteError() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(40006,10,"NULL");
-        TimeUnit.SECONDS.sleep(1);
-        assertTrue(serverEcho.isHandlerRunning());
-        KVClient client = new KVClient();
-        try {
-            client.newConnection("localhost",40006);
-        } catch (Exception e) {
-            System.out.println("Error! Could not connect to server!");
-        }
-        TimeUnit.SECONDS.sleep(1);
+    public void testClientBasic_DeleteError(){
+        assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
         KVCommandPut putInstance = new KVCommandPut();
         putInstance.setKey("Hello");
-        putInstance.setValue(null);
+        putInstance.setValue("");
         KVMessage putResponse = client.executeCommand(putInstance);
-        assertTrue(putResponse.getStatus() == KVMessage.StatusType.DELETE_ERROR);
-        client.disconnect();
-        serverEcho.close();
+        assertEquals(putResponse.getStatus(),KVMessage.StatusType.DELETE_ERROR);
     }
     @Test
-    public void testClientBasic_UpdateSuccess() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(40007,10,"NULL");
-        TimeUnit.SECONDS.sleep(1);
-        assertTrue(serverEcho.isHandlerRunning());
-        KVClient client = new KVClient();
-        try {
-            client.newConnection("localhost",40007);
-        } catch (Exception e) {
-            System.out.println("Error! Could not connect to server!");
-        }
-        TimeUnit.SECONDS.sleep(1);
+    public void testClientBasic_UpdateSuccess(){
+        assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
         KVCommandPut putInstance = new KVCommandPut();
         putInstance.setKey("Hello");
@@ -163,27 +110,14 @@ public class KVClientTest extends TestCase {
         putInstance.setValue("Underworld");
         KVMessage deleteResponse = client.executeCommand(putInstance);
         assertTrue(deleteResponse.getStatus() == KVMessage.StatusType.PUT_UPDATE);
-        client.disconnect();
-        serverEcho.close();
     }
     @Test
-    public void testClientBasic_Echo() throws InterruptedException, IOException {
-        KVServerEcho serverEcho = new KVServerEcho(40007,10,"NULL");
-        TimeUnit.SECONDS.sleep(1);
-        assertTrue(serverEcho.isHandlerRunning());
-        KVClient client = new KVClient();
-        try {
-            client.newConnection("localhost",40007);
-        } catch (Exception e) {
-            System.out.println("Error! Could not connect to server!");
-        }
-        TimeUnit.SECONDS.sleep(1);
+    public void testClientBasic_Echo() {
+        assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
         KVCommandEcho echoInstance = new KVCommandEcho();
         KVMessage echoResponse = client.executeCommand(echoInstance);
         assertTrue(echoResponse.getStatus() == KVMessage.StatusType.ECHO);
-        client.disconnect();
-        serverEcho.close();
     }
 }
 
