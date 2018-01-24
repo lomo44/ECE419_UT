@@ -54,14 +54,14 @@ public class KVDatabase implements IKVDatabase {
 
 	@Override
 	public void kill() {
-		// TODO Auto-generated method stub
-		
+		cache.clearCache();
+		storage.clearStorage();
 	}
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
-		
+		cache.clearCache();
+		storage.clearStorage();
 	}
 
 	@Override

@@ -41,7 +41,7 @@ public class KVLFUCache extends KVCache {
 	
 	@Override
 	public synchronized void flushCache() {
-		// TODO Auto-generated method stub
+		cache.clear();
 		
 	}
 
