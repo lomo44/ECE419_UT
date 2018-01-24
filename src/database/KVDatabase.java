@@ -23,11 +23,13 @@ public class KVDatabase implements IKVDatabase {
 		cacheStrategy = KVCache.KVCacheStrategy.fromString(cacheStrat);
 		storage = new MMStorage(storageSize);
 		switch(cacheStrategy) {
-			default:LRU:
-				cache = new KVLRUCache(cacheSize) ;
-			FIFO:
+			case FIFO:
 				cache = new KVFIFOCache(cacheSize);
-			LFU:
+				break;
+			default:case LRU:
+				cache = new KVLRUCache(cacheSize) ;
+				break;
+			case LFU:
 				//not yet finished
 				cache = null;
 		}
