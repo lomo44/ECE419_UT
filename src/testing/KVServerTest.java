@@ -23,7 +23,7 @@ public class KVServerTest extends TestCase {
     }
     @Test
     public void testServerBasic_TearDown() throws InterruptedException, IOException, ClassNotFoundException {
-        KVServerEcho serverEcho = new KVServerEcho(50002,10,"NULL");
+        KVServerEcho serverEcho = new KVServerEcho(50002,10,"LRU");
         TimeUnit.SECONDS.sleep(1);
         assertTrue(serverEcho.isHandlerRunning());
         serverEcho.close();
@@ -32,7 +32,7 @@ public class KVServerTest extends TestCase {
     }
     @Test
     public void testServerBasic_Echo() throws InterruptedException, IOException, ClassNotFoundException {
-        KVServerEcho serverEcho = new KVServerEcho(50003,10,"NULL");
+        KVServerEcho serverEcho = new KVServerEcho(50003,10,"LRU");
         TimeUnit.SECONDS.sleep(1);
         KVTestClient client = new KVTestClient("localhost",50003);
         client.init(0);
@@ -49,7 +49,7 @@ public class KVServerTest extends TestCase {
     }
     @Test
     public void testServerBasic_Mutiple_Clinet_Echo() throws InterruptedException, IOException, ClassNotFoundException {
-        KVServerEcho serverEcho = new KVServerEcho(50004,10,"NULL");
+        KVServerEcho serverEcho = new KVServerEcho(50004,10,"LRU");
         TimeUnit.SECONDS.sleep(1);
         KVTestClient client1 = new KVTestClient("localhost",50004);
         client1.init(0);
