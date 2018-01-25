@@ -13,10 +13,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class PersistencyFIFOServerTest extends TestCase {
 
-    private static final String cacheStratagies = "FIFO";
-    private KVClient client = null;
-    private KVServer server = null;
-    private int port;
+    protected String cacheStratagies = "FIFO";
+    protected KVClient client = null;
+    protected KVServer server = null;
+    protected int port;
 
     @Override
     public void setUp() throws Exception{

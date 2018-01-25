@@ -14,9 +14,9 @@ import testing.KVTestPortManager;
 public class FunctionalityFIFOServerTest extends TestCase {
 
 
-    private KVServer server = null;
-    private KVClient client = null;
-    private int port;
+    protected KVServer server = null;
+    protected KVClient client = null;
+    protected int port;
 
 
     @Override
