@@ -8,10 +8,9 @@ import testing.CommunicationTests.InteractionTest;
 import testing.CommunicationTests.KVJSONMessageTest;
 import testing.DatabaseTests.KVFIFOCacheTest;
 import testing.DatabaseTests.KVLRUCacheTest;
+import testing.DatabaseTests.KVTabletTest;
 import testing.IntegrationTests.FunctionalityFIFOServerTest;
 import testing.IntegrationTests.FunctionalityLRUServerTest;
-import testing.IntegrationTests.PersistencyFIFOServerTest;
-import testing.IntegrationTests.PersistencyLRUServerTest;
 import testing.ServerTests.KVServerTest;
 
 
@@ -28,7 +27,7 @@ public class AllTests {
 		clientSuite.addTestSuite(KVCommandPatternTest.class);
 		clientSuite.addTestSuite(KVLRUCacheTest.class);
 		clientSuite.addTestSuite(KVFIFOCacheTest.class);
-		clientSuite.addTestSuite(KVLFUCacheTest.class);
+		clientSuite.addTestSuite(KVTabletTest.KVLFUCacheTest.class);
 		return clientSuite;
 	}
 	
