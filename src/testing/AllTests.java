@@ -29,8 +29,8 @@ public class AllTests {
 //		clientSuite.addTestSuite(AdditionalTest.class);
 		clientSuite.addTestSuite(KVJSONMessageTest.class);
 		clientSuite.addTestSuite(KVServerTest.class);
-//		clientSuite.addTestSuite(FunctionalityLRUServerTest.class);
-//		clientSuite.addTestSuite(FunctionalityFIFOServerTest.class);
+		clientSuite.addTestSuite(FunctionalityLRUServerTest.class);
+		clientSuite.addTestSuite(FunctionalityFIFOServerTest.class);
 		clientSuite.addTestSuite(KVCommandPatternTest.class);
 		clientSuite.addTestSuite(KVLRUCacheTest.class);
 		clientSuite.addTestSuite(KVFIFOCacheTest.class);
