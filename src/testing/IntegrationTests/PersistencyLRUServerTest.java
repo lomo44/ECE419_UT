@@ -7,17 +7,19 @@ import app_kvServer.KVServer;
 import common.messages.KVMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
+import testing.KVTestPortManager;
 
 public class PersistencyLRUServerTest extends TestCase {
 
     private static final String cacheStratagies = "LRU";
     private KVClient client = null;
     private KVServer server = null;
-    private int port = 40003;
+    private int port;
 
     @Override
     public void setUp() throws Exception{
         client = new KVClient();
+        port = KVTestPortManager.port.incrementAndGet();
     }
 
     @Override

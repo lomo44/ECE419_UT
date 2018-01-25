@@ -7,16 +7,20 @@ import app_kvServer.KVServer;
 import common.messages.KVMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
+import testing.KVTestPortManager;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class PersistencyFIFOServerTest extends TestCase {
 
     private static final String cacheStratagies = "FIFO";
     private KVClient client = null;
     private KVServer server = null;
-    private int port = 40002;
+    private int port;
 
     @Override
     public void setUp() throws Exception{
+        port = KVTestPortManager.port.incrementAndGet();
         client = new KVClient();
     }
 

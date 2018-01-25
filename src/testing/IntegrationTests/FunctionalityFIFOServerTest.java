@@ -9,21 +9,22 @@ import app_kvServer.KVServer;
 import common.messages.KVMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
-
-import java.util.concurrent.TimeUnit;
+import testing.KVTestPortManager;
 
 public class FunctionalityFIFOServerTest extends TestCase {
 
 
     private KVServer server = null;
     private KVClient client = null;
+    private int port;
 
 
     @Override
     protected void setUp() throws Exception{
-        server = new KVServer(40000, 10, "FIFO");
+        port = KVTestPortManager.port.incrementAndGet();
+        server = new KVServer(port, 10, "FIFO");
         client = new KVClient();
-        client.newConnection("localhost",40000);
+        client.newConnection("localhost",port);
     }
 
     @Override

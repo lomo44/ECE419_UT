@@ -1,6 +1,7 @@
 package testing.ServerTests;
 
 
+import app_kvClient.KVClient;
 import app_kvClient.testClient.KVTestClient;
 import app_kvServer.KVServer;
 import app_kvServer.echoServer.KVServerEcho;
@@ -8,47 +9,61 @@ import common.messages.KVMessage;
 import org.junit.Test;
 
 import junit.framework.TestCase;
+import testing.KVTestPortManager;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 
 public class KVServerTest extends TestCase {
+    private KVServerEcho serverEcho = null;
+    private KVTestClient client = null;
+    private int port;
+    @Override
+    public void setUp() throws Exception{
+        port = KVTestPortManager.port.incrementAndGet();
+        serverEcho = new KVServerEcho(port,10,"NULL");
+        client = new KVTestClient("localhost",port);
+        client.init(500);
+    }
+
+    @Override
+    public void tearDown() throws Exception{
+        if(serverEcho!=null){
+            serverEcho.close();
+            serverEcho = null;
+        }
+        if(client!=null){
+            client.teardown();
+            client = null;
+        }
+    }
     @Test
-    public void testServerBasic_Initialization() throws InterruptedException, IOException, ClassNotFoundException {
-        KVServerEcho serverEcho = new KVServerEcho(50001,10,"NULL");
+    public void testServerBasic_Initialization() {
         assertTrue(serverEcho.isHandlerRunning());
-        serverEcho.close();
     }
     @Test
     public void testServerBasic_TearDown() throws InterruptedException, IOException, ClassNotFoundException {
-        KVServerEcho serverEcho = new KVServerEcho(50002,10,"NULL");
         assertTrue(serverEcho.isHandlerRunning());
         serverEcho.close();
         assertFalse(serverEcho.isHandlerRunning());
+        serverEcho = null;
     }
     @Test
     public void testServerBasic_Echo() throws InterruptedException, IOException, ClassNotFoundException {
-        KVServerEcho serverEcho = new KVServerEcho(50003,10,"NULL");
-        KVTestClient client = new KVTestClient("localhost",50003);
-        client.init(0);
         KVMessage newmessage = client.createKVMessage();
         newmessage.setStatus(KVMessage.StatusType.PUT);
         newmessage.setKey("foo");
         newmessage.setValue("boo");
         client.send(newmessage);
         KVMessage recievedMessage = client.get();
-        serverEcho.close();
-        client.teardown();
-        //boolean a = newmessage.equal(recievedMessage);
         assertTrue(newmessage.equal(recievedMessage));
     }
     @Test
     public void testServerBasic_Multiple_Client_Echo() throws InterruptedException, IOException, ClassNotFoundException {
-        KVServerEcho serverEcho = new KVServerEcho(50004,10,"NULL");
-        KVTestClient client1 = new KVTestClient("localhost",50004);
+        KVTestClient client1 = new KVTestClient("localhost",port);
         client1.init(0);
-        KVTestClient client2 = new KVTestClient("localhost",50004);
+        KVTestClient client2 = new KVTestClient("localhost",port);
         client2.init(0);
 
         KVMessage newmessage1 = client1.createKVMessage();
@@ -65,7 +80,6 @@ public class KVServerTest extends TestCase {
         client2.send(newmessage2);
         KVMessage recievedMessage1 = client1.get();
         KVMessage recievedMessage2 = client2.get();
-        serverEcho.close();
         client1.teardown();
         client2.teardown();
         assertTrue(newmessage1.equal(recievedMessage1));

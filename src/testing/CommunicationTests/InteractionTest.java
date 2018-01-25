@@ -7,20 +7,22 @@ import client.KVStore;
 import junit.framework.TestCase;
 import common.messages.KVMessage;
 import common.messages.KVMessage.StatusType;
+import testing.KVTestPortManager;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 
 public class InteractionTest extends TestCase {
 
 	private KVStore kvClient;
 	private KVServer kvServer;
+	private int port;
 
 	@Override
 	public void setUp() throws Exception {
-		kvServer = new KVServer(20001,10,"FIFO");
-		kvClient = new KVStore("localhost", 20001);
+		port = KVTestPortManager.port.incrementAndGet();
+		kvServer = new KVServer(port,10,"FIFO");
+		kvClient = new KVStore("localhost", port);
 		kvClient.connect();
 	}
 	@Override
