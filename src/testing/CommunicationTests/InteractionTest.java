@@ -20,7 +20,6 @@ public class InteractionTest extends TestCase {
 	@Override
 	public void setUp() throws Exception {
 		kvServer = new KVServer(30000,10,"FIFO");
-		TimeUnit.SECONDS.sleep(1);
 		kvClient = new KVStore("localhost", 30000);
 		kvClient.connect();
 	}

@@ -22,7 +22,6 @@ public class FunctionalityLRUServerTest extends TestCase {
     @Override
     protected void setUp() throws Exception{
         server = new KVServer(40000, 10, "LRU");
-        TimeUnit.SECONDS.sleep(1);
         client = new KVClient();
         client.newConnection("localhost",40000);
     }
