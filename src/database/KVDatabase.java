@@ -1,6 +1,7 @@
 package database;
 
 import database.cache.KVFIFOCache;
+import database.cache.KVLFUCache;
 import database.cache.KVCache;
 import database.cache.KVLRUCache;
 import database.storage.KVStorage;
@@ -26,12 +27,11 @@ public class KVDatabase implements IKVDatabase {
 			case FIFO:
 				cache = new KVFIFOCache(cacheSize);
 				break;
-			default:case LRU:
+			case LRU:
 				cache = new KVLRUCache(cacheSize) ;
 				break;
-			case LFU:
-				//not yet finished
-				cache = null;
+			default:case LFU:
+				cache = new KVLFUCache(cacheSize);
 		}
 	}
 	
