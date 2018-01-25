@@ -21,7 +21,7 @@ public class PersistencyFIFOServerTest extends TestCase {
     @Override
     public void setUp() throws Exception{
         port = KVTestPortManager.port.incrementAndGet();
-        client = new KVClient();
+        client = new KVClient(System.in);
     }
 
     @Override

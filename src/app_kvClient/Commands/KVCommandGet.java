@@ -69,7 +69,6 @@ public class KVCommandGet extends KVCommand {
                 kv_out.println_error("Unknown error.");
             }
         }
-        printPrompt();
     }
 
     public void setKey(String key){

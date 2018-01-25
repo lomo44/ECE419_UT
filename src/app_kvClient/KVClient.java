@@ -3,6 +3,7 @@ package app_kvClient;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+import java.io.InputStream;
 import java.util.Scanner;
 
 import app_kvClient.Commands.KVCommand;
@@ -15,16 +16,22 @@ import client.KVStore;
 import client.KVCommInterface;
 import common.messages.KVMessage;
 
-public class KVClient implements IKVClient {
+public class KVClient implements IKVClient,Runnable {
 
     private static Logger logger = Logger.getRootLogger();
     private static final String PROMPT = "Client> ";
     private KVStore client = null;
     private boolean stop = false;
     private KVCommandParser cmdParser = new KVCommandParser();
-    private Scanner keyboard = new Scanner(System.in);
+    private Scanner keyboard;
     private KVClientAttribute attribute = new KVClientAttribute();
 
+
+    public KVClient(InputStream inputStream){
+        keyboard = new Scanner(inputStream);
+    }
+
+    @Override
     public void run() {
         while (!stop) {
             System.out.print(PROMPT);
@@ -39,8 +46,8 @@ public class KVClient implements IKVClient {
         }
     }
     public void stop() throws IOException {
-        stop = true;
         disconnect();
+        stop = true;
     }
     public void disconnect() throws IOException {
         if (client != null) {
@@ -108,7 +115,7 @@ public class KVClient implements IKVClient {
     public static void main(String[] args) {
         try {
             new LogSetup("logs/client.log", Level.OFF);
-            KVClient app = new KVClient();
+            KVClient app = new KVClient(System.in);
             app.run();
         } catch (IOException e) {
             System.out.println("Error! Unable to initialize logger!");

@@ -18,7 +18,7 @@ public class KVCommandPatternLogLevel extends KVCommandPattern {
 
     @Override
     public Pattern generateRegex() {
-        return Pattern.compile("^loglevel ((?:ALL)|(?:DEBUG)|(?:WARN)|(?:FATAL)|(?:OFF)|(?:INFO)|(?:ERROR))$");
+        return Pattern.compile("^logLevel ((?:ALL)|(?:DEBUG)|(?:WARN)|(?:FATAL)|(?:OFF)|(?:INFO)|(?:ERROR))$");
     }
 
     @Override

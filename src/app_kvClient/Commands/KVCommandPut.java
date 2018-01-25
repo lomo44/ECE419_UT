@@ -30,24 +30,29 @@ public class KVCommandPut extends KVCommand {
         switch (statusType) {
             case PUT_SUCCESS:{
                 kv_out.println_info("Successful PUT request.");
+                break;
             }
             case PUT_UPDATE:{
                 kv_out.println_info("Successful PUT update.");
+                break;
             }
             case PUT_ERROR:{
                 kv_out.println_error("Failed PUT request.");
+                break;
             }
             case UNKNOWN_ERROR:{
                 kv_out.println_error("Unknown error.");
+                break;
             }
             case NORESPONSE:{
                 kv_out.println_debug("No response.");
+                break;
             }
             default:{
                 kv_out.println_debug("Unknown error.");
+                break;
             }
         }
-        printPrompt();
     }
 
     public void setKey(String key){
