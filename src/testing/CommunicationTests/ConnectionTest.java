@@ -19,7 +19,7 @@ public class ConnectionTest extends TestCase {
 	@Override
 	public void setUp() throws Exception{
 		new LogSetup("logs/testing/test.log", Level.ERROR);
-		server =  new KVServer(50000, 10, "FIFO");
+		server =  new KVServer(20000, 10, "FIFO");
 	}
 
 	@Override
@@ -33,7 +33,7 @@ public class ConnectionTest extends TestCase {
 	public void testConnectionSuccess() {
 		
 		Exception ex = null;
-		KVStore kvClient = new KVStore("localhost", 50000);
+		KVStore kvClient = new KVStore("localhost", 20000);
 		try {
 			kvClient.connect();
 		} catch (Exception e) {
@@ -45,7 +45,7 @@ public class ConnectionTest extends TestCase {
 	@Test
 	public void testUnknownHost() {
 		Exception ex = null;
-		KVStore kvClient = new KVStore("unknown", 50000);
+		KVStore kvClient = new KVStore("unknown", 20000);
 		
 		try {
 			kvClient.connect();

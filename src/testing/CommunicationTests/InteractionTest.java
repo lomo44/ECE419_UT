@@ -19,8 +19,8 @@ public class InteractionTest extends TestCase {
 
 	@Override
 	public void setUp() throws Exception {
-		kvServer = new KVServer(30000,10,"FIFO");
-		kvClient = new KVStore("localhost", 30000);
+		kvServer = new KVServer(20001,10,"FIFO");
+		kvClient = new KVStore("localhost", 20001);
 		kvClient.connect();
 	}
 	@Override

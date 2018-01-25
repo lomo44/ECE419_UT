@@ -13,6 +13,7 @@ public class PersistencyLRUServerTest extends TestCase {
     private static final String cacheStratagies = "LRU";
     private KVClient client = null;
     private KVServer server = null;
+    private int port = 40003;
 
     @Override
     public void setUp() throws Exception{
@@ -35,9 +36,9 @@ public class PersistencyLRUServerTest extends TestCase {
     @Test
     public void testServerDropOut() throws Exception {
         // Spooling up the server
-        server = new KVServer(50000,10,cacheStratagies);
+        server = new KVServer(port,10,cacheStratagies);
         // Connect to the server
-        client.newConnection("localhost",50000);
+        client.newConnection("localhost",port);
         assertTrue(client.isConnected());
         assertTrue(server.isHandlerRunning());
         // Issue a put to the server
@@ -49,7 +50,7 @@ public class PersistencyLRUServerTest extends TestCase {
         // Close the server
         server.close();
         server = null;
-        server = new KVServer(50000,10,cacheStratagies);
+        server = new KVServer(port,10,cacheStratagies);
         KVCommandGet cmdGet = new KVCommandGet();
         cmdGet.setKey("Hello");
         response = client.executeCommand(cmdGet);
@@ -57,7 +58,7 @@ public class PersistencyLRUServerTest extends TestCase {
         assertEquals(response.getStatus(),KVMessage.StatusType.NORESPONSE);
         assertTrue(!client.isConnected());
 
-        client.newConnection("localhost",50000);
+        client.newConnection("localhost",port);
         response = client.executeCommand(cmdGet);
         assertEquals(KVMessage.StatusType.GET_SUCCESS,response.getStatus());
         assertEquals("World",response.getValue());
