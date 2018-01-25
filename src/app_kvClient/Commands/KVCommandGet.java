@@ -4,6 +4,10 @@ import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.messages.KVMessage;
 
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+
 public class KVCommandGet extends KVCommand {
     public KVCommandGet() {
         super(KVCommandPattern.KVCommandType.GET);
@@ -11,15 +15,30 @@ public class KVCommandGet extends KVCommand {
 
     @Override
     public KVMessage execute(KVClient clientInstance) {
+        KVMessage ret = clientInstance.getStore().createEmptyMessage();
         try {
-            return clientInstance.getStore().get(getKey());
-
-        } catch (Exception e) {
-            kv_out.println_error("No status response received.");
-            e.printStackTrace();
-            KVMessage newmsg = clientInstance.getStore().createEmptyMessage();
-            newmsg.setStatus(KVMessage.StatusType.NORESPONSE);
-            return newmsg;
+            ret = clientInstance.getStore().get(getKey());
+        } catch (SocketTimeoutException e) {
+            // Socket Timeout, need to retry
+            int i =0;
+            while(i < clientInstance.getAttribute().timeoutRetryCount){
+                try {
+                    return clientInstance.getStore().get(getKey());
+                } catch (SocketTimeoutException e1) {
+                    System.out.println("Timeout, retry count: "+i);
+                    i++;
+                } catch (SocketException e1) {
+                    ret.setStatus(KVMessage.StatusType.NORESPONSE);
+                    clientInstance.disconnect();
+                    break;
+                }
+            }
+        } catch (SocketException e) {
+            ret.setStatus(KVMessage.StatusType.NORESPONSE);
+            clientInstance.disconnect();
+        }
+        finally {
+            return ret;
         }
     }
 
@@ -32,6 +51,7 @@ public class KVCommandGet extends KVCommand {
         switch(statusType) {
             case GET_SUCCESS:{
                 System.out.println(value);
+                break;
             }
             case GET_ERROR:{
                 kv_out.println_error("Key " + key + " does not exist.");

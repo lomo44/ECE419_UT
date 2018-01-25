@@ -3,6 +3,8 @@ package client;
 import common.messages.KVMessage;
 
 import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 
 public interface KVCommInterface {
 
@@ -43,7 +45,7 @@ public interface KVCommInterface {
 	 *             if put command cannot be executed (e.g. not connected to any
 	 *             KV server).
 	 */
-	public KVMessage get(String key) throws Exception;
+	public KVMessage get(String key) throws SocketException,SocketTimeoutException;
 
 
 	public KVMessage send(KVMessage send) throws Exception;

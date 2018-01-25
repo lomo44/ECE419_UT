@@ -5,6 +5,7 @@ import org.apache.log4j.Level;
 import logger.KVOut;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class KVServer implements IKVServer {
 
@@ -23,8 +24,8 @@ public class KVServer implements IKVServer {
     private KVOut kv_out = new KVOut();
     private int port;
     private int cacheSize;
-    private CacheStrategy cacheStrategy;
-    private KVDatabase database;
+	private CacheStrategy cacheStrategy;
+	private KVDatabase database;
     public KVServer(int port, int cacheSize, String strategy) throws IOException, ClassNotFoundException {
         this.port = port;
         serverHandler = createServerHandler();
@@ -43,85 +44,85 @@ public class KVServer implements IKVServer {
         }
     }
 
-    @Override
-    public int getPort(){
-        return port;
-    }
+	@Override
+	public int getPort(){
+	    return port;
+	}
 
-    @Override
+	@Override
     public String getHostname(){
-        return "localhost";
-    }
+		return "localhost";
+	}
 
-    @Override
+	@Override
     public CacheStrategy getCacheStrategy(){
-        return this.cacheStrategy;
-    }
+	    return this.cacheStrategy;
+	}
 
-    @Override
+	@Override
     public int getCacheSize(){
-        // TODO Auto-generated method stub
-        return -1;
-    }
+		// TODO Auto-generated method stub
+		return -1;
+	}
 
-    @Override
+	@Override
     public boolean inStorage(String key){
-        return database.inStorage(key);
-    }
+		return database.inStorage(key);
+	}
 
-    @Override
+	@Override
     public boolean inCache(String key){
-        return database.inCache(key);
-    }
+		return database.inCache(key);
+	}
 
-    @Override
+	@Override
     public String getKV(String key) throws Exception{
-        return database.getKV(key);
-    }
+		return database.getKV(key);
+	}
 
-    @Override
+	@Override
     public void putKV(String key, String value) throws Exception{
-        database.putKV(key,value);
-    }
+		database.putKV(key,value);
+	}
 
-    @Override
+	@Override
     public void clearCache(){
-        database.flushCache();
-    }
+		database.flushCache();
+	}
 
-    @Override
+	@Override
     public void clearStorage() throws IOException {
-        database.flushStorage();
-    }
+		database.flushStorage();
+	}
 
-    @Override
+	@Override
     public void kill() throws InterruptedException, IOException {
         serverHandler.stop();
         handlerThread.join();
         database.close();
     }
 
-    @Override
+	@Override
     public void close() throws InterruptedException, IOException {
-        kill();
-    }
+		kill();
+	}
 
-    @Override
+	@Override
     public void flushCache(){
-        database.flushCache();
+		database.flushCache();
     }
 
-    /**
-     * Create a server handler (listener)
-     * @return a server handler instances
-     */
+	/**
+	 * Create a server handler (listener)
+	 * @return a server handler instances
+	 */
     public KVServerHandler createServerHandler(){
-        return new KVServerHandler(this.port, this,1000);
-    }
+    	return new KVServerHandler(this.port, this,1000);
+	}
 
-    public boolean isHandlerRunning(){
-        return this.serverHandler.isRunning();
-    }
+	public boolean isHandlerRunning(){
+    	return this.serverHandler.isRunning();
+	}
 
     public static void main(String[] args) {
         kv_out.enableLog("logs/server.log", Level.ALL);
@@ -139,5 +140,5 @@ public class KVServer implements IKVServer {
         while(true){
 
         }
-    }
+	}
 }

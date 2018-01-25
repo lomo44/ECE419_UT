@@ -23,15 +23,15 @@ public class KVCommunicationModule {
         privateSocket = in_Socket;
         this.timeout = timeout;
 
-    }
+	}
 
     /**
      * Create a empty KVMessage
      * @return
      */
-    public KVMessage getEmptyMessage(){
-        return new KVJSONMessage();
-    }
+	public KVMessage getEmptyMessage(){
+		return new KVJSONMessage();
+	}
 
     /**
      * Send a KVMessage through the module
@@ -103,16 +103,16 @@ public class KVCommunicationModule {
      * Check if the communication module is connected
      * @return
      */
-    public boolean isConnected(){
-        return privateSocket.isConnected();
-    }
+	public boolean isConnected(){
+		return privateSocket.isConnected();
+	}
 
-    public void initialize() throws SocketException {
-        if(timeout > 0){
-            this.privateSocket.setSoTimeout(this.timeout);
-        }
-    }
-    public  void close() throws IOException {
-        this.privateSocket.close();
-    }
+	public void initialize() throws SocketException {
+		if(timeout > 0){
+			this.privateSocket.setSoTimeout(this.timeout);
+		}
+	}
+	public  void close() throws IOException {
+		this.privateSocket.close();
+	}
 }

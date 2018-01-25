@@ -1,6 +1,5 @@
 package testing.CommunicationTests;
 
-import java.io.IOException;
 import java.net.UnknownHostException;
 
 import app_kvServer.KVServer;
@@ -10,16 +9,19 @@ import junit.framework.TestCase;
 import logger.LogSetup;
 import org.apache.log4j.Level;
 import org.junit.Test;
+import testing.KVTestPortManager;
 
 
 public class ConnectionTest extends TestCase {
 
 	private KVServer server = null;
+	private int port = 0;
 
 	@Override
 	public void setUp() throws Exception{
 		new LogSetup("logs/testing/test.log", Level.ERROR);
-		server =  new KVServer(50000, 10, "FIFO");
+		port = KVTestPortManager.port.incrementAndGet();
+		server =  new KVServer(port, 10, "FIFO");
 	}
 
 	@Override
@@ -33,7 +35,7 @@ public class ConnectionTest extends TestCase {
 	public void testConnectionSuccess() {
 		
 		Exception ex = null;
-		KVStore kvClient = new KVStore("localhost", 50000);
+		KVStore kvClient = new KVStore("localhost", port);
 		try {
 			kvClient.connect();
 		} catch (Exception e) {
@@ -45,7 +47,7 @@ public class ConnectionTest extends TestCase {
 	@Test
 	public void testUnknownHost() {
 		Exception ex = null;
-		KVStore kvClient = new KVStore("unknown", 50000);
+		KVStore kvClient = new KVStore("unknown", port);
 		
 		try {
 			kvClient.connect();
