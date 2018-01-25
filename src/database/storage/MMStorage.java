@@ -29,10 +29,7 @@ public class MMStorage implements KVStorage{
 		storage.createNewFile();
 	    fileChannel = new RandomAccessFile(storage,"rw").getChannel();
 	    buffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, sizeofStorage);
-	    System.out.print(buffer.capacity());
-		System.out.println();
-	    storageOnMem = new ConcurrentHashMap<>();
-	    injectFileToMem(buffer,storageOnMem);
+	    storageOnMem = injectFileToMem(buffer,storageOnMem);
 	}
 	
 	public byte[] serialize(Map<String, String> map) throws IOException {
@@ -51,14 +48,15 @@ public class MMStorage implements KVStorage{
 		return map;
 	}
 	
-	private void injectFileToMem( MappedByteBuffer buf , Map<String, String> map) throws ClassNotFoundException, IOException {
+	private ConcurrentHashMap<String,String> injectFileToMem( MappedByteBuffer buf , Map<String, String> map) throws ClassNotFoundException, IOException {
 		int limit = buf.getInt();
 		if (limit!=0) {
 		buf.limit(limit);
 		byte[] input1= new byte[buf.remaining()];
 		buf.get(input1);
-		//System.out.print(deserialize(input1));
+		return (ConcurrentHashMap<String, String>) deserialize(input1);
 		}
+		return null;
 	}
 	
 	@Override
