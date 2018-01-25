@@ -34,8 +34,8 @@ public class AllTests {
 //		clientSuite.addTestSuite(KVCommandPatternTest.class);
 //		clientSuite.addTestSuite(KVLRUCacheTest.class);
 //		clientSuite.addTestSuite(KVFIFOCacheTest.class);
-		clientSuite.addTestSuite(PersistencyFIFOServerTest.class);
-		clientSuite.addTestSuite(PersistencyLRUServerTest.class);
+//		clientSuite.addTestSuite(PersistencyFIFOServerTest.class);
+//		clientSuite.addTestSuite(PersistencyLRUServerTest.class);
 		return clientSuite;
 	}
 	
