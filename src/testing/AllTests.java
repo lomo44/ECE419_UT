@@ -24,18 +24,18 @@ public class AllTests {
 	public static Timeout classTimeout = new Timeout(5000);
 	public static Test suite() {
 		TestSuite clientSuite = new TestSuite("Basic Storage ServerTest-Suite");
-//		clientSuite.addTestSuite(ConnectionTest.class);
-//		clientSuite.addTestSuite(InteractionTest.class);
-//		clientSuite.addTestSuite(AdditionalTest.class);
-//		clientSuite.addTestSuite(KVJSONMessageTest.class);
+		clientSuite.addTestSuite(ConnectionTest.class);
+		clientSuite.addTestSuite(InteractionTest.class);
+		clientSuite.addTestSuite(AdditionalTest.class);
+		clientSuite.addTestSuite(KVJSONMessageTest.class);
 		clientSuite.addTestSuite(KVServerTest.class);
 		clientSuite.addTestSuite(FunctionalityLRUServerTest.class);
 		clientSuite.addTestSuite(FunctionalityFIFOServerTest.class);
-//		clientSuite.addTestSuite(KVCommandPatternTest.class);
-//		clientSuite.addTestSuite(KVLRUCacheTest.class);
-//		clientSuite.addTestSuite(KVFIFOCacheTest.class);
-//		clientSuite.addTestSuite(PersistencyFIFOServerTest.class);
-//		clientSuite.addTestSuite(PersistencyLRUServerTest.class);
+		clientSuite.addTestSuite(KVCommandPatternTest.class);
+		clientSuite.addTestSuite(KVLRUCacheTest.class);
+		clientSuite.addTestSuite(KVFIFOCacheTest.class);
+		clientSuite.addTestSuite(PersistencyFIFOServerTest.class);
+		clientSuite.addTestSuite(PersistencyLRUServerTest.class);
 		return clientSuite;
 	}
 	
