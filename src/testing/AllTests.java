@@ -2,6 +2,8 @@ package testing;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import org.junit.ClassRule;
+import org.junit.rules.Timeout;
 import testing.ClientTests.KVCommandPatternTest;
 import testing.CommunicationTests.ConnectionTest;
 import testing.CommunicationTests.InteractionTest;
@@ -15,7 +17,11 @@ import testing.IntegrationTests.PersistencyLRUServerTest;
 import testing.ServerTests.KVServerTest;
 
 
+
+
 public class AllTests {
+	@ClassRule
+	public static Timeout classTimeout = new Timeout(5000);
 	public static Test suite() {
 		TestSuite clientSuite = new TestSuite("Basic Storage ServerTest-Suite");
 		clientSuite.addTestSuite(ConnectionTest.class);
