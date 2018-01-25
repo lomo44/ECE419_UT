@@ -19,7 +19,7 @@ public class KVOut {
         try {
             logSetupInstance = new LogSetup(logdir,loglevel);
         } catch (IOException e) {
-            System.out.println("Failed to create logger");
+            System.out.println("Failed to create logger.");
             e.printStackTrace();
         }
     }

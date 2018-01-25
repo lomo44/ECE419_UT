@@ -23,7 +23,7 @@ public class FunctionalityFIFOServerTest extends TestCase {
     protected void setUp() throws Exception{
         port = KVTestPortManager.port.incrementAndGet();
         server = new KVServer(port, 10, "FIFO");
-        client = new KVClient();
+        client = new KVClient(System.in);
         client.newConnection("localhost",port);
     }
 

@@ -2,6 +2,7 @@ package app_kvServer;
 
 import common.communication.KVCommunicationModule;
 import common.messages.KVMessage;
+import logger.KVOut;
 
 import java.io.IOException;
 import java.net.SocketException;
@@ -13,6 +14,7 @@ public class KVServerInstance implements Runnable {
 
     private KVCommunicationModule communicationModule;
     private IKVServer serverinstance;
+    private KVOut kv_out = new KVOut();
     private boolean isRunning;
     private static final String DELETE_IDENTIFIER = "null";
 
@@ -40,7 +42,7 @@ public class KVServerInstance implements Runnable {
                 isRunning = false;
             }
             catch(Exception e){
-                
+
             }
         }
 
@@ -67,14 +69,17 @@ public class KVServerInstance implements Runnable {
         switch (statusType){
             case GET:{
                 try{
+                    kv_out.println_info("Received GET request from client.");
                     String value = serverinstance.getKV(in_message.getKey());
                     retMessage.setStatus(KVMessage.StatusType.GET_SUCCESS);
                     retMessage.setKey(in_message.getKey());
                     retMessage.setValue(value);
+                    kv_out.println_debug("Found corresponding key/value store for GET request.");
                 }
                 catch (Exception e){
-                    // Exception happened when quarry for value
+                    // Exception happened when query for value
                     retMessage.setStatus(KVMessage.StatusType.GET_ERROR);
+                    kv_out.println_debug("Could not find corresponding key/value store for GET request.");
                 }
                 break;
             }
@@ -84,15 +89,18 @@ public class KVServerInstance implements Runnable {
                     String value = serverinstance.getKV(in_message.getKey());
                     if(!value.matches(update_value)) {
                         if(update_value.matches(DELETE_IDENTIFIER)){
+                            kv_out.println_info("Received DELETE request from client.");
                             retMessage.setStatus(DELETE_SUCCESS);
                         }
                         else{
+                            kv_out.println_info("Received PUT_UPDATE request from client.");
                             retMessage.setStatus(PUT_UPDATE);
                             retMessage.setKey(in_message.getKey());
                             retMessage.setValue(in_message.getValue());
                         }
                     }
                     else {
+                        kv_out.println_info("Received PUT request from client.");
                         retMessage.setStatus(PUT_SUCCESS);
                         break;
                     }
@@ -107,11 +115,14 @@ public class KVServerInstance implements Runnable {
                 }
                 try {
                     serverinstance.putKV(in_message.getKey(),in_message.getValue());
+                    kv_out.println_debug("Inserted/updated/deleted corresponding key/value store for PUT request.");
                 } catch (Exception e) {
                     if(in_message.getValue().matches(DELETE_IDENTIFIER)){
                         retMessage.setStatus(DELETE_ERROR);
+                        kv_out.println_debug("Could not delete corresponding key/value store for DELETE request.");
                     }else {
                         retMessage.setStatus(PUT_ERROR);
+                        kv_out.println_debug("Could not insert/update corresponding key/value store for PUT/PUT_UPDATE requst.");
                     }
                 }
                 break;

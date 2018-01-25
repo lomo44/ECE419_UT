@@ -12,7 +12,7 @@ public class KVCommandConnect extends KVCommand{
 
     @Override
     public KVMessage execute(KVClient clientInstance) {
-        KVMessage ret = clientInstance.getStore().createEmptyMessage();
+        KVMessage ret = new KVJSONMessage();
         try {
             clientInstance.newConnection(getHostName(),Integer.parseInt(getPort()));
             ret.setStatus(KVMessage.StatusType.CONNECT_SUCCESS);
@@ -25,10 +25,10 @@ public class KVCommandConnect extends KVCommand{
     @Override
     public void handleResponse(KVMessage response) {
         if(response.getStatus() == KVMessage.StatusType.CONNECT_SUCCESS){
-            System.out.println("Connection Success.");
+            kv_out.println_info("Successfully connected to server.");
         }
         else{
-            System.out.println("Connection Failed.");
+            kv_out.println_error("Failed to connect to server.");
         }
     }
 

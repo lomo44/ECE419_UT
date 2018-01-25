@@ -31,7 +31,7 @@ public class KVCommandEcho extends KVCommand {
             }
         }
         else{
-            System.out.println("Failed to retrieve echo");
+            kv_out.println_error("Failed to retrieve echo message.");
         }
     }
 }

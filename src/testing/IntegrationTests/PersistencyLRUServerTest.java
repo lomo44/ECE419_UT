@@ -18,7 +18,7 @@ public class PersistencyLRUServerTest extends TestCase {
 
     @Override
     public void setUp() throws Exception{
-        client = new KVClient();
+        client = new KVClient(System.in);
         port = KVTestPortManager.port.incrementAndGet();
     }
 

@@ -54,22 +54,21 @@ public class KVCommandGet extends KVCommand {
                 break;
             }
             case GET_ERROR:{
-                System.out.println("Error! Key " + key + " does not exist!");
+                kv_out.println_error("Key " + key + " does not exist.");
                 break;
             }
             case UNKNOWN_ERROR:{
-                System.out.println("Error! " + value);
+                kv_out.println_error("Unknown error.");
                 break;
             }
             case NORESPONSE:{
-                System.out.println("No response! ");
+                kv_out.println_error("No status response received.");
                 break;
             }
             default:{
-                System.out.println("Error! " + value);
+                kv_out.println_error("Unknown error.");
             }
         }
-        printPrompt();
     }
 
     public void setKey(String key){

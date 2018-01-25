@@ -159,11 +159,11 @@ public class KVCommandPatternTest extends TestCase {
     @Test
     public void testCommandPattern_LogLevel_Match(){
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
-        assertTrue(command.isMatched("loglevel ALL"));
+        assertTrue(command.isMatched("logLevel ALL"));
     }
     @Test
     public void testCommandPattern_LogLevel_Valid_ALL(){
-        String inputString = "loglevel ALL";
+        String inputString = "logLevel ALL";
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
@@ -172,7 +172,7 @@ public class KVCommandPatternTest extends TestCase {
     }
     @Test
     public void testCommandPattern_LogLevel_Valid_DEBUG(){
-        String inputString = "loglevel DEBUG";
+        String inputString = "logLevel DEBUG";
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
@@ -181,7 +181,7 @@ public class KVCommandPatternTest extends TestCase {
     }
     @Test
     public void testCommandPattern_LogLevel_Valid_INFO(){
-        String inputString = "loglevel INFO";
+        String inputString = "logLevel INFO";
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
@@ -190,7 +190,7 @@ public class KVCommandPatternTest extends TestCase {
     }
     @Test
     public void testCommandPattern_LogLevel_Valid_WARN(){
-        String inputString = "loglevel WARN";
+        String inputString = "logLevel WARN";
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
@@ -200,7 +200,7 @@ public class KVCommandPatternTest extends TestCase {
 
     @Test
     public void testCommandPattern_LogLevel_Valid_ERROR(){
-        String inputString = "loglevel ERROR";
+        String inputString = "logLevel ERROR";
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
@@ -210,7 +210,7 @@ public class KVCommandPatternTest extends TestCase {
 
     @Test
     public void testCommandPattern_LogLevel_Valid_FATAL(){
-        String inputString = "loglevel FATAL";
+        String inputString = "logLevel FATAL";
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
@@ -220,7 +220,7 @@ public class KVCommandPatternTest extends TestCase {
 
     @Test
     public void testCommandPattern_LogLevel_Valid_OFF(){
-        String inputString = "loglevel OFF";
+        String inputString = "logLevel OFF";
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
@@ -230,7 +230,7 @@ public class KVCommandPatternTest extends TestCase {
 
     @Test
     public void testCommandPattern_LogLevel_invalid(){
-        String inputString = "loglevel test";
+        String inputString = "logLevel test";
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertFalse(command.isMatched(inputString));
     }
