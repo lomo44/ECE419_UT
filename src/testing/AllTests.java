@@ -26,6 +26,7 @@ public class AllTests {
 		clientSuite.addTestSuite(KVCommandPatternTest.class);
 		clientSuite.addTestSuite(KVLRUCacheTest.class);
 		clientSuite.addTestSuite(KVFIFOCacheTest.class);
+		clientSuite.addTestSuite(KVLFUCacheTest.class);
 		return clientSuite;
 	}
 	
