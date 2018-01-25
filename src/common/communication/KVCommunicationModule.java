@@ -53,7 +53,6 @@ public class KVCommunicationModule {
 				throw e;
 			}
 			catch (IOException e) {
-				e.printStackTrace();
 				throw new SocketException();
 			}
 		}

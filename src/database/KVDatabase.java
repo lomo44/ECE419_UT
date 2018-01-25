@@ -39,12 +39,19 @@ public class KVDatabase implements IKVDatabase {
 
 	@Override
 	public synchronized String getKV(String key) throws Exception {
-			String value=cache.getFromCache(key);
-			if (value==null) {
+		String value= null;
+		try {
+			value = cache.getFromCache(key);
+		} catch (Exception e) {
+			try {
 				value=storage.getFromStorage(key);
 				cache.putToCache(key, value);
+				return value;
+			} catch (Exception e1) {
+				throw e1;
 			}
-			return value;
+		}
+		return value;
 	}
 
 	@Override
@@ -57,13 +64,11 @@ public class KVDatabase implements IKVDatabase {
 	@Override
 	public void kill() throws IOException {
 		cache.clearCache();
-		storage.clearStorage();
 	}
 
 	@Override
 	public void close() throws IOException {
 		cache.clearCache();
-		storage.clearStorage();
 	}
 
 	@Override

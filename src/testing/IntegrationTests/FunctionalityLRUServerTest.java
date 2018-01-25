@@ -9,23 +9,24 @@ import common.messages.KVMessage;
 import org.junit.Test;
 
 import junit.framework.TestCase;
+import testing.KVTestPortManager;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class LRU_Server extends TestCase {
-
+public class FunctionalityLRUServerTest extends TestCase {
 
     private KVServer server = null;
     private KVClient client = null;
-
+    private int port;
 
     @Override
     protected void setUp() throws Exception{
-        server = new KVServer(40000, 10, "LRU");
-        TimeUnit.SECONDS.sleep(1);
+        port = KVTestPortManager.port.incrementAndGet();
+        server = new KVServer(port,10, "LRU");
         client = new KVClient();
-        client.newConnection("localhost",40000);
+        client.newConnection("localhost",port);
     }
 
     @Override
@@ -111,6 +112,7 @@ public class LRU_Server extends TestCase {
         KVMessage deleteResponse = client.executeCommand(putInstance);
         assertTrue(deleteResponse.getStatus() == KVMessage.StatusType.PUT_UPDATE);
     }
+
     @Test
     public void testClientBasic_Echo() {
         assertTrue(server.isHandlerRunning());

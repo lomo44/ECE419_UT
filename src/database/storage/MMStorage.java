@@ -30,9 +30,9 @@ public class MMStorage implements KVStorage{
 	    fileChannel = new RandomAccessFile(storage,"rw").getChannel();
 	    buffer = fileChannel.map(FileChannel.MapMode.READ_WRITE, 0, sizeofStorage);
 	    storageOnMem = injectFileToMem(buffer,storageOnMem);
-    if(storageOnMem==null){
-      storageOnMem = new ConcurrentHashMap<>();
-    }
+        if(storageOnMem==null){
+          storageOnMem = new ConcurrentHashMap<>();
+        }
 	}
 	
 	public byte[] serialize(Map<String, String> map) throws IOException {

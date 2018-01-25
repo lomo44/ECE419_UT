@@ -3,6 +3,7 @@ package app_kvServer;
 import database.KVDatabase;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class KVServer implements IKVServer {
 
@@ -30,6 +31,14 @@ public class KVServer implements IKVServer {
         this.cacheSize = cacheSize;
         cacheStrategy = CacheStrategy.fromString(strategy);
         database = new KVDatabase(cacheSize,5000,strategy);
+        // Pull the handler and check if the handler is running
+		while(!serverHandler.isRunning()){
+			try {
+				TimeUnit.MILLISECONDS.sleep(50);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override
@@ -87,6 +96,7 @@ public class KVServer implements IKVServer {
     public void kill() throws InterruptedException, IOException {
 		serverHandler.stop();
 		handlerThread.join();
+		database.close();
 	}
 
 	@Override
