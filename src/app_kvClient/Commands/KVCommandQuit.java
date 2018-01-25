@@ -26,10 +26,10 @@ public class KVCommandQuit extends KVCommand {
     @Override
     public void handleResponse(KVMessage response) {
         if(response.getStatus() == KVMessage.StatusType.DISCONNECT_SUCCESS){
-            System.out.println("Successfully disconnect, quitting");
+            kv_out.println_info("Successfully disconnected from server, quitting.");
         }
         else{
-            System.out.println("Failed to disconnect");
+            kv_out.println_info("Failed to disconnect from server.");
         }
     }
 }

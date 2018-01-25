@@ -2,6 +2,7 @@ package app_kvServer;
 
 
 import common.communication.KVCommunicationModule;
+import logger.KVOut;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -17,6 +18,7 @@ public class KVServerHandler implements Runnable {
     private int port;
     private ServerSocket serverSocket;
     private KVServer master;
+    private KVOut kv_out = new KVOut();
     private boolean isRunning;
     private int listenerTimerout;
     /**
@@ -24,27 +26,34 @@ public class KVServerHandler implements Runnable {
      */
     @Override
     public void run() {
+        kv_out.println_info("Initialize server.");
         try{
             serverSocket = new ServerSocket(port);
             if (this.listenerTimerout > 0) {
                 serverSocket.setSoTimeout(this.listenerTimerout);
             }
+            kv_out.println_info("Server listening on port "+port);
         }
         catch (SocketException e){
-            e.printStackTrace();
+            // e.printStackTrace();
+            kv_out.println_error("Cannot open server socket on port "+port);
         } catch (IOException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
+            kv_out.println_error("Cannot open server socket "+port);
             try {
                 serverSocket.close();
             } catch (IOException e1) {
-                e1.printStackTrace();
+                // e1.printStackTrace();
+                kv_out.println_error("Unable to close server socket on port "+port);
             }
         }
         isRunning = true;
         if(serverSocket != null){
             while(isRunning && !serverSocket.isClosed()){
                 try {
-                    initiateServerInstance(serverSocket.accept());
+                    Socket client = serverSocket.accept();
+                    initiateServerInstance(client);
+                    kv_out.println_info("Server connected to "+client.getInetAddress().getHostName()+" on port "+client.getPort());
                 }
                 catch (SocketTimeoutException e){
                     //System.out.println("Server timeout");
@@ -52,12 +61,14 @@ public class KVServerHandler implements Runnable {
                 catch (SocketException e){
                     // Socket close
                     isRunning = false;
+                    kv_out.println_error("Unable to establish connection.");
                 }
                 catch (IOException e) {
 
                 }
 
             }
+            kv_out.println_info("Server stopped.");
         }
         try {
             if(serverSocket != null){
@@ -66,6 +77,7 @@ public class KVServerHandler implements Runnable {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            kv_out.println_error("Unable to close server socket on port "+port);
         }
     }
 

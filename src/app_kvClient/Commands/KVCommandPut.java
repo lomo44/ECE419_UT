@@ -14,7 +14,7 @@ public class KVCommandPut extends KVCommand {
         try {
             return clientInstance.getStore().put(getKey(),getValue());
         } catch (Exception e) {
-            System.out.println("Error! No status response received!");
+            kv_out.println_error("No status response received.");
             e.printStackTrace();
             KVMessage newmsg = clientInstance.getStore().createEmptyMessage();
             newmsg.setStatus(KVMessage.StatusType.NORESPONSE);
@@ -29,22 +29,22 @@ public class KVCommandPut extends KVCommand {
         String value = response.getValue();
         switch (statusType) {
             case PUT_SUCCESS:{
-                System.out.println("Success!");
+                kv_out.println_info("Successful PUT request.");
             }
             case PUT_UPDATE:{
-                System.out.println("Success (update)!");
+                kv_out.println_info("Successful PUT update.");
             }
             case PUT_ERROR:{
-                System.out.println("Error! Key " + key + " does not exist!");
+                kv_out.println_error("Failed PUT request.");
             }
             case UNKNOWN_ERROR:{
-                System.out.println("Error! " + value);
+                kv_out.println_error("Unknown error.");
             }
             case NORESPONSE:{
-                System.out.println("No response!");
+                kv_out.println_debug("No response.");
             }
             default:{
-                System.out.println("Error! " + value);
+                kv_out.println_debug("Unknown error.");
             }
         }
         printPrompt();
