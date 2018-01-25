@@ -4,7 +4,6 @@ package testing.IntegrationTests;
 import app_kvClient.KVClient;
 import app_kvClient.Commands.*;
 import app_kvServer.KVServer;
-import app_kvServer.echoServer.KVServerEcho;
 import common.messages.KVMessage;
 import org.junit.Test;
 
