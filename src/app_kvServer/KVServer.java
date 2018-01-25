@@ -20,8 +20,8 @@ public class KVServer implements IKVServer {
      *           and "LFU".
      */
     private Thread handlerThread;
-    private  KVServerHandler serverHandler;
-    private KVOut kv_out = new KVOut();
+    private KVServerHandler serverHandler;
+    private static KVOut kv_out = new KVOut();
     private int port;
     private int cacheSize;
 	private CacheStrategy cacheStrategy;

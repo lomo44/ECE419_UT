@@ -107,6 +107,10 @@ public class KVCommunicationModule {
 		return privateSocket.isConnected();
 	}
 
+	private Socket getSocket() {
+	    return privateSocket;
+    }
+
 	public void initialize() throws SocketException {
 		if(timeout > 0){
 			this.privateSocket.setSoTimeout(this.timeout);
