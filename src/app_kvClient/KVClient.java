@@ -30,7 +30,7 @@ public class KVClient implements IKVClient,Runnable {
     public KVClient(InputStream inputStream){
         keyboard = new Scanner(inputStream);
     }
-
+    public KVClient(){keyboard = new Scanner(System.in);}
     @Override
     public void run() {
         while (!stop) {
