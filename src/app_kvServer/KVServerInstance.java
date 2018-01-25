@@ -7,11 +7,14 @@ import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+import static common.messages.KVMessage.StatusType.*;
+
 public class KVServerInstance implements Runnable {
 
     private KVCommunicationModule communicationModule;
     private IKVServer serverinstance;
     private boolean isRunning;
+    private static final String DELETE_IDENTIFIER = "null";
 
     public KVServerInstance(KVCommunicationModule communicationModule, IKVServer server){
         this.communicationModule = communicationModule;
@@ -63,31 +66,58 @@ public class KVServerInstance implements Runnable {
         KVMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
             case GET:{
-                if(serverinstance.inCache(in_message.getKey())){
-                    try{
-                        String value = serverinstance.getKV(in_message.getKey());
-                        retMessage.setStatus(KVMessage.StatusType.GET_ERROR);
-                        retMessage.setKey(in_message.getKey());
-                        retMessage.setValue(value);
-                    }
-                    catch (Exception e){
-                        // Exception happened when quarry for value
-                        retMessage.setStatus(KVMessage.StatusType.GET_SUCCESS);
-                    }
-                }
-                else{
-                    // Key is not in storage, return error message
-                    retMessage.setStatus(KVMessage.StatusType.GET_ERROR);
-                }
-            }
-            case PUT:{
                 try{
-                    serverinstance.putKV(in_message.getKey(),in_message.getValue());
-                    retMessage.setStatus(KVMessage.StatusType.PUT_SUCCESS);
+                    String value = serverinstance.getKV(in_message.getKey());
+                    retMessage.setStatus(KVMessage.StatusType.GET_SUCCESS);
+                    retMessage.setKey(in_message.getKey());
+                    retMessage.setValue(value);
                 }
                 catch (Exception e){
-                    retMessage.setStatus(KVMessage.StatusType.PUT_ERROR);
+                    // Exception happened when quarry for value
+                    retMessage.setStatus(KVMessage.StatusType.GET_ERROR);
                 }
+                break;
+            }
+            case PUT:{
+                String update_value = in_message.getValue();
+                try {
+                    String value = serverinstance.getKV(in_message.getKey());
+                    if(!value.matches(update_value)) {
+                        if(update_value.matches(DELETE_IDENTIFIER)){
+                            retMessage.setStatus(DELETE_SUCCESS);
+                        }
+                        else{
+                            retMessage.setStatus(PUT_UPDATE);
+                            retMessage.setKey(in_message.getKey());
+                            retMessage.setValue(in_message.getValue());
+                        }
+                    }
+                    else {
+                        retMessage.setStatus(PUT_SUCCESS);
+                        break;
+                    }
+                } catch (Exception e) {
+                    if(update_value.matches(DELETE_IDENTIFIER)) {
+                        retMessage.setStatus(DELETE_ERROR);
+                        break;
+                    }
+                    else {
+                        retMessage.setStatus(PUT_SUCCESS);
+                    }
+                }
+                try {
+                    serverinstance.putKV(in_message.getKey(),in_message.getValue());
+                } catch (Exception e) {
+                    if(in_message.getValue().matches(DELETE_IDENTIFIER)){
+                        retMessage.setStatus(DELETE_ERROR);
+                    }else {
+                        retMessage.setStatus(PUT_ERROR);
+                    }
+                }
+                break;
+            }
+            case ECHO:{
+                return in_message;
             }
             default:{
                 retMessage.setStatus(KVMessage.StatusType.UNKNOWN_ERROR);

@@ -1,6 +1,8 @@
 package database;
 
 
+import java.io.IOException;
+
 public interface IKVDatabase {
 	/**
 	 * Get the value associated with the key
@@ -25,17 +27,17 @@ public interface IKVDatabase {
 	 * Abruptly stop the server without any additional actions NOTE: this includes
 	 * performing saving to storage
 	 */
-	public void kill();
+	public void kill() throws IOException;
 
 	/**
 	 * Gracefully stop the server, can perform any additional actions
 	 */
-	public void close();
+	public void close() throws IOException;
 
 	public boolean inStorage(String key);
 
 	public boolean inCache(String key);
 
 	public void flushCache();
-	public void flushStorage();
+	public void flushStorage() throws IOException;
 }

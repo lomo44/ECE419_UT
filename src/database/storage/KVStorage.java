@@ -1,5 +1,7 @@
 package database.storage;
 
+import java.io.IOException;
+
 public interface KVStorage {
 	/**
 	 * Check if key is in storage. NOTE: does not modify any other properties
@@ -32,7 +34,7 @@ public interface KVStorage {
 	/**
 	 * Clear the storage of the server
 	 */
-	public void clearStorage();
+	public void clearStorage() throws IOException;
 
 	
 	/**
