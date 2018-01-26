@@ -4,6 +4,8 @@ package testing.IntegrationTests;
 import app_kvClient.KVClient;
 import app_kvClient.Commands.*;
 import app_kvServer.KVServer;
+import common.enums.eKVExtendStatusType;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import org.junit.Test;
 
@@ -117,8 +119,8 @@ public class FunctionalityLRUServerTest extends TestCase {
         assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
         KVCommandEcho echoInstance = new KVCommandEcho();
-        KVMessage echoResponse = client.executeCommand(echoInstance);
-        assertTrue(echoResponse.getStatus() == KVMessage.StatusType.ECHO);
+        KVJSONMessage echoResponse = client.executeCommand(echoInstance);
+        assertEquals(eKVExtendStatusType.ECHO,echoResponse.getExtendStatusType());
     }
 }
 

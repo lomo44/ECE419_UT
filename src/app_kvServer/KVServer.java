@@ -1,5 +1,6 @@
 package app_kvServer;
 
+import common.enums.eKVExtendCacheType;
 import database.KVDatabase;
 import org.apache.log4j.Level;
 import logger.KVOut;
@@ -24,7 +25,7 @@ public class KVServer implements IKVServer {
     private static KVOut kv_out = new KVOut();
     private int port;
     private int cacheSize;
-	private CacheStrategy cacheStrategy;
+	private eKVExtendCacheType cacheStrategy;
 	private KVDatabase database;
     public KVServer(int port, int cacheSize, String strategy) throws IOException, ClassNotFoundException {
         this.port = port;
@@ -32,7 +33,7 @@ public class KVServer implements IKVServer {
         handlerThread = new Thread(serverHandler);
         handlerThread.start();
         this.cacheSize = cacheSize;
-        cacheStrategy = CacheStrategy.fromString(strategy);
+        cacheStrategy = eKVExtendCacheType.fromString(strategy);
         database = new KVDatabase(cacheSize,5000,strategy);
         // Pull the handler and check if the handler is running
         while(!serverHandler.isRunning()){
@@ -56,7 +57,7 @@ public class KVServer implements IKVServer {
 
 	@Override
     public CacheStrategy getCacheStrategy(){
-	    return this.cacheStrategy;
+	    return this.cacheStrategy.toCacheStrategy();
 	}
 
 	@Override

@@ -2,8 +2,8 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern.KVCommandType;
 import app_kvClient.KVClient;
+import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 
 public class KVCommandPut extends KVCommand {
     public KVCommandPut() {
@@ -11,21 +11,24 @@ public class KVCommandPut extends KVCommand {
     }
 
     @Override
-    public KVMessage execute(KVClient clientInstance) {
+    public KVJSONMessage execute(KVClient clientInstance) {
+        KVJSONMessage ret  = null;
         try {
-            return clientInstance.getStore().put(getKey(),getValue());
+            ret = (KVJSONMessage)clientInstance.getStore().put(getKey(),getValue());
         } catch (Exception e) {
             kv_out.println_error("No status response received.");
             e.printStackTrace();
-            KVJSONMessage newmsg = clientInstance.getStore().createEmptyMessage();
-            newmsg.setStatus(KVMessage.StatusType.NORESPONSE);
-            return newmsg;
+            ret = clientInstance.getStore().createEmptyMessage();
+            ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
+        }
+        finally {
+            return ret;
         }
     }
 
     @Override
-    public void handleResponse(KVMessage response) {
-        KVMessage.StatusType statusType = response.getStatus();
+    public void handleResponse(KVJSONMessage response) {
+       eKVExtendStatusType statusType = response.getExtendStatusType();
         String key = response.getKey();
         String value = response.getValue();
         switch (statusType) {
@@ -45,7 +48,7 @@ public class KVCommandPut extends KVCommand {
                 kv_out.println_error("Unknown error.");
                 break;
             }
-            case NORESPONSE:{
+            case NO_RESPONSE:{
                 kv_out.println_debug("No response.");
                 break;
             }

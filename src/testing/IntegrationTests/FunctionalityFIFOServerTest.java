@@ -6,6 +6,8 @@ import app_kvClient.Commands.KVCommandGet;
 import app_kvClient.Commands.KVCommandPut;
 import app_kvClient.KVClient;
 import app_kvServer.KVServer;
+import common.enums.eKVExtendStatusType;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -115,8 +117,8 @@ public class FunctionalityFIFOServerTest extends TestCase {
         assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
         KVCommandEcho echoInstance = new KVCommandEcho();
-        KVMessage echoResponse = client.executeCommand(echoInstance);
-        assertTrue(echoResponse.getStatus() == KVMessage.StatusType.ECHO);
+        KVJSONMessage echoResponse = client.executeCommand(echoInstance);
+        assertEquals(eKVExtendStatusType.ECHO,echoResponse.getExtendStatusType());
     }
 }
 

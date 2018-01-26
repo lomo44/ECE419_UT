@@ -1,6 +1,7 @@
 package app_kvServer;
 
 import common.communication.KVCommunicationModule;
+import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import logger.KVOut;
@@ -58,14 +59,15 @@ public class KVServerInstance implements Runnable {
         isRunning = false;
         communicationModule.close();
     }
+
     /**
      * Handle a input message and generate a output message. Can be override in the
      * derived class to handle message differently
      * @param in_message inbound message
      * @return KVMessage outbound message
      */
-    public KVMessage handleMessage(KVMessage in_message){
-        KVMessage.StatusType statusType = in_message.getStatus();
+    public KVMessage handleMessage(KVJSONMessage in_message){
+        eKVExtendStatusType statusType = in_message.getExtendStatusType();
         KVJSONMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
             case GET:{
@@ -132,7 +134,7 @@ public class KVServerInstance implements Runnable {
                 return in_message;
             }
             default:{
-                retMessage.setStatus(KVMessage.StatusType.UNKNOWN_ERROR);
+                retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
             }
         }
         return retMessage;

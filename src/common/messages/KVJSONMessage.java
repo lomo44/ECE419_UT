@@ -1,4 +1,5 @@
 package common.messages;
+import common.enums.eKVExtendStatusType;
 import org.json.*;
 
 import java.util.HashMap;
@@ -9,6 +10,8 @@ public class KVJSONMessage implements KVMessage {
 	private String key;
 	private String Value;
 	private StatusType status;
+	private eKVExtendStatusType extendStatusType;
+
 	private static String KEY_PAIR_NAME = "key_pair";
 	private static String STATUS_NAME = "status_type";
 
@@ -39,6 +42,9 @@ public class KVJSONMessage implements KVMessage {
 		return status;
 	}
 
+	public eKVExtendStatusType getExtendStatusType(){
+		return extendStatusType;
+	}
     /**
      * Serialize the object into bytes array
      * @return byte[]
@@ -48,7 +54,7 @@ public class KVJSONMessage implements KVMessage {
         Map<String, String> newmap = new HashMap<String, String>();
         newmap.put(key,Value);
 		newObject.put(KEY_PAIR_NAME,newmap);
-		newObject.put(STATUS_NAME,status.getValue());
+		newObject.put(STATUS_NAME, extendStatusType.getValue());
 		return newObject.toString().getBytes();
 	}
 
@@ -78,7 +84,8 @@ public class KVJSONMessage implements KVMessage {
                 key = keypair.keys().next();
                 Value = keypair.getString(key);
             }
-            status = StatusType.fromInt(new_status);
+            setExtendStatus(eKVExtendStatusType.fromInt(new_status));
+
         }
 		return this;
 	}
@@ -86,7 +93,7 @@ public class KVJSONMessage implements KVMessage {
 	public boolean equal(KVMessage msg) {
         return this.Value.equals(msg.getValue()) &&
 				this.key.equals(msg.getKey()) &&
-				this.status.getValue()== msg.getStatus().getValue();
+				this.status == msg.getStatus();
 	}
 
 	/**
@@ -110,6 +117,12 @@ public class KVJSONMessage implements KVMessage {
      */
 	public void setStatus(StatusType inType) {
 		this.status = inType;
+		this.extendStatusType = eKVExtendStatusType.fromStatusType(inType);
+	}
+
+	public void setExtendStatus(eKVExtendStatusType inType){
+		this.status = inType.toStatusType();
+		this.extendStatusType = inType;
 	}
 
 }

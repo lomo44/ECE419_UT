@@ -8,7 +8,6 @@ import java.util.Set;
 import java.net.SocketException;
 
 import common.messages.KVJSONMessage;
-import org.apache.log4j.Logger;
 
 import common.messages.KVMessage;
 import common.communication.KVCommunicationModule;

@@ -2,8 +2,8 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
+import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 
 public class KVCommandConnect extends KVCommand{
     public KVCommandConnect() {
@@ -11,20 +11,20 @@ public class KVCommandConnect extends KVCommand{
     }
 
     @Override
-    public KVMessage execute(KVClient clientInstance) {
+    public KVJSONMessage execute(KVClient clientInstance) {
         KVJSONMessage ret = new KVJSONMessage();
         try {
             clientInstance.newConnection(getHostName(),Integer.parseInt(getPort()));
-            ret.setStatus(KVMessage.StatusType.CONNECT_SUCCESS);
+            ret.setExtendStatus(eKVExtendStatusType.CONNECT_SUCCESS);
         } catch (Exception e) {
-            ret.setStatus(KVMessage.StatusType.CONNECT_FAIL);
+            ret.setExtendStatus(eKVExtendStatusType.CONNECT_FAIL);
         }
         return ret;
     }
 
     @Override
-    public void handleResponse(KVMessage response) {
-        if(response.getStatus() == KVMessage.StatusType.CONNECT_SUCCESS){
+    public void handleResponse(KVJSONMessage response) {
+        if(response.getExtendStatusType() == eKVExtendStatusType.CONNECT_SUCCESS){
             kv_out.println_info("Successfully connected to server.");
         }
         else{

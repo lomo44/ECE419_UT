@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.Scanner;
 
 import app_kvClient.Commands.KVCommand;
+import common.messages.KVJSONMessage;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -104,7 +105,7 @@ public class KVClient implements IKVClient,Runnable {
     public KVStore getStore(){
         return client;
     }
-    public KVMessage executeCommand(KVCommand cmdInstance){
+    public KVJSONMessage executeCommand(KVCommand cmdInstance){
         return cmdInstance.execute(this);
     }
 

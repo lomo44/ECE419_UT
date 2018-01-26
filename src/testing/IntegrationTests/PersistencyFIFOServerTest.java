@@ -4,12 +4,12 @@ import app_kvClient.Commands.KVCommandGet;
 import app_kvClient.Commands.KVCommandPut;
 import app_kvClient.KVClient;
 import app_kvServer.KVServer;
+import common.enums.eKVExtendStatusType;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
 import testing.KVTestPortManager;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class PersistencyFIFOServerTest extends TestCase {
 
@@ -49,7 +49,7 @@ public class PersistencyFIFOServerTest extends TestCase {
         KVCommandPut cmdInstance = new KVCommandPut();
         cmdInstance.setKey("Hello");
         cmdInstance.setValue("World");
-        KVMessage response = client.executeCommand(cmdInstance);
+        KVJSONMessage response = client.executeCommand(cmdInstance);
         assertTrue(response.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
         // Close the server
         server.close();
@@ -59,7 +59,7 @@ public class PersistencyFIFOServerTest extends TestCase {
         cmdGet.setKey("Hello");
         response = client.executeCommand(cmdGet);
 
-        assertEquals(response.getStatus(),KVMessage.StatusType.NORESPONSE);
+        assertEquals(eKVExtendStatusType.NO_RESPONSE,response.getExtendStatusType());
         assertTrue(!client.isConnected());
 
         client.newConnection("localhost",port);

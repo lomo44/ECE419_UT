@@ -2,6 +2,7 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 
 public class KVCommandLogLevel extends KVCommand {
@@ -10,14 +11,14 @@ public class KVCommandLogLevel extends KVCommand {
     }
 
     @Override
-    public KVMessage execute(KVClient clientInstance) {
+    public KVJSONMessage execute(KVClient clientInstance) {
         clientInstance.setLevel(getLevel());
         System.out.println("Log Level: "+clientInstance.setLevel(getLevel()));
         return null;
     }
 
     @Override
-    public void handleResponse(KVMessage response) {
+    public void handleResponse(KVJSONMessage response) {
         //ignore
     }
 

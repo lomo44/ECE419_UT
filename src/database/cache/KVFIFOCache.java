@@ -1,5 +1,7 @@
 package database.cache;
 
+import common.enums.eKVExtendCacheType;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -7,15 +9,13 @@ import java.util.NoSuchElementException;
 
 public class KVFIFOCache extends KVCache{
 
-	private int cacheSize;
-	private KVCacheStrategy cacheStrategy;
 	private Map<String, String> cache;
     private float loadfactor = 0.75f;
 
 	
 	public KVFIFOCache(int size) {
 		this.cacheSize = size;
-		this.cacheStrategy = KVCacheStrategy.fromString("FIFO");
+		this.cacheStrategy = eKVExtendCacheType.FIFO;
 		cache = new LinkedHashMap<String,String>(cacheSize,loadfactor,false) {
             private static final long serialVersionUID = -2L;
 			@Override

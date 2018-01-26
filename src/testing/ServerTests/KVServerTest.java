@@ -52,7 +52,7 @@ public class KVServerTest extends TestCase {
 //    @Test
 //    public void testServerBasic_Echo() throws InterruptedException, IOException, ClassNotFoundException {
 //        KVMessage newmessage = client.createKVMessage();
-//        newmessage.setStatus(KVMessage.StatusType.PUT);
+//        newmessage.setExtendStatus(KVMessage.StatusType.PUT);
 //        newmessage.setKey("foo");
 //        newmessage.setValue("boo");
 //        client.send(newmessage);
@@ -67,12 +67,12 @@ public class KVServerTest extends TestCase {
 //        client2.init(0);
 //
 //        KVMessage newmessage1 = client1.createKVMessage();
-//        newmessage1.setStatus(KVMessage.StatusType.PUT);
+//        newmessage1.setExtendStatus(KVMessage.StatusType.PUT);
 //        newmessage1.setKey("c1");
 //        newmessage1.setValue("c11");
 //
 //        KVMessage newmessage2 = client1.createKVMessage();
-//        newmessage2.setStatus(KVMessage.StatusType.GET);
+//        newmessage2.setExtendStatus(KVMessage.StatusType.GET);
 //        newmessage2.setKey("c2");
 //        newmessage2.setValue("c22");
 //
