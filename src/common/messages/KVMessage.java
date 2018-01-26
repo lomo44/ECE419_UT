@@ -76,44 +76,13 @@ public interface KVMessage {
 	 * 		null if not value is associated.
 	 */
 	public String getValue();
-	
-	/**
-	 * Set the key
-	 * @param key
-	 */
-	public void setKey(String key);
-	/**
-	 * Set the value
-	 * @param value
-	 */
-	public void setValue(String value);
-	
+
 	/**
 	 * @return a status string that is used to identify request types, 
 	 * response types and error types associated to the message.
 	 */
 	public StatusType getStatus();
-	
-	/**
-	 * Set the status of the message
-	 * @param inType
-	 */
-	public void setStatus(StatusType inType);
 
-    /**
-     * Serialization interface
-     * @return byte[]
-     */
-	public byte[] toBytes();
-
-    /**
-     * De-Serialization interface
-     * @param in_Bytes incoming byte array
-     * @return same interface
-     */
-	public KVMessage fromBytes(byte[] in_Bytes);
-
-	public boolean equal(KVMessage msg);
 }
 
 
