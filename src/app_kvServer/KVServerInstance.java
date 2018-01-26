@@ -76,6 +76,8 @@ public class KVServerInstance implements Runnable {
         switch (statusType){
             case GET:{
                 try{
+                    if(in_message.getKey()=="")
+                        throw new Exception();
                     kv_out.println_info("Received GET request from client.");
                     String value = serverinstance.getKV(in_message.getKey());
                     retMessage.setStatus(KVMessage.StatusType.GET_SUCCESS);
@@ -93,9 +95,11 @@ public class KVServerInstance implements Runnable {
             case PUT:{
                 String update_value = in_message.getValue();
                 try {
+                    if(in_message.getKey()=="")
+                        throw new Exception();
                     String value = serverinstance.getKV(in_message.getKey());
                     if(!value.matches(update_value)) {
-                        if(update_value.matches(DELETE_IDENTIFIER)){
+                        if(update_value.matches(DELETE_IDENTIFIER) || update_value.matches("")){
                             kv_out.println_info("Received DELETE request from client.");
                             retMessage.setStatus(DELETE_SUCCESS);
                         }
@@ -112,7 +116,11 @@ public class KVServerInstance implements Runnable {
                         break;
                     }
                 } catch (Exception e) {
-                    if(update_value.matches(DELETE_IDENTIFIER)) {
+                    if(in_message.getKey()==""){
+                        retMessage.setStatus(PUT_ERROR);
+                        return retMessage;
+                    }
+                    if(update_value.matches(DELETE_IDENTIFIER) || update_value.matches("")) {
                         retMessage.setStatus(DELETE_ERROR);
                         break;
                     }
@@ -124,7 +132,7 @@ public class KVServerInstance implements Runnable {
                     serverinstance.putKV(in_message.getKey(),in_message.getValue());
                     kv_out.println_debug("Inserted/updated/deleted corresponding key/value store for PUT request.");
                 } catch (Exception e) {
-                    if(in_message.getValue().matches(DELETE_IDENTIFIER)){
+                    if(in_message.getValue().matches(DELETE_IDENTIFIER) || update_value.matches("")){
                         retMessage.setStatus(DELETE_ERROR);
                         kv_out.println_debug("Could not delete corresponding key/value store for DELETE request.");
                     }else {
