@@ -10,6 +10,7 @@ import logger.KVOut;
 import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.util.regex.Pattern;
 
 import static common.messages.KVMessage.StatusType.*;
 
@@ -20,6 +21,7 @@ public class KVServerInstance implements Runnable {
     private KVOut kv_out = new KVOut();
     private boolean isRunning;
     private static final String DELETE_IDENTIFIER = "null";
+    private Pattern whitespacechecker = Pattern.compile("\\s");
 
     public KVServerInstance(KVCommunicationModule communicationModule, IKVServer server){
         this.communicationModule = communicationModule;
@@ -76,7 +78,7 @@ public class KVServerInstance implements Runnable {
         switch (statusType){
             case GET:{
                 try{
-                    if(in_message.getKey()=="")
+                    if(!isKeyValid(in_message.getKey()))
                         throw new Exception();
                     kv_out.println_info("Received GET request from client.");
                     String value = serverinstance.getKV(in_message.getKey());
@@ -95,7 +97,7 @@ public class KVServerInstance implements Runnable {
             case PUT:{
                 String update_value = in_message.getValue();
                 try {
-                    if(in_message.getKey().matches(""))
+                    if(!isKeyValid(in_message.getKey()))
                         throw new Exception();
                     String value = serverinstance.getKV(in_message.getKey());
                     if(!value.matches(update_value)) {
@@ -116,7 +118,7 @@ public class KVServerInstance implements Runnable {
                         break;
                     }
                 } catch (Exception e) {
-                    if(in_message.getKey().matches("")){
+                    if(!isKeyValid(in_message.getKey())){
                         retMessage.setStatus(PUT_ERROR);
                         return retMessage;
                     }
@@ -161,5 +163,9 @@ public class KVServerInstance implements Runnable {
         kv_out.changeLogLevel(logLevel);
         kv_out.changeOutputLevel(outputlevel);
         communicationModule.setLogLevel(outputlevel,logLevel);
+    }
+
+    public boolean isKeyValid(String key){
+        return !key.matches("") && !whitespacechecker.matcher(key).find();
     }
 }

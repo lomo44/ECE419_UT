@@ -54,7 +54,7 @@ public class AutoTester extends TestCase{
         assertEquals(KVMessage.StatusType.DELETE_SUCCESS,msg.getStatus());
         server.clearStorage();
 
-        msg = client.getStore().put("","string");
+        msg = client.getStore().put("test t","string");
         assertEquals(KVMessage.StatusType.PUT_ERROR,msg.getStatus());
         server.clearStorage();
 
