@@ -52,9 +52,12 @@ public class AutoTester extends TestCase{
         assertEquals(KVMessage.StatusType.PUT_SUCCESS,msg.getStatus());
         msg = client.getStore().put("test","");
         assertEquals(KVMessage.StatusType.DELETE_SUCCESS,msg.getStatus());
-//        client.getStore().put("test","test string");
-//        client.getStore().put("test","test string");
         server.clearStorage();
+
+        msg = client.getStore().put("","string");
+        assertEquals(KVMessage.StatusType.PUT_ERROR,msg.getStatus());
+        server.clearStorage();
+
         client.getStore().disconnect();
         server.close();
     }

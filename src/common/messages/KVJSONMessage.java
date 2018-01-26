@@ -7,8 +7,8 @@ import java.util.Map;
 
 public class KVJSONMessage implements KVMessage {
 
-	private String key;
-	private String Value;
+	private String key = "";
+	private String Value = "";
 	private StatusType status;
 	private eKVExtendStatusType extendStatusType;
 
