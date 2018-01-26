@@ -130,8 +130,10 @@ public class KVServerHandler implements Runnable {
             aliveInstances.elementAt(i).stop();
         }
         for (int i = 0; i < this.aliveinstancethreads.size() ; i++) {
+            kv_out.println_debug("Try to join: "+i);
             aliveinstancethreads.elementAt(i).join();
         }
+        kv_out.println_debug("Tear down complete");
     }
 
     /**
@@ -141,6 +143,7 @@ public class KVServerHandler implements Runnable {
      * @throws IOException thrown when buffer cannot be clo
      */
     public void stop() throws InterruptedException, IOException {
+        kv_out.println_debug("Try to stop the handler");
         isRunning = false;
         tearDown();
     }

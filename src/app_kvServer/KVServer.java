@@ -97,6 +97,7 @@ public class KVServer implements IKVServer {
 
 	@Override
     public void clearStorage(){
+        kv_out.println_debug("try to clear storage");
         try {
             database.flushStorage();
         } catch (IOException e) {
@@ -112,6 +113,7 @@ public class KVServer implements IKVServer {
 
     @Override
     public void kill(){
+        kv_out.println_debug("Try to kill server.");
         try {
             serverHandler.stop();
             handlerThread.join();
