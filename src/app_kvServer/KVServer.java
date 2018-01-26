@@ -66,8 +66,7 @@ public class KVServer implements IKVServer {
 
 	@Override
     public int getCacheSize(){
-		// TODO Auto-generated method stub
-		return -1;
+        return cacheSize;
 	}
 
 	@Override
@@ -92,7 +91,8 @@ public class KVServer implements IKVServer {
 
 	@Override
     public void clearCache(){
-		database.flushCache();
+		kv_out.println_debug("Cache cleared");
+        database.flushCache();
 	}
 
 	@Override
@@ -102,6 +102,7 @@ public class KVServer implements IKVServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        kv_out.println_debug("Storage cleared");
     }
 
     @Override
@@ -130,7 +131,8 @@ public class KVServer implements IKVServer {
     }
 
     public void flushCache(){
-		database.flushCache();
+		kv_out.println_debug("Cache flushed");
+        database.flushCache();
     }
 
 	/**
@@ -147,6 +149,7 @@ public class KVServer implements IKVServer {
 
     public static void main(String[] args) {
         kv_out.enableLog("logs/server.log", Level.ALL);
+        System.out.println("Run server from main");
         int port = Integer.parseInt(args[0]);
         int cachesize = Integer.parseInt(args[1]);
         try {

@@ -51,6 +51,7 @@ public class KVClient implements IKVClient,Runnable {
                 printHelp();
             }
         }
+        System.out.println("Stopped");
     }
     public void stop() throws IOException {
         disconnect();
