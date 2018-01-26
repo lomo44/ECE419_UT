@@ -72,11 +72,12 @@ public class KVServerHandler implements Runnable {
             kv_out.println_info("Server stopped.");
         }
         try {
+            tearDown();
             if(serverSocket != null){
                 serverSocket.close();
                 serverSocket = null;
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             kv_out.println_error("Unable to close server socket on port "+port);
         }
@@ -146,7 +147,6 @@ public class KVServerHandler implements Runnable {
     public void stop() throws InterruptedException, IOException {
         kv_out.println_debug("Try to stop the handler");
         isRunning = false;
-        tearDown();
     }
 
     /**

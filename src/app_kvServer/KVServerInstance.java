@@ -34,6 +34,7 @@ public class KVServerInstance implements Runnable {
      */
     @Override
     public void run() {
+        kv_out.println_debug("New server instance created");
         isRunning = true;
         while(communicationModule.isConnected() && isRunning){
             try {

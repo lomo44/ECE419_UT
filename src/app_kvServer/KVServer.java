@@ -29,11 +29,11 @@ public class KVServer implements IKVServer {
 	private eKVExtendCacheType cacheStrategy;
 	private KVDatabase database;
     public KVServer(int port, int cacheSize, String strategy) throws IOException, ClassNotFoundException {
-
         this.port = port;
         serverHandler = createServerHandler();
         handlerThread = new Thread(serverHandler);
         setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
+        kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
         handlerThread.start();
         this.cacheSize = cacheSize;
         cacheStrategy = eKVExtendCacheType.fromString(strategy);
@@ -41,7 +41,7 @@ public class KVServer implements IKVServer {
         // Pull the handler and check if the handler is running
         while(!serverHandler.isRunning()){
             try {
-                TimeUnit.MILLISECONDS.sleep(50);
+                TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -108,7 +108,7 @@ public class KVServer implements IKVServer {
 
     @Override
     public void run() {
-
+	    kv_out.println_debug("Server running");
     }
 
     @Override
@@ -142,7 +142,7 @@ public class KVServer implements IKVServer {
 	 * @return a server handler instances
 	 */
     public KVServerHandler createServerHandler(){
-    	return new KVServerHandler(this.port, this,1000);
+    	return new KVServerHandler(this.port, this,2000);
 	}
 
 	public boolean isHandlerRunning(){
