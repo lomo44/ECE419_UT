@@ -89,7 +89,7 @@ public class KVDatabase implements IKVDatabase {
 
 	@Override
 	public void flushStorage() throws IOException {
-		cache.flushCache();
+		cache.clearCache();
 		storage.clearStorage();
 	}
 

@@ -38,15 +38,23 @@ public class AutoTester extends TestCase{
         client.newConnection("localhost", server.getPort());
         client.getStore();
         assertEquals(KVMessage.StatusType.PUT_SUCCESS,client.getStore().put("test","test string").getStatus());
+
+        server.clearStorage();
+
+        assertEquals(KVMessage.StatusType.PUT_SUCCESS,client.getStore().put("test","test string").getStatus());
         KVMessage msg = client.getStore().get("test");
         assertEquals("test string",msg.getValue());
         assertEquals(KVMessage.StatusType.GET_SUCCESS,msg.getStatus());
+
+        server.clearStorage();
+
         msg = client.getStore().put("test","string");
-        assertEquals(KVMessage.StatusType.PUT_UPDATE,msg.getStatus());
+        assertEquals(KVMessage.StatusType.PUT_SUCCESS,msg.getStatus());
         msg = client.getStore().put("test","");
         assertEquals(KVMessage.StatusType.DELETE_SUCCESS,msg.getStatus());
 //        client.getStore().put("test","test string");
 //        client.getStore().put("test","test string");
+        server.clearStorage();
         client.getStore().disconnect();
         server.close();
     }
