@@ -82,7 +82,7 @@ public class FunctionalityFIFOServerTest extends TestCase {
         assertTrue(client.isConnected());
         KVCommandPut putInstance = new KVCommandPut();
         putInstance.setKey("Hello");
-        putInstance.setValue("World");
+        putInstance.setValue("World 123");
         KVMessage putResponse = client.executeCommand(putInstance);
         assertTrue(putResponse.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
         putInstance.setValue("null");

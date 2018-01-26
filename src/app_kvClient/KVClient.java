@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.Scanner;
 
 import app_kvClient.Commands.KVCommand;
+import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -26,12 +27,17 @@ public class KVClient implements IKVClient,Runnable {
     private KVCommandParser cmdParser = new KVCommandParser();
     private Scanner keyboard;
     private KVClientAttribute attribute = new KVClientAttribute();
-
+    private eKVLogLevel outputlevel;
+    private eKVLogLevel logLevel;
 
     public KVClient(InputStream inputStream){
         keyboard = new Scanner(inputStream);
+        setLogLevel(eKVLogLevel.OFF,eKVLogLevel.DEBUG);
     }
-    public KVClient(){keyboard = new Scanner(System.in);}
+    public KVClient(){
+        keyboard = new Scanner(System.in);
+        setLogLevel(eKVLogLevel.OFF,eKVLogLevel.DEBUG);
+    }
     @Override
     public void run() {
         while (!stop) {
@@ -99,6 +105,7 @@ public class KVClient implements IKVClient,Runnable {
     @Override
     public void newConnection(String hostname, int port) throws Exception {
         client = new KVStore(hostname, port);
+        client.setLogLevel(this.outputlevel,this.logLevel);
         client.connect();
     }
 
@@ -107,6 +114,14 @@ public class KVClient implements IKVClient,Runnable {
     }
     public KVJSONMessage executeCommand(KVCommand cmdInstance){
         return cmdInstance.execute(this);
+    }
+    public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+        if(client!=null)
+            client.setLogLevel(outputlevel,logLevel);
+        else {
+            this.outputlevel = outputlevel;
+            this.logLevel = logLevel;
+        }
     }
 
     /**

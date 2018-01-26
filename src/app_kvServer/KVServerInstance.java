@@ -2,6 +2,7 @@ package app_kvServer;
 
 import common.communication.KVCommunicationModule;
 import common.enums.eKVExtendStatusType;
+import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import logger.KVOut;
@@ -67,6 +68,9 @@ public class KVServerInstance implements Runnable {
      * @return KVMessage outbound message
      */
     public KVMessage handleMessage(KVJSONMessage in_message){
+        String out = String.format("Received inbound message, key: %s, value: %s,Operator: %d",
+                in_message.getKey(),in_message.getValue(),in_message.getExtendStatusType().getValue());
+        kv_out.println_debug(out);
         eKVExtendStatusType statusType = in_message.getExtendStatusType();
         KVJSONMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
@@ -138,5 +142,16 @@ public class KVServerInstance implements Runnable {
             }
         }
         return retMessage;
+    }
+
+    /**
+     * Change the output and log level
+     * @param outputlevel
+     * @param logLevel
+     */
+    public void changeLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+        kv_out.changeLogLevel(logLevel);
+        kv_out.changeOutputLevel(outputlevel);
+        communicationModule.setLogLevel(outputlevel,logLevel);
     }
 }

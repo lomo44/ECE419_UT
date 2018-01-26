@@ -1,6 +1,7 @@
 package app_kvServer;
 
 import common.enums.eKVExtendCacheType;
+import common.enums.eKVLogLevel;
 import database.KVDatabase;
 import org.apache.log4j.Level;
 import logger.KVOut;
@@ -28,9 +29,11 @@ public class KVServer implements IKVServer {
 	private eKVExtendCacheType cacheStrategy;
 	private KVDatabase database;
     public KVServer(int port, int cacheSize, String strategy) throws IOException, ClassNotFoundException {
+
         this.port = port;
         serverHandler = createServerHandler();
         handlerThread = new Thread(serverHandler);
+        setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
         handlerThread.start();
         this.cacheSize = cacheSize;
         cacheStrategy = eKVExtendCacheType.fromString(strategy);
@@ -158,4 +161,15 @@ public class KVServer implements IKVServer {
 
         }
 	}
+
+    /**
+     * Change the log level of the server
+     * @param outputlevel output level
+     * @param logLevel log level
+     */
+	public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+	    kv_out.changeOutputLevel(outputlevel);
+	    kv_out.changeLogLevel(outputlevel);
+        serverHandler.setLogLevel(outputlevel,logLevel);
+    }
 }

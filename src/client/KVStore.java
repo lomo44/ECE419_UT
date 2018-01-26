@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.net.SocketException;
 
+import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 
 import common.messages.KVMessage;
@@ -21,6 +22,8 @@ public class KVStore implements KVCommInterface {
     private String serverAddress;
     private int serverPort;
     private Socket clientSocket;
+    private eKVLogLevel outputlevel = eKVLogLevel.DEBUG;
+    private eKVLogLevel logLevel = eKVLogLevel.DEBUG;
     private KVCommunicationModule communicationModule;
 
     /**
@@ -39,7 +42,9 @@ public class KVStore implements KVCommInterface {
     public void connect() throws Exception {
         clientSocket = new Socket(serverAddress, serverPort);
         communicationModule = new KVCommunicationModule(clientSocket,1000);
+        communicationModule.setLogLevel(outputlevel,logLevel);
         setRunning(true);
+        setLogLevel(outputlevel,logLevel);
         kv_out.println_info("Connection established.");
 
     }
@@ -101,5 +106,16 @@ public class KVStore implements KVCommInterface {
 
     public KVJSONMessage createEmptyMessage() {
         return communicationModule.getEmptyMessage();
+    }
+
+    public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+        kv_out.changeOutputLevel(outputlevel);
+        kv_out.changeLogLevel(logLevel);
+        if(communicationModule!=null)
+            communicationModule.setLogLevel(outputlevel,logLevel);
+        else {
+            this.outputlevel = outputlevel;
+            this.logLevel = logLevel;
+        }
     }
 }

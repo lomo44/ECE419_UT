@@ -2,6 +2,7 @@ package app_kvServer;
 
 
 import common.communication.KVCommunicationModule;
+import common.enums.eKVLogLevel;
 import logger.KVOut;
 
 import java.io.IOException;
@@ -102,7 +103,9 @@ public class KVServerHandler implements Runnable {
      * @return KVCommunication module instance
      */
     public KVCommunicationModule createCommunicationModule(Socket socket){
-        return new KVCommunicationModule(socket,listenerTimerout);
+        KVCommunicationModule module = new KVCommunicationModule(socket,listenerTimerout);
+        module.setLogLevel(kv_out.getOutputLevel(),kv_out.getLogLevel());
+        return module;
     }
 
     /**
@@ -112,7 +115,9 @@ public class KVServerHandler implements Runnable {
      * @return a new server instance
      */
     public KVServerInstance createServerInstance(KVCommunicationModule com, IKVServer master){
-        return new KVServerInstance(com,master);
+        KVServerInstance newInstance =  new KVServerInstance(com,master);
+        newInstance.changeLogLevel(kv_out.getOutputLevel(),kv_out.getLogLevel());
+        return newInstance;
     }
 
     /**
@@ -166,5 +171,19 @@ public class KVServerHandler implements Runnable {
      */
     public int getPort() {
         return serverSocket.getLocalPort();
+    }
+
+    /**
+     * Change the log and output level of the logger for this handler
+     * @param outputlevel output level
+     * @param logLevel log level
+     */
+    public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+        kv_out.changeOutputLevel(outputlevel);
+        kv_out.changeLogLevel(logLevel);
+        for (KVServerInstance instance: aliveInstances
+             ) {
+            instance.changeLogLevel(outputlevel,logLevel);
+        }
     }
 }

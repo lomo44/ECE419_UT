@@ -9,12 +9,13 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import logger.KVOut;
 
 public class KVCommunicationModule {
-    // Communication module for both server and clietn
+    // Communication module for both server and client
     private Socket privateSocket;
     private KVOut kv_out = new KVOut();
     private int timeout;
@@ -119,4 +120,9 @@ public class KVCommunicationModule {
 	public  void close() throws IOException {
 		this.privateSocket.close();
 	}
+
+	public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+	    kv_out.changeLogLevel(logLevel);
+	    kv_out.changeOutputLevel(outputlevel);
+    }
 }
