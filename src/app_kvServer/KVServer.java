@@ -100,7 +100,12 @@ public class KVServer implements IKVServer {
         }
     }
 
-	@Override
+    @Override
+    public void run() {
+
+    }
+
+    @Override
     public void kill(){
         try {
             serverHandler.stop();
