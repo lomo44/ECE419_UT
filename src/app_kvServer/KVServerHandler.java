@@ -80,6 +80,7 @@ public class KVServerHandler implements Runnable {
             e.printStackTrace();
             kv_out.println_error("Unable to close server socket on port "+port);
         }
+        kv_out.println_debug("Handler exit");
     }
 
     /**

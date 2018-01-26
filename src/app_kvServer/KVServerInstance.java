@@ -50,6 +50,7 @@ public class KVServerInstance implements Runnable {
 
             }
         }
+        kv_out.println_debug("Instance exit");
 
     }
 
