@@ -43,7 +43,6 @@ public class KVJSONMessage implements KVMessage {
      * Serialize the object into bytes array
      * @return byte[]
      */
-	@Override
 	public byte[] toBytes() {
 		JSONObject newObject = new JSONObject();
         Map<String, String> newmap = new HashMap<String, String>();
@@ -59,7 +58,6 @@ public class KVJSONMessage implements KVMessage {
      * @return base class KVMessage
      * @throws IllegalArgumentException If the incoming byte array is not valid
      */
-	@Override
 	public KVMessage fromBytes(byte[] in_Bytes) throws IllegalArgumentException {
         JSONObject keypair;
         JSONObject newObject;
@@ -85,7 +83,6 @@ public class KVJSONMessage implements KVMessage {
 		return this;
 	}
 
-	@Override
 	public boolean equal(KVMessage msg) {
         return this.Value.equals(msg.getValue()) &&
 				this.key.equals(msg.getKey()) &&
@@ -96,7 +93,6 @@ public class KVJSONMessage implements KVMessage {
      * Set the key of the message
      * @param key String
      */
-	@Override
 	public void setKey(String key) {
 		this.key = key;
 	}
@@ -105,7 +101,6 @@ public class KVJSONMessage implements KVMessage {
      * Set the value of the message
      * @param value String
      */
-	@Override
 	public void setValue(String value) {
 		this.Value = value;
 	}
@@ -113,7 +108,6 @@ public class KVJSONMessage implements KVMessage {
     /** Set the status of the message
      * @param inType StatusType
      */
-	@Override
 	public void setStatus(StatusType inType) {
 		this.status = inType;
 	}
