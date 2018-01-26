@@ -6,6 +6,7 @@ import java.net.SocketTimeoutException;
 import java.util.HashSet;
 import java.util.Set;
 import java.net.SocketException;
+import java.lang.System;
 
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
@@ -87,7 +88,9 @@ public class KVStore implements KVCommInterface {
         newmessage.setKey(key);
         newmessage.setStatus(KVMessage.StatusType.PUT);
         communicationModule.send(newmessage);
-        return communicationModule.receiveMessage();
+        KVJSONMessage response = communicationModule.receiveMessage();
+        kv_out.println_debug("PUT RTT: " + (System.currentTimeMillis()-response.getSendTime()) + "ms.");
+        return response;
     }
 
     @Override
@@ -97,12 +100,16 @@ public class KVStore implements KVCommInterface {
         newmessage.setValue("");
         newmessage.setStatus(KVMessage.StatusType.GET);
         communicationModule.send(newmessage);
-        return communicationModule.receiveMessage();
+        KVJSONMessage response = communicationModule.receiveMessage();
+        kv_out.println_debug("GET RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");
+        return response;
     }
 
     public KVMessage send(KVMessage outboundmsg) throws SocketException, SocketTimeoutException {
         communicationModule.send(outboundmsg);
-        return communicationModule.receiveMessage();
+        KVJSONMessage response = communicationModule.receiveMessage();
+        kv_out.println_debug("ECHO RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");
+        return response;
     }
 
     public KVJSONMessage createEmptyMessage() {
