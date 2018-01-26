@@ -43,6 +43,7 @@ public class KVServer implements IKVServer {
                 e.printStackTrace();
             }
         }
+        this.port = serverHandler.getPort();
     }
 
 	@Override

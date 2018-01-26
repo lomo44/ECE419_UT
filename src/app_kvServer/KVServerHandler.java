@@ -139,6 +139,11 @@ public class KVServerHandler implements Runnable {
         isRunning = false;
         tearDown();
     }
+
+    /**
+     * Check if the server handler is running
+     * @return
+     */
     public boolean isRunning(){
         return isRunning;
     }
@@ -153,5 +158,13 @@ public class KVServerHandler implements Runnable {
         Thread aliveinstancethread = new Thread(instance);
         aliveinstancethread.start();
         aliveinstancethreads.add(aliveinstancethread);
+    }
+
+    /**
+     * Get the port that the handler is running
+     * @return
+     */
+    public int getPort() {
+        return serverSocket.getLocalPort();
     }
 }
