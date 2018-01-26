@@ -1,5 +1,7 @@
 package database.cache;
 
+import common.enums.eKVExtendCacheType;
+
 import java.util.NoSuchElementException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,9 +18,7 @@ public class KVLFUCache extends KVCache {
 			hitcount=0;
 		}
 	}
-	
-	private int cacheSize;
-	private KVCacheStrategy cacheStrategy;
+
 	private Map<String, Node> cache;
 	private Map<Integer,LinkedHashMap<String,String>> HitCounttoKey;
 	private int lowestHitCount;
@@ -26,7 +26,7 @@ public class KVLFUCache extends KVCache {
 	
 	public KVLFUCache(int size) {
 		cacheSize = size;
-		cacheStrategy = KVCacheStrategy.fromString("LFU");
+		cacheStrategy = eKVExtendCacheType.LFU;
 		cache = new ConcurrentHashMap<>();
 		HitCounttoKey = new ConcurrentHashMap<>();
 		lowestHitCount = 0;

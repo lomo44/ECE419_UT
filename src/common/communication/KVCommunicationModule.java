@@ -9,12 +9,13 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
+import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import logger.KVOut;
 
 public class KVCommunicationModule {
-    // Communication module for both server and clietn
+    // Communication module for both server and client
     private Socket privateSocket;
     private KVOut kv_out = new KVOut();
     private int timeout;
@@ -29,7 +30,7 @@ public class KVCommunicationModule {
      * Create a empty KVMessage
      * @return
      */
-	public KVMessage getEmptyMessage(){
+	public KVJSONMessage getEmptyMessage(){
 		return new KVJSONMessage();
 	}
 
@@ -47,7 +48,7 @@ public class KVCommunicationModule {
             try {
                 outputStream = privateSocket.getOutputStream();
                 DataOutputStream data_out = new DataOutputStream(outputStream);
-                byte[] out = in_Message.toBytes();
+                byte[] out = ((KVJSONMessage)in_Message).toBytes();
                 data_out.write(out.length);
                 data_out.write(out);
                 data_out.flush();
@@ -70,7 +71,7 @@ public class KVCommunicationModule {
      * @return KVMessage
      * @throws SocketException thrown if socket is closed
      */
-    public KVMessage receiveMessage() throws SocketException, SocketTimeoutException {
+    public KVJSONMessage receiveMessage() throws SocketException, SocketTimeoutException {
         if(!isInitialized){
             initialize();
         }
@@ -78,7 +79,7 @@ public class KVCommunicationModule {
             try {
                 InputStream in_Message = privateSocket.getInputStream();
                 DataInputStream dInputStream = new DataInputStream(in_Message);
-                KVMessage ret = getEmptyMessage();
+                KVJSONMessage ret = getEmptyMessage();
                 int bytelength = dInputStream.read();
                 byte[] array = new byte[bytelength];
                 dInputStream.read(array);
@@ -119,4 +120,9 @@ public class KVCommunicationModule {
 	public  void close() throws IOException {
 		this.privateSocket.close();
 	}
+
+	public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+	    kv_out.changeLogLevel(logLevel);
+	    kv_out.changeOutputLevel(outputlevel);
+    }
 }

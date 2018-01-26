@@ -1,5 +1,6 @@
 package database;
 
+import common.enums.eKVExtendCacheType;
 import database.cache.KVFIFOCache;
 import database.cache.KVLFUCache;
 import database.cache.KVCache;
@@ -13,7 +14,7 @@ import java.io.IOException;
 public class KVDatabase implements IKVDatabase {
 
 	private int cacheSize;
-	private KVCache.KVCacheStrategy cacheStrategy;
+	private eKVExtendCacheType cacheStrategy;
 	private long storageSize;
 	private KVCache cache;
 	private KVStorage storage;
@@ -21,7 +22,7 @@ public class KVDatabase implements IKVDatabase {
 	public KVDatabase (int sizeofCache,long sizeofStorage,String cacheStrat) throws ClassNotFoundException, IOException {
 		storageSize =sizeofStorage;
 		cacheSize = sizeofCache;
-		cacheStrategy = KVCache.KVCacheStrategy.fromString(cacheStrat);
+		cacheStrategy = eKVExtendCacheType.fromString(cacheStrat);
 		storage = new MMStorage(storageSize);
 		switch(cacheStrategy) {
 			case FIFO:
@@ -88,6 +89,7 @@ public class KVDatabase implements IKVDatabase {
 
 	@Override
 	public void flushStorage() throws IOException {
+		cache.clearCache();
 		storage.clearStorage();
 	}
 

@@ -6,6 +6,8 @@ import app_kvClient.Commands.KVCommandGet;
 import app_kvClient.Commands.KVCommandPut;
 import app_kvClient.KVClient;
 import app_kvServer.KVServer;
+import common.enums.eKVExtendStatusType;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -51,6 +53,17 @@ public class FunctionalityFIFOServerTest extends TestCase {
         assertTrue(response.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
     }
     @Test
+    public void testClientBasic_BadKey(){
+        assertTrue(client.isConnected());
+        assertTrue(server.isHandlerRunning());
+        KVCommandPut cmdInstance = new KVCommandPut();
+        cmdInstance.setKey("");
+        cmdInstance.setValue("World");
+        KVMessage response = client.executeCommand(cmdInstance);
+        assertEquals(KVMessage.StatusType.PUT_ERROR,response.getStatus());
+    }
+
+    @Test
     public void testClientBasic_GetError(){
         assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
@@ -80,13 +93,27 @@ public class FunctionalityFIFOServerTest extends TestCase {
         assertTrue(client.isConnected());
         KVCommandPut putInstance = new KVCommandPut();
         putInstance.setKey("Hello");
-        putInstance.setValue("World");
+        putInstance.setValue("World 123");
         KVMessage putResponse = client.executeCommand(putInstance);
         assertTrue(putResponse.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
         putInstance.setValue("null");
         KVMessage deleteResponse = client.executeCommand(putInstance);
         assertEquals(deleteResponse.getStatus(),KVMessage.StatusType.DELETE_SUCCESS);
     }
+    @Test
+    public void testClientBasic_DeleteSuccess2(){
+        assertTrue(server.isHandlerRunning());
+        assertTrue(client.isConnected());
+        KVCommandPut putInstance = new KVCommandPut();
+        putInstance.setKey("Hello");
+        putInstance.setValue("World 123");
+        KVMessage putResponse = client.executeCommand(putInstance);
+        assertTrue(putResponse.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
+        putInstance.setValue("");
+        KVMessage deleteResponse = client.executeCommand(putInstance);
+        assertEquals(deleteResponse.getStatus(),KVMessage.StatusType.DELETE_SUCCESS);
+    }
+
     @Test
     public void testClientBasic_DeleteError(){
         assertTrue(server.isHandlerRunning());
@@ -115,8 +142,8 @@ public class FunctionalityFIFOServerTest extends TestCase {
         assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
         KVCommandEcho echoInstance = new KVCommandEcho();
-        KVMessage echoResponse = client.executeCommand(echoInstance);
-        assertTrue(echoResponse.getStatus() == KVMessage.StatusType.ECHO);
+        KVJSONMessage echoResponse = client.executeCommand(echoInstance);
+        assertEquals(eKVExtendStatusType.ECHO,echoResponse.getExtendStatusType());
     }
 }
 

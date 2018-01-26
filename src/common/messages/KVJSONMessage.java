@@ -1,4 +1,5 @@
 package common.messages;
+import common.enums.eKVExtendStatusType;
 import org.json.*;
 
 import java.util.HashMap;
@@ -6,9 +7,11 @@ import java.util.Map;
 
 public class KVJSONMessage implements KVMessage {
 
-	private String key;
-	private String Value;
+	private String key = "";
+	private String Value = "";
 	private StatusType status;
+	private eKVExtendStatusType extendStatusType;
+
 	private static String KEY_PAIR_NAME = "key_pair";
 	private static String STATUS_NAME = "status_type";
 
@@ -39,17 +42,19 @@ public class KVJSONMessage implements KVMessage {
 		return status;
 	}
 
+	public eKVExtendStatusType getExtendStatusType(){
+		return extendStatusType;
+	}
     /**
      * Serialize the object into bytes array
      * @return byte[]
      */
-	@Override
 	public byte[] toBytes() {
 		JSONObject newObject = new JSONObject();
         Map<String, String> newmap = new HashMap<String, String>();
         newmap.put(key,Value);
 		newObject.put(KEY_PAIR_NAME,newmap);
-		newObject.put(STATUS_NAME,status.getValue());
+		newObject.put(STATUS_NAME, extendStatusType.getValue());
 		return newObject.toString().getBytes();
 	}
 
@@ -59,7 +64,6 @@ public class KVJSONMessage implements KVMessage {
      * @return base class KVMessage
      * @throws IllegalArgumentException If the incoming byte array is not valid
      */
-	@Override
 	public KVMessage fromBytes(byte[] in_Bytes) throws IllegalArgumentException {
         JSONObject keypair;
         JSONObject newObject;
@@ -80,23 +84,22 @@ public class KVJSONMessage implements KVMessage {
                 key = keypair.keys().next();
                 Value = keypair.getString(key);
             }
-            status = StatusType.fromInt(new_status);
+            setExtendStatus(eKVExtendStatusType.fromInt(new_status));
+
         }
 		return this;
 	}
 
-	@Override
 	public boolean equal(KVMessage msg) {
         return this.Value.equals(msg.getValue()) &&
 				this.key.equals(msg.getKey()) &&
-				this.status.getValue()== msg.getStatus().getValue();
+				this.status == msg.getStatus();
 	}
 
 	/**
      * Set the key of the message
      * @param key String
      */
-	@Override
 	public void setKey(String key) {
 		this.key = key;
 	}
@@ -105,7 +108,6 @@ public class KVJSONMessage implements KVMessage {
      * Set the value of the message
      * @param value String
      */
-	@Override
 	public void setValue(String value) {
 		this.Value = value;
 	}
@@ -113,9 +115,14 @@ public class KVJSONMessage implements KVMessage {
     /** Set the status of the message
      * @param inType StatusType
      */
-	@Override
 	public void setStatus(StatusType inType) {
 		this.status = inType;
+		this.extendStatusType = eKVExtendStatusType.fromStatusType(inType);
+	}
+
+	public void setExtendStatus(eKVExtendStatusType inType){
+		this.status = inType.toStatusType();
+		this.extendStatusType = inType;
 	}
 
 }

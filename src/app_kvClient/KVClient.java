@@ -7,6 +7,9 @@ import java.io.InputStream;
 import java.util.Scanner;
 
 import app_kvClient.Commands.KVCommand;
+import common.enums.eKVLogLevel;
+import common.messages.KVJSONMessage;
+import logger.KVOut;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -25,14 +28,21 @@ public class KVClient implements IKVClient,Runnable {
     private KVCommandParser cmdParser = new KVCommandParser();
     private Scanner keyboard;
     private KVClientAttribute attribute = new KVClientAttribute();
-
+    private KVOut kv_out = new KVOut();
+    private eKVLogLevel outputlevel;
+    private eKVLogLevel logLevel;
 
     public KVClient(InputStream inputStream){
         keyboard = new Scanner(inputStream);
+        setLogLevel(eKVLogLevel.DEBUG,eKVLogLevel.DEBUG);
     }
-
+    public KVClient(){
+        keyboard = new Scanner(System.in);
+        setLogLevel(eKVLogLevel.DEBUG,eKVLogLevel.DEBUG);
+    }
     @Override
     public void run() {
+        kv_out.println_debug("Client Started");
         while (!stop) {
             System.out.print(PROMPT);
             KVCommand cmdInstance = cmdParser.getParsedCommand(keyboard.nextLine());
@@ -44,10 +54,12 @@ public class KVClient implements IKVClient,Runnable {
                 printHelp();
             }
         }
+        kv_out.println_debug("Client Stopped");
     }
     public void stop() throws IOException {
         disconnect();
         stop = true;
+        kv_out.println_debug("Try to stop client");
     }
     public void disconnect() throws IOException {
         if (client != null) {
@@ -98,14 +110,25 @@ public class KVClient implements IKVClient,Runnable {
     @Override
     public void newConnection(String hostname, int port) throws Exception {
         client = new KVStore(hostname, port);
+        client.setLogLevel(this.outputlevel,this.logLevel);
         client.connect();
     }
-    @Override
-    public KVCommInterface getStore(){
+
+    public KVStore getStore(){
         return client;
     }
-    public KVMessage executeCommand(KVCommand cmdInstance){
+    public KVJSONMessage executeCommand(KVCommand cmdInstance){
         return cmdInstance.execute(this);
+    }
+    public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+        kv_out.changeLogLevel(logLevel);
+        kv_out.changeOutputLevel(outputlevel);
+        if(client!=null)
+            client.setLogLevel(outputlevel,logLevel);
+        else {
+            this.outputlevel = outputlevel;
+            this.logLevel = logLevel;
+        }
     }
 
     /**
@@ -122,5 +145,6 @@ public class KVClient implements IKVClient,Runnable {
             e.printStackTrace();
             System.exit(1);
         }
+        System.out.println("Exiting client main");
     }
 }

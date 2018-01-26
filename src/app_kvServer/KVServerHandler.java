@@ -2,6 +2,7 @@ package app_kvServer;
 
 
 import common.communication.KVCommunicationModule;
+import common.enums.eKVLogLevel;
 import logger.KVOut;
 
 import java.io.IOException;
@@ -79,6 +80,7 @@ public class KVServerHandler implements Runnable {
             e.printStackTrace();
             kv_out.println_error("Unable to close server socket on port "+port);
         }
+        kv_out.println_debug("Handler exit");
     }
 
     /**
@@ -102,7 +104,9 @@ public class KVServerHandler implements Runnable {
      * @return KVCommunication module instance
      */
     public KVCommunicationModule createCommunicationModule(Socket socket){
-        return new KVCommunicationModule(socket,listenerTimerout);
+        KVCommunicationModule module = new KVCommunicationModule(socket,listenerTimerout);
+        module.setLogLevel(kv_out.getOutputLevel(),kv_out.getLogLevel());
+        return module;
     }
 
     /**
@@ -112,7 +116,9 @@ public class KVServerHandler implements Runnable {
      * @return a new server instance
      */
     public KVServerInstance createServerInstance(KVCommunicationModule com, IKVServer master){
-        return new KVServerInstance(com,master);
+        KVServerInstance newInstance =  new KVServerInstance(com,master);
+        newInstance.changeLogLevel(kv_out.getOutputLevel(),kv_out.getLogLevel());
+        return newInstance;
     }
 
     /**
@@ -125,8 +131,10 @@ public class KVServerHandler implements Runnable {
             aliveInstances.elementAt(i).stop();
         }
         for (int i = 0; i < this.aliveinstancethreads.size() ; i++) {
+            kv_out.println_debug("Try to join: "+i);
             aliveinstancethreads.elementAt(i).join();
         }
+        kv_out.println_debug("Tear down complete");
     }
 
     /**
@@ -136,9 +144,15 @@ public class KVServerHandler implements Runnable {
      * @throws IOException thrown when buffer cannot be clo
      */
     public void stop() throws InterruptedException, IOException {
+        kv_out.println_debug("Try to stop the handler");
         isRunning = false;
         tearDown();
     }
+
+    /**
+     * Check if the server handler is running
+     * @return
+     */
     public boolean isRunning(){
         return isRunning;
     }
@@ -153,5 +167,27 @@ public class KVServerHandler implements Runnable {
         Thread aliveinstancethread = new Thread(instance);
         aliveinstancethread.start();
         aliveinstancethreads.add(aliveinstancethread);
+    }
+
+    /**
+     * Get the port that the handler is running
+     * @return
+     */
+    public int getPort() {
+        return serverSocket.getLocalPort();
+    }
+
+    /**
+     * Change the log and output level of the logger for this handler
+     * @param outputlevel output level
+     * @param logLevel log level
+     */
+    public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+        kv_out.changeOutputLevel(outputlevel);
+        kv_out.changeLogLevel(logLevel);
+        for (KVServerInstance instance: aliveInstances
+             ) {
+            instance.changeLogLevel(outputlevel,logLevel);
+        }
     }
 }

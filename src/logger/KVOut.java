@@ -1,19 +1,17 @@
 package logger;
 
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
+import common.enums.eKVLogLevel;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
-import logger.LogSetup;
 
 import java.io.IOException;
 
 public class KVOut {
 
     private LogSetup logSetupInstance = null;
+    private int outputLevel;
+    private int loglevel = 0;
     public KVOut(){
-
     }
     public void enableLog(String logdir, Level loglevel){
         try {
@@ -23,34 +21,75 @@ public class KVOut {
             e.printStackTrace();
         }
     }
-    public void println_debug(String str){
-        if(logSetupInstance!=null){
-            Logger.getRootLogger().debug(str);
+
+    public eKVLogLevel getOutputLevel(){
+        return eKVLogLevel.fromInt(outputLevel);
+    }
+
+    public eKVLogLevel getLogLevel(){
+        return eKVLogLevel.fromInt(loglevel);
+    }
+
+    public void changeOutputLevel(eKVLogLevel level){
+        this.outputLevel = level.toInt();
+    }
+
+    public void changeLogLevel(eKVLogLevel level){
+        this.loglevel = level.toInt();
+    }
+
+    private boolean shouldLog(eKVLogLevel level){
+        if(level.toInt() >= loglevel){
+            return true;
         }
-        System.out.println("[DEBUG]: "+str);
+        return false;
+    }
+
+    private boolean shouldPrint(eKVLogLevel level){
+        if(level.toInt() >= outputLevel){
+            return true;
+        }
+        return false;
+    }
+
+    public void println_debug(String str){
+        if(logSetupInstance!=null && shouldLog(eKVLogLevel.DEBUG)){
+            Logger.getRootLogger().debug("[DEBUG]:"+str);
+        }
+        if(shouldPrint(eKVLogLevel.DEBUG)){
+            System.out.println("[DEBUG]: "+str);
+        }
     }
     public void println_info(String str){
-        if(logSetupInstance!=null){
+        if(logSetupInstance!=null&& shouldLog(eKVLogLevel.INFO)){
             Logger.getRootLogger().info("[INFO]: "+str);
         }
-        System.out.println(str);
+        if(shouldPrint(eKVLogLevel.INFO)){
+            System.out.println("[INFO]: "+str);
+        }
     }
     public void println_warn(String str){
-        if(logSetupInstance!=null){
+        if(logSetupInstance!=null && shouldLog(eKVLogLevel.WARN)){
             Logger.getRootLogger().warn("[WARN]"+ str);
         }
-        System.out.println(str);
+        if(shouldPrint(eKVLogLevel.WARN)){
+            System.out.println("[WARN]: "+str);
+        }
     }
     public void println_error(String str){
-        if(logSetupInstance!=null){
+        if(logSetupInstance!=null && shouldLog(eKVLogLevel.ERROR)){
             Logger.getRootLogger().error("[ERROR]: "+str);
         }
-        System.out.println(str);
+        if(shouldPrint(eKVLogLevel.ERROR)){
+            System.out.println("[ERROR]: "+str);
+        }
     }
     public void println_fatal(String str){
-        if(logSetupInstance!=null){
+        if(logSetupInstance!=null && shouldLog(eKVLogLevel.FATAL)){
             Logger.getRootLogger().fatal("[FATAL]: "+str);
         }
-        System.out.println(str);
+        if(shouldPrint(eKVLogLevel.FATAL)){
+            System.out.println("[FATAL]: "+str);
+        }
     }
 }

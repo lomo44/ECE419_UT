@@ -2,9 +2,9 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
-import common.messages.KVMessage;
+import common.enums.eKVExtendStatusType;
+import common.messages.KVJSONMessage;
 
-import java.io.IOException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
@@ -14,27 +14,28 @@ public class KVCommandGet extends KVCommand {
     }
 
     @Override
-    public KVMessage execute(KVClient clientInstance) {
-        KVMessage ret = clientInstance.getStore().createEmptyMessage();
+    public KVJSONMessage execute(KVClient clientInstance) {
+        KVJSONMessage ret = clientInstance.getStore().createEmptyMessage();
         try {
-            ret = clientInstance.getStore().get(getKey());
+            ret = (KVJSONMessage) clientInstance.getStore().get(getKey());
         } catch (SocketTimeoutException e) {
             // Socket Timeout, need to retry
             int i =0;
             while(i < clientInstance.getAttribute().timeoutRetryCount){
                 try {
-                    return clientInstance.getStore().get(getKey());
+                    ret = (KVJSONMessage)clientInstance.getStore().get(getKey());
+                    break;
                 } catch (SocketTimeoutException e1) {
                     System.out.println("Timeout, retry count: "+i);
                     i++;
                 } catch (SocketException e1) {
-                    ret.setStatus(KVMessage.StatusType.NORESPONSE);
+                    ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
                     clientInstance.disconnect();
                     break;
                 }
             }
         } catch (SocketException e) {
-            ret.setStatus(KVMessage.StatusType.NORESPONSE);
+            ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
             clientInstance.disconnect();
         }
         finally {
@@ -44,8 +45,8 @@ public class KVCommandGet extends KVCommand {
 
 
     @Override
-    public void handleResponse(KVMessage response) {
-        KVMessage.StatusType statusType = response.getStatus();
+    public void handleResponse(KVJSONMessage response) {
+        eKVExtendStatusType statusType = response.getExtendStatusType();
         String key = response.getKey();
         String value = response.getValue();
         switch(statusType) {
@@ -61,7 +62,7 @@ public class KVCommandGet extends KVCommand {
                 kv_out.println_error("Unknown error.");
                 break;
             }
-            case NORESPONSE:{
+            case NO_RESPONSE:{
                 kv_out.println_error("No status response received.");
                 break;
             }

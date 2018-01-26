@@ -2,6 +2,7 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import logger.KVOut;
 
@@ -25,8 +26,8 @@ public abstract class KVCommand {
     public String get(String key){
         return parameterMap.get(key);
     }
-    public abstract KVMessage execute(KVClient clientInstance);
-    public abstract void handleResponse(KVMessage response);
+    public abstract KVJSONMessage execute(KVClient clientInstance);
+    public abstract void handleResponse(KVJSONMessage response);
     public void printPrompt() {
         System.out.print("Client> ");
     }

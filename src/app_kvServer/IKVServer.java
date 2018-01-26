@@ -1,31 +1,11 @@
 package app_kvServer;
 
-import common.communication.KVCommunicationModule;
-
-import java.io.IOException;
-import java.net.Socket;
-
 public interface IKVServer {
     public enum CacheStrategy {
-        None("None"),
-        LRU("LRU"),
-        LFU("LFU"),
-        FIFO("FIFO");
-        private String str;
-        private CacheStrategy(String str){
-            this.str = str;
-        }
-        public String toString(){
-            return str;
-        }
-        public static CacheStrategy fromString(String str){
-            switch (str){
-                case "FIFO": return FIFO;
-                case "LFU": return LFU;
-                case "LRU": return LRU;
-                default: return None;
-            }
-        }
+        None,
+        LRU,
+        LFU,
+        FIFO
     };
 
     /**
@@ -89,21 +69,18 @@ public interface IKVServer {
     /**
      * Clear the storage of the server
      */
-    public void clearStorage() throws IOException;
+    public void clearStorage();
 
-    /**
-     * Flush the local cache
-     */
-    public void flushCache();
+    public void run();
 
     /**
      * Abruptly stop the server without any additional actions
      * NOTE: this includes performing saving to storage
      */
-    public void kill() throws InterruptedException, IOException;
+    public void kill();
 
     /**
      * Gracefully stop the server, can perform any additional actions
      */
-    public void close() throws InterruptedException, IOException;
+    public void close();
 }

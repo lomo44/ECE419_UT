@@ -1,5 +1,7 @@
 package app_kvServer;
 
+import common.enums.eKVExtendCacheType;
+import common.enums.eKVLogLevel;
 import database.KVDatabase;
 import org.apache.log4j.Level;
 import logger.KVOut;
@@ -24,15 +26,17 @@ public class KVServer implements IKVServer {
     private static KVOut kv_out = new KVOut();
     private int port;
     private int cacheSize;
-	private CacheStrategy cacheStrategy;
+	private eKVExtendCacheType cacheStrategy;
 	private KVDatabase database;
     public KVServer(int port, int cacheSize, String strategy) throws IOException, ClassNotFoundException {
+
         this.port = port;
         serverHandler = createServerHandler();
         handlerThread = new Thread(serverHandler);
+        setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
         handlerThread.start();
         this.cacheSize = cacheSize;
-        cacheStrategy = CacheStrategy.fromString(strategy);
+        cacheStrategy = eKVExtendCacheType.fromString(strategy);
         database = new KVDatabase(cacheSize,5000,strategy);
         // Pull the handler and check if the handler is running
         while(!serverHandler.isRunning()){
@@ -42,6 +46,7 @@ public class KVServer implements IKVServer {
                 e.printStackTrace();
             }
         }
+        this.port = serverHandler.getPort();
     }
 
 	@Override
@@ -56,13 +61,12 @@ public class KVServer implements IKVServer {
 
 	@Override
     public CacheStrategy getCacheStrategy(){
-	    return this.cacheStrategy;
+	    return this.cacheStrategy.toCacheStrategy();
 	}
 
 	@Override
     public int getCacheSize(){
-		// TODO Auto-generated method stub
-		return -1;
+        return cacheSize;
 	}
 
 	@Override
@@ -87,29 +91,50 @@ public class KVServer implements IKVServer {
 
 	@Override
     public void clearCache(){
-		database.flushCache();
+		kv_out.println_debug("Cache cleared");
+        database.flushCache();
 	}
 
 	@Override
-    public void clearStorage() throws IOException {
-		database.flushStorage();
-	}
+    public void clearStorage(){
+        kv_out.println_debug("try to clear storage");
+        try {
+            database.flushStorage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        kv_out.println_debug("Storage cleared");
+    }
 
-	@Override
-    public void kill() throws InterruptedException, IOException {
-        serverHandler.stop();
-        handlerThread.join();
-        database.close();
+    @Override
+    public void run() {
+
+    }
+
+    @Override
+    public void kill(){
+        kv_out.println_debug("Try to kill server.");
+        try {
+            serverHandler.stop();
+            handlerThread.join();
+            database.close();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        kv_out.println_debug("Server Killed.");
+
     }
 
 	@Override
-    public void close() throws InterruptedException, IOException {
-		kill();
-	}
+    public void close() {
+        kill();
+    }
 
-	@Override
     public void flushCache(){
-		database.flushCache();
+		kv_out.println_debug("Cache flushed");
+        database.flushCache();
     }
 
 	/**
@@ -126,6 +151,7 @@ public class KVServer implements IKVServer {
 
     public static void main(String[] args) {
         kv_out.enableLog("logs/server.log", Level.ALL);
+        System.out.println("Run server from main");
         int port = Integer.parseInt(args[0]);
         int cachesize = Integer.parseInt(args[1]);
         try {
@@ -141,4 +167,15 @@ public class KVServer implements IKVServer {
 
         }
 	}
+
+    /**
+     * Change the log level of the server
+     * @param outputlevel output level
+     * @param logLevel log level
+     */
+	public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+	    kv_out.changeOutputLevel(outputlevel);
+	    kv_out.changeLogLevel(outputlevel);
+        serverHandler.setLogLevel(outputlevel,logLevel);
+    }
 }

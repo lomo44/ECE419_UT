@@ -1,21 +1,20 @@
 package database.cache;
 
+import common.enums.eKVExtendCacheType;
+
 import java.util.NoSuchElementException;
 import java.util.Map;
 import java.util.LinkedHashMap;
 
 
 public class KVLRUCache extends KVCache {
-
-	private int cacheSize;
-	private KVCacheStrategy cacheStrategy;
 	private Map<String, String> cache;
     private float loadfactor = 0.75f;
 
 	
 	public KVLRUCache(int size) {
 		this.cacheSize = size;
-		this.cacheStrategy = KVCacheStrategy.fromString("LRU");
+		this.cacheStrategy = eKVExtendCacheType.LRU;
 		cache = new LinkedHashMap<String,String>(cacheSize,loadfactor,true) {
             private static final long serialVersionUID = -1L;
 			@Override

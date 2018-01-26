@@ -2,8 +2,8 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
-import common.communication.KVCommunicationModule;
-import common.messages.KVMessage;
+import common.enums.eKVExtendStatusType;
+import common.messages.KVJSONMessage;
 
 public class KVCommandEcho extends KVCommand {
     public KVCommandEcho() {
@@ -11,22 +11,21 @@ public class KVCommandEcho extends KVCommand {
     }
 
     @Override
-    public KVMessage execute(KVClient clientInstance) {
-        KVMessage newmsg = clientInstance.getStore().createEmptyMessage();
-        newmsg.setStatus(KVMessage.StatusType.ECHO);
-        KVMessage inbound = null;
+    public KVJSONMessage execute(KVClient clientInstance) {
+        KVJSONMessage newmsg = clientInstance.getStore().createEmptyMessage();
+        newmsg.setExtendStatus(eKVExtendStatusType.ECHO);
         try {
-            inbound = clientInstance.getStore().send(newmsg);
+            newmsg = (KVJSONMessage)clientInstance.getStore().send(newmsg);
         } catch (Exception e) {
         }
         finally{
-            return inbound;
+            return newmsg;
         }
     }
     @Override
-    public void handleResponse(KVMessage response){
+    public void handleResponse(KVJSONMessage response){
         if(response!=null){
-            if(response.getStatus() == KVMessage.StatusType.ECHO){
+            if(response.getExtendStatusType() == eKVExtendStatusType.ECHO){
                 System.out.println(response.getStatus().toString());
             }
         }

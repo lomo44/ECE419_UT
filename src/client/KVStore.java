@@ -7,7 +7,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.net.SocketException;
 
-import org.apache.log4j.Logger;
+import common.enums.eKVLogLevel;
+import common.messages.KVJSONMessage;
 
 import common.messages.KVMessage;
 import common.communication.KVCommunicationModule;
@@ -21,6 +22,8 @@ public class KVStore implements KVCommInterface {
     private String serverAddress;
     private int serverPort;
     private Socket clientSocket;
+    private eKVLogLevel outputlevel = eKVLogLevel.DEBUG;
+    private eKVLogLevel logLevel = eKVLogLevel.DEBUG;
     private KVCommunicationModule communicationModule;
 
     /**
@@ -39,7 +42,9 @@ public class KVStore implements KVCommInterface {
     public void connect() throws Exception {
         clientSocket = new Socket(serverAddress, serverPort);
         communicationModule = new KVCommunicationModule(clientSocket,1000);
+        communicationModule.setLogLevel(outputlevel,logLevel);
         setRunning(true);
+        setLogLevel(outputlevel,logLevel);
         kv_out.println_info("Connection established.");
 
     }
@@ -61,10 +66,14 @@ public class KVStore implements KVCommInterface {
     }
 
     @Override
-    public void disconnect() throws IOException {
+    public void disconnect(){
         setRunning(false);
         if (clientSocket != null) {
-            clientSocket.close();
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             communicationModule = null;
             clientSocket = null;
         }
@@ -72,7 +81,7 @@ public class KVStore implements KVCommInterface {
 
     @Override
     public KVMessage put(String key, String value) throws SocketException, SocketTimeoutException {
-        KVMessage newmessage = createEmptyMessage();
+        KVJSONMessage newmessage = createEmptyMessage();
         newmessage.setValue(value);
         newmessage.setKey(key);
         newmessage.setStatus(KVMessage.StatusType.PUT);
@@ -82,7 +91,7 @@ public class KVStore implements KVCommInterface {
 
     @Override
     public KVMessage get(String key) throws SocketTimeoutException, SocketException {
-        KVMessage newmessage = createEmptyMessage();
+        KVJSONMessage newmessage = createEmptyMessage();
         newmessage.setKey(key);
         newmessage.setValue("");
         newmessage.setStatus(KVMessage.StatusType.GET);
@@ -90,14 +99,23 @@ public class KVStore implements KVCommInterface {
         return communicationModule.receiveMessage();
     }
 
-    @Override
     public KVMessage send(KVMessage outboundmsg) throws SocketException, SocketTimeoutException {
         communicationModule.send(outboundmsg);
         return communicationModule.receiveMessage();
     }
 
-    @Override
-    public KVMessage createEmptyMessage() {
+    public KVJSONMessage createEmptyMessage() {
         return communicationModule.getEmptyMessage();
+    }
+
+    public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
+        kv_out.changeOutputLevel(outputlevel);
+        kv_out.changeLogLevel(logLevel);
+        if(communicationModule!=null)
+            communicationModule.setLogLevel(outputlevel,logLevel);
+        else {
+            this.outputlevel = outputlevel;
+            this.logLevel = logLevel;
+        }
     }
 }
