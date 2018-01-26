@@ -95,7 +95,7 @@ public class KVServerInstance implements Runnable {
             case PUT:{
                 String update_value = in_message.getValue();
                 try {
-                    if(in_message.getKey()=="")
+                    if(in_message.getKey().matches(""))
                         throw new Exception();
                     String value = serverinstance.getKV(in_message.getKey());
                     if(!value.matches(update_value)) {
@@ -116,7 +116,7 @@ public class KVServerInstance implements Runnable {
                         break;
                     }
                 } catch (Exception e) {
-                    if(in_message.getKey()==""){
+                    if(in_message.getKey().matches("")){
                         retMessage.setStatus(PUT_ERROR);
                         return retMessage;
                     }

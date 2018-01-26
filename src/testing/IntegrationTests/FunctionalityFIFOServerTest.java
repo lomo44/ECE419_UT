@@ -53,6 +53,17 @@ public class FunctionalityFIFOServerTest extends TestCase {
         assertTrue(response.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
     }
     @Test
+    public void testClientBasic_BadKey(){
+        assertTrue(client.isConnected());
+        assertTrue(server.isHandlerRunning());
+        KVCommandPut cmdInstance = new KVCommandPut();
+        cmdInstance.setKey("");
+        cmdInstance.setValue("World");
+        KVMessage response = client.executeCommand(cmdInstance);
+        assertEquals(KVMessage.StatusType.PUT_ERROR,response.getStatus());
+    }
+
+    @Test
     public void testClientBasic_GetError(){
         assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());

@@ -120,6 +120,7 @@ public class KVServer implements IKVServer {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        kv_out.println_debug("Server Killed.");
 
     }
 
