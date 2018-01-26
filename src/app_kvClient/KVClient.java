@@ -34,11 +34,11 @@ public class KVClient implements IKVClient,Runnable {
 
     public KVClient(InputStream inputStream){
         keyboard = new Scanner(inputStream);
-        setLogLevel(eKVLogLevel.OFF,eKVLogLevel.DEBUG);
+        setLogLevel(eKVLogLevel.DEBUG,eKVLogLevel.DEBUG);
     }
     public KVClient(){
         keyboard = new Scanner(System.in);
-        setLogLevel(eKVLogLevel.OFF,eKVLogLevel.DEBUG);
+        setLogLevel(eKVLogLevel.DEBUG,eKVLogLevel.DEBUG);
     }
     @Override
     public void run() {
