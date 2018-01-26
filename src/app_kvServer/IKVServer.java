@@ -89,21 +89,21 @@ public interface IKVServer {
     /**
      * Clear the storage of the server
      */
-    public void clearStorage() throws IOException;
+    public void clearStorage();
 
-    /**
-     * Flush the local cache
-     */
-    public void flushCache();
+//    /**
+//     * Flush the local cache
+//     */
+//    public void flushCache();
 
     /**
      * Abruptly stop the server without any additional actions
      * NOTE: this includes performing saving to storage
      */
-    public void kill() throws InterruptedException, IOException;
+    public void kill() ;
 
     /**
      * Gracefully stop the server, can perform any additional actions
      */
-    public void close() throws InterruptedException, IOException;
+    public void close();
 }

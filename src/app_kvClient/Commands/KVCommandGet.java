@@ -2,6 +2,7 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 
 import java.io.IOException;
@@ -28,13 +29,13 @@ public class KVCommandGet extends KVCommand {
                     System.out.println("Timeout, retry count: "+i);
                     i++;
                 } catch (SocketException e1) {
-                    ret.setStatus(KVMessage.StatusType.NORESPONSE);
+                    ((KVJSONMessage)(ret)).setStatus(KVMessage.StatusType.NORESPONSE);
                     clientInstance.disconnect();
                     break;
                 }
             }
         } catch (SocketException e) {
-            ret.setStatus(KVMessage.StatusType.NORESPONSE);
+            ((KVJSONMessage)(ret)).setStatus(KVMessage.StatusType.NORESPONSE);
             clientInstance.disconnect();
         }
         finally {

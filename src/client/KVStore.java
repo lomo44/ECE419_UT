@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.net.SocketException;
 
+import common.messages.KVJSONMessage;
 import org.apache.log4j.Logger;
 
 import common.messages.KVMessage;
@@ -72,7 +73,7 @@ public class KVStore implements KVCommInterface {
 
     @Override
     public KVMessage put(String key, String value) throws SocketException, SocketTimeoutException {
-        KVMessage newmessage = createEmptyMessage();
+        KVJSONMessage newmessage = createEmptyMessage();
         newmessage.setValue(value);
         newmessage.setKey(key);
         newmessage.setStatus(KVMessage.StatusType.PUT);
@@ -82,7 +83,7 @@ public class KVStore implements KVCommInterface {
 
     @Override
     public KVMessage get(String key) throws SocketTimeoutException, SocketException {
-        KVMessage newmessage = createEmptyMessage();
+        KVJSONMessage newmessage = createEmptyMessage();
         newmessage.setKey(key);
         newmessage.setValue("");
         newmessage.setStatus(KVMessage.StatusType.GET);
@@ -96,8 +97,7 @@ public class KVStore implements KVCommInterface {
         return communicationModule.receiveMessage();
     }
 
-    @Override
-    public KVMessage createEmptyMessage() {
+    public KVJSONMessage createEmptyMessage() {
         return communicationModule.getEmptyMessage();
     }
 }

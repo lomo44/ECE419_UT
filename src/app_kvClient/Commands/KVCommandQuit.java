@@ -14,7 +14,7 @@ public class KVCommandQuit extends KVCommand {
 
     @Override
     public KVMessage execute(KVClient clientInstance) {
-        KVMessage ret = new KVJSONMessage();
+        KVJSONMessage ret = new KVJSONMessage();
         try {
             clientInstance.stop();
             ret.setStatus(KVMessage.StatusType.DISCONNECT_SUCCESS);

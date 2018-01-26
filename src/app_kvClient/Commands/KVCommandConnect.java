@@ -12,7 +12,7 @@ public class KVCommandConnect extends KVCommand{
 
     @Override
     public KVMessage execute(KVClient clientInstance) {
-        KVMessage ret = new KVJSONMessage();
+        KVJSONMessage ret = new KVJSONMessage();
         try {
             clientInstance.newConnection(getHostName(),Integer.parseInt(getPort()));
             ret.setStatus(KVMessage.StatusType.CONNECT_SUCCESS);

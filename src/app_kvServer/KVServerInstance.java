@@ -1,6 +1,7 @@
 package app_kvServer;
 
 import common.communication.KVCommunicationModule;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import logger.KVOut;
 
@@ -32,7 +33,7 @@ public class KVServerInstance implements Runnable {
         isRunning = true;
         while(communicationModule.isConnected() && isRunning){
             try {
-                KVMessage in_msg = communicationModule.receiveMessage();
+                KVJSONMessage in_msg = communicationModule.receiveMessage();
                 communicationModule.send(handleMessage(in_msg));
             }
             catch (SocketTimeoutException e){
@@ -65,7 +66,7 @@ public class KVServerInstance implements Runnable {
      */
     public KVMessage handleMessage(KVMessage in_message){
         KVMessage.StatusType statusType = in_message.getStatus();
-        KVMessage retMessage = communicationModule.getEmptyMessage();
+        KVJSONMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
             case GET:{
                 try{

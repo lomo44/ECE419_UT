@@ -20,7 +20,7 @@ public class AllTests {
 		clientSuite.addTestSuite(InteractionTest.class);
 		clientSuite.addTestSuite(AdditionalTest.class);
 		clientSuite.addTestSuite(KVJSONMessageTest.class);
-		clientSuite.addTestSuite(KVServerTest.class);
+		//clientSuite.addTestSuite(KVServerTest.class);
 		clientSuite.addTestSuite(FunctionalityLRUServerTest.class);
 		clientSuite.addTestSuite(FunctionalityFIFOServerTest.class);
 		clientSuite.addTestSuite(FunctionalityLFUServerTest.class);

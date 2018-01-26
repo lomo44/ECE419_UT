@@ -2,6 +2,7 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 
 import java.io.IOException;
@@ -13,7 +14,7 @@ public class KVCommandDisconnect extends KVCommand {
 
     @Override
     public KVMessage execute(KVClient clientInstance) {
-        KVMessage ret = clientInstance.getStore().createEmptyMessage();
+        KVJSONMessage ret = clientInstance.getStore().createEmptyMessage();
         try {
             clientInstance.disconnect();
             ret.setStatus(KVMessage.StatusType.DISCONNECT_SUCCESS);

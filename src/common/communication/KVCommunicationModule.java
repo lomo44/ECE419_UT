@@ -29,7 +29,7 @@ public class KVCommunicationModule {
      * Create a empty KVMessage
      * @return
      */
-	public KVMessage getEmptyMessage(){
+	public KVJSONMessage getEmptyMessage(){
 		return new KVJSONMessage();
 	}
 
@@ -47,7 +47,7 @@ public class KVCommunicationModule {
             try {
                 outputStream = privateSocket.getOutputStream();
                 DataOutputStream data_out = new DataOutputStream(outputStream);
-                byte[] out = in_Message.toBytes();
+                byte[] out = ((KVJSONMessage)in_Message).toBytes();
                 data_out.write(out.length);
                 data_out.write(out);
                 data_out.flush();
@@ -70,7 +70,7 @@ public class KVCommunicationModule {
      * @return KVMessage
      * @throws SocketException thrown if socket is closed
      */
-    public KVMessage receiveMessage() throws SocketException, SocketTimeoutException {
+    public KVJSONMessage receiveMessage() throws SocketException, SocketTimeoutException {
         if(!isInitialized){
             initialize();
         }
@@ -78,7 +78,7 @@ public class KVCommunicationModule {
             try {
                 InputStream in_Message = privateSocket.getInputStream();
                 DataInputStream dInputStream = new DataInputStream(in_Message);
-                KVMessage ret = getEmptyMessage();
+                KVJSONMessage ret = getEmptyMessage();
                 int bytelength = dInputStream.read();
                 byte[] array = new byte[bytelength];
                 dInputStream.read(array);

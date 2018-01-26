@@ -3,6 +3,7 @@ package app_kvClient.Commands;
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.communication.KVCommunicationModule;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 
 public class KVCommandEcho extends KVCommand {
@@ -12,7 +13,7 @@ public class KVCommandEcho extends KVCommand {
 
     @Override
     public KVMessage execute(KVClient clientInstance) {
-        KVMessage newmsg = clientInstance.getStore().createEmptyMessage();
+        KVJSONMessage newmsg = clientInstance.getStore().createEmptyMessage();
         newmsg.setStatus(KVMessage.StatusType.ECHO);
         KVMessage inbound = null;
         try {

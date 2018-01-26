@@ -91,23 +91,33 @@ public class KVServer implements IKVServer {
 	}
 
 	@Override
-    public void clearStorage() throws IOException {
-		database.flushStorage();
-	}
-
-	@Override
-    public void kill() throws InterruptedException, IOException {
-        serverHandler.stop();
-        handlerThread.join();
-        database.close();
+    public void clearStorage(){
+        try {
+            database.flushStorage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 	@Override
-    public void close() throws InterruptedException, IOException {
-		kill();
-	}
+    public void kill(){
+        try {
+            serverHandler.stop();
+            handlerThread.join();
+            database.close();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
 
 	@Override
+    public void close() {
+        kill();
+    }
+
     public void flushCache(){
 		database.flushCache();
     }

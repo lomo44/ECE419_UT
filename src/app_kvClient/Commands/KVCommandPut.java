@@ -2,6 +2,7 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern.KVCommandType;
 import app_kvClient.KVClient;
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 
 public class KVCommandPut extends KVCommand {
@@ -16,7 +17,7 @@ public class KVCommandPut extends KVCommand {
         } catch (Exception e) {
             kv_out.println_error("No status response received.");
             e.printStackTrace();
-            KVMessage newmsg = clientInstance.getStore().createEmptyMessage();
+            KVJSONMessage newmsg = clientInstance.getStore().createEmptyMessage();
             newmsg.setStatus(KVMessage.StatusType.NORESPONSE);
             return newmsg;
         }

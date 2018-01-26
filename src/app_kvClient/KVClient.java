@@ -100,8 +100,8 @@ public class KVClient implements IKVClient,Runnable {
         client = new KVStore(hostname, port);
         client.connect();
     }
-    @Override
-    public KVCommInterface getStore(){
+
+    public KVStore getStore(){
         return client;
     }
     public KVMessage executeCommand(KVCommand cmdInstance){
