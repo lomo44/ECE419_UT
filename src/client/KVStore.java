@@ -62,10 +62,14 @@ public class KVStore implements KVCommInterface {
     }
 
     @Override
-    public void disconnect() throws IOException {
+    public void disconnect(){
         setRunning(false);
         if (clientSocket != null) {
-            clientSocket.close();
+            try {
+                clientSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             communicationModule = null;
             clientSocket = null;
         }
@@ -91,7 +95,6 @@ public class KVStore implements KVCommInterface {
         return communicationModule.receiveMessage();
     }
 
-    @Override
     public KVMessage send(KVMessage outboundmsg) throws SocketException, SocketTimeoutException {
         communicationModule.send(outboundmsg);
         return communicationModule.receiveMessage();
