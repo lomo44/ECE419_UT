@@ -58,6 +58,10 @@ public class AutoTester extends TestCase{
         assertEquals(KVMessage.StatusType.PUT_ERROR,msg.getStatus());
         server.clearStorage();
 
+        msg = client.getStore().put("012345678901234567890","string");
+        assertEquals(KVMessage.StatusType.PUT_ERROR,msg.getStatus());
+        server.clearStorage();
+
         client.getStore().disconnect();
         server.close();
     }

@@ -166,6 +166,6 @@ public class KVServerInstance implements Runnable {
     }
 
     public boolean isKeyValid(String key){
-        return !key.matches("") && !whitespacechecker.matcher(key).find();
+        return !key.matches("") && !whitespacechecker.matcher(key).find() && key.length() <= 20;
     }
 }
