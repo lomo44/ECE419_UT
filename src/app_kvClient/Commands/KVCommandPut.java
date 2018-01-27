@@ -69,7 +69,7 @@ public class KVCommandPut extends KVCommand {
     }
 
     public String getKey(){
-        return get("Key");
+        return getValue("Key");
     }
 
     public void setValue(String value){
@@ -77,6 +77,6 @@ public class KVCommandPut extends KVCommand {
     }
 
     public String getValue(){
-        return get("Value");
+        return getValue("Value");
     }
 }

@@ -124,15 +124,26 @@ public class KVJSONMessage implements KVMessage {
 		this.extendStatusType = eKVExtendStatusType.fromStatusType(inType);
 	}
 
+	/**
+	 * Set the extended status of the message
+	 * @param inType extended status
+	 */
 	public void setExtendStatus(eKVExtendStatusType inType){
 		this.status = inType.toStatusType();
 		this.extendStatusType = inType;
 	}
 
+	/**
+	 * Set the send time of the KVMessage to the current time
+	 */
 	public void setSendTime() {
 		this.sendTime = System.currentTimeMillis();
 	}
 
+	/**
+	 * return the send time of this KVMessage
+	 * @return
+	 */
 	public long getSendTime() {
 		return this.sendTime;
 	}

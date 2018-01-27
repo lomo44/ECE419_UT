@@ -25,7 +25,7 @@ public class KVCommandPatternPut extends KVCommandPattern {
 
     @Override
     public String getHelpMessageString() {
-        return  "get <key> \n" +
+        return  "getValue <key> \n" +
                 "   Description: - Inserts a key-value pair into the storage server data structures.\n" +
                 "                - Updates (overwrites) the current value with the given value if the server already contains the specified key.\n" +
                 "                - Deletes the entry for the given key if <value> equals null.\n"+

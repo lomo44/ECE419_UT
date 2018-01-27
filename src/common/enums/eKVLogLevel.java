@@ -14,10 +14,19 @@ public enum eKVLogLevel {
         this.value = value;
     }
 
+    /**
+     * Cast log level to integer implementation
+     * @return
+     */
     public int toInt(){
         return value;
     }
 
+    /**
+     * Cast an int implementation to loglevel
+     * @param value
+     * @return
+     */
     public static eKVLogLevel fromInt(int value){
         switch (value){
             case 0: return ALL;

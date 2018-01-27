@@ -6,13 +6,20 @@ import app_kvClient.Commands.KVCommand;
 
 import java.util.Vector;
 
-// End point for commandline parsing, should initialize all of the patterns available
+/**
+ * Command line parser for client CLI
+ */
 public class KVCommandParser {
     private Vector<KVCommandPattern> commandPatterns;
+
     public KVCommandParser(){
         commandPatterns = new Vector<KVCommandPattern>();
         initializeCommandPatterns();
     }
+
+    /**
+     * Initialize the command line patterns
+     */
     public void initializeCommandPatterns(){
         commandPatterns.add(new KVCommandPatternConnect());
         commandPatterns.add(new KVCommandPatternDisconnect());
@@ -24,6 +31,11 @@ public class KVCommandParser {
         commandPatterns.add(new KVCommandPatternEcho());
     }
 
+    /**
+     * Retrieved a parsed command object based on a given command input
+     * @param command string input
+     * @return KVCommand if command is recognized, null if not.
+     */
     public KVCommand getParsedCommand(String command){
         for (KVCommandPattern pattern: commandPatterns
              ) {
@@ -33,6 +45,10 @@ public class KVCommandParser {
         }
         return null;
     }
+
+    /**
+     * Print help messages of the command
+     */
     public void printHelpMessages(){
         for (KVCommandPattern pattern: commandPatterns
              ) {

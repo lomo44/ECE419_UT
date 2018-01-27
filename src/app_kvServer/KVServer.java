@@ -11,6 +11,14 @@ import java.util.concurrent.TimeUnit;
 
 public class KVServer implements IKVServer {
 
+
+    private Thread handlerThread;
+    private KVServerHandler serverHandler;
+    private static KVOut kv_out = new KVOut();
+    private int port;
+    private int cacheSize;
+	private eKVExtendCacheType cacheStrategy;
+	private KVDatabase database;
     /**
      * Start KV Server at given port
      * @param port given port for storage server to operate
@@ -21,13 +29,6 @@ public class KVServer implements IKVServer {
      *           currently not contained in the cache. Options are "FIFO", "LRU",
      *           and "LFU".
      */
-    private Thread handlerThread;
-    private KVServerHandler serverHandler;
-    private static KVOut kv_out = new KVOut();
-    private int port;
-    private int cacheSize;
-	private eKVExtendCacheType cacheStrategy;
-	private KVDatabase database;
     public KVServer(int port, int cacheSize, String strategy) throws IOException, ClassNotFoundException {
         this.port = port;
         serverHandler = createServerHandler();
@@ -49,52 +50,96 @@ public class KVServer implements IKVServer {
         this.port = serverHandler.getPort();
     }
 
+    /**
+     * Return the port that the server is open on
+     * @return port number
+     */
 	@Override
 	public int getPort(){
 	    return port;
 	}
 
+    /**
+     * Return the host name
+     * @return string, hostname
+     */
 	@Override
     public String getHostname(){
 		return "localhost";
 	}
 
+    /**
+     * Return the cache strategy that server is using
+     * @return
+     */
 	@Override
     public CacheStrategy getCacheStrategy(){
 	    return this.cacheStrategy.toCacheStrategy();
 	}
 
+    /**
+     * Get the cache size of the server
+     * @return
+     */
 	@Override
     public int getCacheSize(){
         return cacheSize;
 	}
 
+    /**
+     * Check if given key is in storage
+     * @param key
+     * @return
+     */
 	@Override
     public boolean inStorage(String key){
 		return database.inStorage(key);
 	}
 
+    /**
+     * Check if the key is in cache
+     * @param key
+     * @return
+     */
 	@Override
     public boolean inCache(String key){
 		return database.inCache(key);
 	}
 
+    /**
+     * Handle a get command
+     * @param key key of the get command
+     * @return value corresponds to the key
+     * @throws Exception
+     */
 	@Override
     public String getKV(String key) throws Exception{
 		return database.getKV(key);
 	}
 
+    /**
+     * Handle a put command
+     * @param key key of the put command
+     * @param value value of the put command
+     * @throws Exception
+     */
 	@Override
     public void putKV(String key, String value) throws Exception{
 		database.putKV(key,value);
 	}
 
+    /**
+     * Clear the cache
+     */
 	@Override
     public void clearCache(){
 		kv_out.println_debug("Cache cleared");
         database.flushCache();
 	}
 
+    /**
+     * Clear the storage
+     */
 	@Override
     public void clearStorage(){
         kv_out.println_debug("try to clear storage");
@@ -106,11 +151,17 @@ public class KVServer implements IKVServer {
         kv_out.println_debug("Storage cleared");
     }
 
+    /**
+     * Run the server
+     */
     @Override
     public void run() {
 	    kv_out.println_debug("Server running");
     }
 
+    /**
+     * Kill the server
+     */
     @Override
     public void kill(){
         kv_out.println_debug("Try to kill server.");
@@ -127,11 +178,17 @@ public class KVServer implements IKVServer {
 
     }
 
+    /**
+     * Gracefully close a server
+     */
 	@Override
     public void close() {
         kill();
     }
 
+    /**
+     * Flush the cache to storage
+     */
     public void flushCache(){
 		kv_out.println_debug("Cache flushed");
         database.flushCache();
@@ -145,6 +202,10 @@ public class KVServer implements IKVServer {
     	return new KVServerHandler(this.port, this,800);
 	}
 
+    /**
+     * Check if the server handler is running
+     * @return
+     */
 	public boolean isHandlerRunning(){
     	return this.serverHandler.isRunning();
 	}

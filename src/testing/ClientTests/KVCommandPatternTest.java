@@ -17,8 +17,8 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternConnect connect = new KVCommandPatternConnect();
         assertTrue(connect.isMatched(inputString));
         KVCommand newCommand = connect.generateCommand(inputString);
-        assertEquals(newCommand.get("HostName"),"localhost");
-        assertEquals(newCommand.get("PortNumber"),"123");
+        assertEquals(newCommand.getValue("HostName"),"localhost");
+        assertEquals(newCommand.getValue("PortNumber"),"123");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.CONNECT);
     }
     @Test
@@ -33,8 +33,8 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternConnect connect = new KVCommandPatternConnect();
         assertTrue(connect.isMatched(inputString));
         KVCommand newCommand = connect.generateCommand(inputString);
-        assertEquals(newCommand.get("HostName"),"123.123.123.123");
-        assertEquals(newCommand.get("PortNumber"),"123");
+        assertEquals(newCommand.getValue("HostName"),"123.123.123.123");
+        assertEquals(newCommand.getValue("PortNumber"),"123");
     }
 
     @Test
@@ -109,8 +109,8 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternPut command = new KVCommandPatternPut();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Key"),"asd");
-        assertEquals(newCommand.get("Value"),"123");
+        assertEquals(newCommand.getValue("Key"),"asd");
+        assertEquals(newCommand.getValue("Value"),"123");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.PUT);
     }
     @Test
@@ -125,33 +125,33 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternPut command = new KVCommandPatternPut();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Key"),"localhost");
-        assertEquals(newCommand.get("Value"),"b bb");
+        assertEquals(newCommand.getValue("Key"),"localhost");
+        assertEquals(newCommand.getValue("Value"),"b bb");
     }
 
     @Test
     public void testCommandPattern_Get_Match(){
         KVCommandPatternGet command = new KVCommandPatternGet();
-        assertTrue(command.isMatched("get asd"));
+        assertTrue(command.isMatched("getValue asd"));
     }
     @Test
     public void testCommandPattern_Get_Valid(){
-        String inputString = "get asd";
+        String inputString = "getValue asd";
         KVCommandPatternGet command = new KVCommandPatternGet();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Key"),"asd");
+        assertEquals(newCommand.getValue("Key"),"asd");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.GET);
     }
     @Test
     public void testCommandPattern_Get_invalid(){
-        String inputString = "get localhost bbb";
+        String inputString = "getValue localhost bbb";
         KVCommandPatternPut command = new KVCommandPatternPut();
         assertFalse(command.isMatched(inputString));
     }
     @Test
     public void testCommandPattern_Get_invalid_ValueWithSpace(){
-        String inputString = "get local host";
+        String inputString = "getValue local host";
         KVCommandPatternPut command = new KVCommandPatternPut();
         assertFalse(command.isMatched(inputString));
     }
@@ -167,7 +167,7 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Level"),"ALL");
+        assertEquals(newCommand.getValue("Level"),"ALL");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.LOG_LEVEL);
     }
     @Test
@@ -176,7 +176,7 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Level"),"DEBUG");
+        assertEquals(newCommand.getValue("Level"),"DEBUG");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.LOG_LEVEL);
     }
     @Test
@@ -185,7 +185,7 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Level"),"INFO");
+        assertEquals(newCommand.getValue("Level"),"INFO");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.LOG_LEVEL);
     }
     @Test
@@ -194,7 +194,7 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Level"),"WARN");
+        assertEquals(newCommand.getValue("Level"),"WARN");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.LOG_LEVEL);
     }
 
@@ -204,7 +204,7 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Level"),"ERROR");
+        assertEquals(newCommand.getValue("Level"),"ERROR");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.LOG_LEVEL);
     }
 
@@ -214,7 +214,7 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Level"),"FATAL");
+        assertEquals(newCommand.getValue("Level"),"FATAL");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.LOG_LEVEL);
     }
 
@@ -224,7 +224,7 @@ public class KVCommandPatternTest extends TestCase {
         KVCommandPatternLogLevel command = new KVCommandPatternLogLevel();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
-        assertEquals(newCommand.get("Level"),"OFF");
+        assertEquals(newCommand.getValue("Level"),"OFF");
         assertEquals(newCommand.getCommandType(), KVCommandPattern.KVCommandType.LOG_LEVEL);
     }
 

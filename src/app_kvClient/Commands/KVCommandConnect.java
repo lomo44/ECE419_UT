@@ -36,12 +36,12 @@ public class KVCommandConnect extends KVCommand{
         set("HostName",hostname);
     }
     public String getHostName(){
-        return get("HostName");
+        return getValue("HostName");
     }
     public void setPort(String port){
         set("PortNumber", port);
     }
     public String getPort(){
-        return get("PortNumber");
+        return getValue("PortNumber");
     }
 }

@@ -3,7 +3,6 @@ package app_kvClient.Commands;
 import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 
 public class KVCommandLogLevel extends KVCommand {
     public KVCommandLogLevel() {
@@ -27,6 +26,6 @@ public class KVCommandLogLevel extends KVCommand {
     }
 
     public String getLevel(){
-        return get("Level");
+        return getValue("Level");
     }
 }

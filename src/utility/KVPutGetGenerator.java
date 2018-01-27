@@ -43,7 +43,7 @@ public class KVPutGetGenerator implements IKVTrafficGenerator {
     }
 
     private KVCommandGet generateGet(){
-        // Generate get command
+        // Generate getValue command
         KVCommandGet commandGet = new KVCommandGet();
         commandGet.setKey(getRandomKeyFromContent());
         return commandGet;

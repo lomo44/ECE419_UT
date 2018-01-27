@@ -167,7 +167,12 @@ public class KVServerInstance implements Runnable {
         communicationModule.setLogLevel(outputlevel,logLevel);
     }
 
-    public boolean isKeyValid(String key){
+    /**
+     * Check if the key is valid
+     * @param key
+     * @return
+     */
+    private  boolean isKeyValid(String key){
         return !key.matches("") && !whitespacechecker.matcher(key).find() && key.length() <= 20;
     }
 }

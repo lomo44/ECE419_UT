@@ -23,7 +23,7 @@ public class KVCommandPatternGet extends KVCommandPattern{
 
     @Override
     public String getHelpMessageString() {
-        return  "get <key> \n" +
+        return  "getValue <key> \n" +
                 "   Description: Retrieves the value for the given key from the storage server.\n"+
                 "   Usage: \n" +
                 "       key: the key that indexes the desired value (max length 20 Bytes)\n";

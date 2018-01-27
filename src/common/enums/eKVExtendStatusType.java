@@ -65,6 +65,10 @@ public enum eKVExtendStatusType {
     }
 
 
+    /**
+     * Cast the extended status type to normal status type
+     * @return
+     */
     public KVMessage.StatusType toStatusType(){
         switch (this.value){
             case 1: return KVMessage.StatusType.GET;
@@ -80,6 +84,11 @@ public enum eKVExtendStatusType {
         return null;
     }
 
+    /**
+     * Create a extended status type from normal status type
+     * @param type
+     * @return
+     */
     public static eKVExtendStatusType fromStatusType(KVMessage.StatusType type){
         switch (type){
             case GET: return eKVExtendStatusType.GET;

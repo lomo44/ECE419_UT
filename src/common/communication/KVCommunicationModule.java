@@ -109,19 +109,37 @@ public class KVCommunicationModule {
 		return !privateSocket.isClosed();
 	}
 
+    /**
+     * Retrieve the socket of the communication module
+     * @return
+     */
 	private Socket getSocket() {
 	    return privateSocket;
     }
 
+    /**
+     * Initialize the communication module
+     * @throws SocketException
+     */
 	public void initialize() throws SocketException {
 		if(timeout > 0){
 			this.privateSocket.setSoTimeout(this.timeout);
 		}
 	}
+
+    /**
+     * Close the communication module
+     * @throws IOException
+     */
 	public  void close() throws IOException {
 		this.privateSocket.close();
 	}
 
+    /**
+     * Set the log level of the communication module
+     * @param outputlevel
+     * @param logLevel
+     */
 	public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
 	    kv_out.changeLogLevel(logLevel);
 	    kv_out.changeOutputLevel(outputlevel);
