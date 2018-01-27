@@ -11,6 +11,7 @@ import testing.DatabaseTests.KVLRUCacheTest;
 import testing.DatabaseTests.KVLFUCacheTest;
 import testing.IntegrationTests.*;
 import testing.ServerTests.KVServerTest;
+import testing.PerformanceTest.PerformanceEvaluation_PutGet.*;
 
 
 public class AllTests {
@@ -32,6 +33,15 @@ public class AllTests {
 		clientSuite.addTestSuite(KVFIFOCacheTest.class);
 		clientSuite.addTestSuite(KVLFUCacheTest.class);
 		clientSuite.addTestSuite(InteractionTest.class);
+		// clientSuite.addTestSuite(PutGet_FIFO_2080.class);
+		// clientSuite.addTestSuite(PutGet_FIFO_5050.class);
+		// clientSuite.addTestSuite(PutGet_FIFO_8020.class);
+		// clientSuite.addTestSuite(PutGet_LRU_2080.class);
+		// clientSuite.addTestSuite(PutGet_LRU_5050.class);
+		// clientSuite.addTestSuite(PutGet_LRU_8020.class);
+		// clientSuite.addTestSuite(PutGet_LFU_2080.class);
+		// clientSuite.addTestSuite(PutGet_LFU_5050.class);
+		// clientSuite.addTestSuite(PutGet_LFU_8020.class);
 		return clientSuite;
 	}
 	
