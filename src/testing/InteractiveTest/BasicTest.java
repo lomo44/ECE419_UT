@@ -44,6 +44,7 @@ public class BasicTest extends TestCase {
         client = new KVClient(new ByteArrayInputStream(command.getBytes()));
         clientThread = new Thread(client);
         clientThread.start();
+        clientThread.join();
     }
 
     @Test
@@ -52,6 +53,7 @@ public class BasicTest extends TestCase {
         client = new KVClient(new ByteArrayInputStream(command.getBytes()));
         clientThread = new Thread(client);
         clientThread.start();
+        clientThread.join();
     }
 
     @Test
@@ -60,6 +62,7 @@ public class BasicTest extends TestCase {
         client = new KVClient(new ByteArrayInputStream(command.getBytes()));
         clientThread = new Thread(client);
         clientThread.start();
+        clientThread.join();
     }
 
 
@@ -71,6 +74,7 @@ public class BasicTest extends TestCase {
         client = new KVClient(new ByteArrayInputStream(command.getBytes()));
         clientThread = new Thread(client);
         clientThread.start();
+        clientThread.join();
     }
     @Test
     public void test_Get() throws InterruptedException {
@@ -80,6 +84,7 @@ public class BasicTest extends TestCase {
         client = new KVClient(new ByteArrayInputStream(command.getBytes()));
         clientThread = new Thread(client);
         clientThread.start();
+        clientThread.join();
     }
     @Test
     public void test_Help() throws InterruptedException {
@@ -89,6 +94,7 @@ public class BasicTest extends TestCase {
         client = new KVClient(new ByteArrayInputStream(command.getBytes()));
         clientThread = new Thread(client);
         clientThread.start();
+        clientThread.join();
     }
     @Test
     public void test_LogLevel() throws InterruptedException {
@@ -98,5 +104,6 @@ public class BasicTest extends TestCase {
         client = new KVClient(new ByteArrayInputStream(command.getBytes()));
         clientThread = new Thread(client);
         clientThread.start();
+        clientThread.join();
     }
 }

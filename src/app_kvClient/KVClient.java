@@ -1,6 +1,5 @@
 package app_kvClient;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 
 import java.io.InputStream;
@@ -16,8 +15,7 @@ import org.apache.log4j.Logger;
 import logger.LogSetup;
 
 import client.KVStore;
-import client.KVCommInterface;
-import common.messages.KVMessage;
+
 
 public class KVClient implements IKVClient,Runnable {
 
@@ -48,8 +46,6 @@ public class KVClient implements IKVClient,Runnable {
         keyboard = new Scanner(System.in);
         setLogLevel(eKVLogLevel.DEBUG,eKVLogLevel.DEBUG);
     }
-
-
     /**
      * Stop the execution of current KVClient instance
      * @throws IOException thrown when cannot disconnect from socket
@@ -82,6 +78,7 @@ public class KVClient implements IKVClient,Runnable {
         return false;
     }
     public String setLevel(String levelString) {
+		
 		if(levelString.equals(Level.ALL.toString())) {
 			logger.setLevel(Level.ALL);
 			return Level.ALL.toString();
@@ -165,15 +162,11 @@ public class KVClient implements IKVClient,Runnable {
         while (!stop) {
             System.out.print(PROMPT);
             KVCommand cmdInstance = cmdParser.getParsedCommand(keyboard.nextLine());
-            if (client != null) {
-                if (cmdInstance != null) {
-                    // Command line correctly parsed
-                    cmdInstance.handleResponse(executeCommand(cmdInstance));
-                } else {
-                    printHelp();
-                }
+            if (cmdInstance != null) {
+                // Command line correctly parsed
+                cmdInstance.handleResponse(executeCommand(cmdInstance));
             } else {
-                kv_out.println_error("Not connected to a server.");
+                printHelp();
             }
         }
         kv_out.println_debug("Client stopped.");

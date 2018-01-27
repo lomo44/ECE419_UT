@@ -33,7 +33,7 @@ public class KVServer implements IKVServer {
         this.port = port;
         serverHandler = createServerHandler();
         handlerThread = new Thread(serverHandler);
-        setLogLevel(eKVLogLevel.OFF,eKVLogLevel.DEBUG);
+        setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
         kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
         handlerThread.start();
         this.cacheSize = cacheSize;

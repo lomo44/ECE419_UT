@@ -46,7 +46,7 @@ public class KVStore implements KVCommInterface {
     public void connect() throws Exception {
         kv_out.println_debug("KV Store connect");
         clientSocket = new Socket(serverAddress, serverPort);
-        communicationModule = new KVCommunicationModule(clientSocket,500);
+        communicationModule = new KVCommunicationModule(clientSocket,1000);
         communicationModule.setLogLevel(outputlevel,logLevel);
         setRunning(true);
         setLogLevel(outputlevel,logLevel);
