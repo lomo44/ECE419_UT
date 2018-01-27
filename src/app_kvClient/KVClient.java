@@ -42,24 +42,27 @@ public class KVClient implements IKVClient,Runnable {
     }
     @Override
     public void run() {
-        kv_out.println_debug("Client Started");
+        kv_out.println_debug("Client started.");
         while (!stop) {
             System.out.print(PROMPT);
             KVCommand cmdInstance = cmdParser.getParsedCommand(keyboard.nextLine());
-            if(cmdInstance!=null){
-                // Command line correctly parsed
-                cmdInstance.handleResponse(executeCommand(cmdInstance));
-            }
-            else{
-                printHelp();
+            if (client != null) {
+                if (cmdInstance != null) {
+                    // Command line correctly parsed
+                    cmdInstance.handleResponse(executeCommand(cmdInstance));
+                } else {
+                    printHelp();
+                }
+            } else {
+                kv_out.println_error("Not connected to a server.");
             }
         }
-        kv_out.println_debug("Client Stopped");
+        kv_out.println_debug("Client stopped.");
     }
     public void stop() throws IOException {
         disconnect();
         stop = true;
-        kv_out.println_debug("Try to stop client");
+        kv_out.println_debug("Try to stop client.");
     }
     public void disconnect() throws IOException {
         if (client != null) {

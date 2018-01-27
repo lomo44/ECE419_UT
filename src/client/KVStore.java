@@ -112,8 +112,8 @@ public class KVStore implements KVCommInterface {
         return response;
     }
 
-    public KVJSONMessage createEmptyMessage() {
-        return communicationModule.getEmptyMessage();
+    public static KVJSONMessage createEmptyMessage() {
+        return KVCommunicationModule.getEmptyMessage();
     }
 
     public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){

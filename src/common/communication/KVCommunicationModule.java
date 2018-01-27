@@ -30,7 +30,7 @@ public class KVCommunicationModule {
      * Create a empty KVMessage
      * @return
      */
-	public KVJSONMessage getEmptyMessage(){
+	public static KVJSONMessage getEmptyMessage(){
 		return new KVJSONMessage();
 	}
 
