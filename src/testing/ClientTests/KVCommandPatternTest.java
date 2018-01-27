@@ -132,11 +132,11 @@ public class KVCommandPatternTest extends TestCase {
     @Test
     public void testCommandPattern_Get_Match(){
         KVCommandPatternGet command = new KVCommandPatternGet();
-        assertTrue(command.isMatched("getValue asd"));
+        assertTrue(command.isMatched("get asd"));
     }
     @Test
     public void testCommandPattern_Get_Valid(){
-        String inputString = "getValue asd";
+        String inputString = "get asd";
         KVCommandPatternGet command = new KVCommandPatternGet();
         assertTrue(command.isMatched(inputString));
         KVCommand newCommand = command.generateCommand(inputString);
@@ -145,13 +145,13 @@ public class KVCommandPatternTest extends TestCase {
     }
     @Test
     public void testCommandPattern_Get_invalid(){
-        String inputString = "getValue localhost bbb";
+        String inputString = "get localhost bbb";
         KVCommandPatternPut command = new KVCommandPatternPut();
         assertFalse(command.isMatched(inputString));
     }
     @Test
     public void testCommandPattern_Get_invalid_ValueWithSpace(){
-        String inputString = "getValue local host";
+        String inputString = "get local host";
         KVCommandPatternPut command = new KVCommandPatternPut();
         assertFalse(command.isMatched(inputString));
     }

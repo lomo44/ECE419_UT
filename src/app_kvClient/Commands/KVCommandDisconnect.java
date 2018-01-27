@@ -19,11 +19,7 @@ public class KVCommandDisconnect extends KVCommand {
         try {
             clientInstance.disconnect();
             ret.setExtendStatus(eKVExtendStatusType.DISCONNECT_SUCCESS);
-        } catch (IOException e) {
-            e.printStackTrace();
-            ret.setExtendStatus(eKVExtendStatusType.DISCONNECT_FAIL);
-        }
-        finally {
+        } finally {
             return ret;
         }
     }
