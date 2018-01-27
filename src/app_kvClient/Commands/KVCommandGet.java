@@ -82,6 +82,6 @@ public class KVCommandGet extends KVCommand {
     }
 
     public String getKey(){
-        return get("Key");
+        return getValue("Key");
     }
 }

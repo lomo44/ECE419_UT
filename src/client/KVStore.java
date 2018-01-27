@@ -38,12 +38,15 @@ public class KVStore implements KVCommInterface {
         listeners = new HashSet<app_kvClient.IKVClient>();
     }
 
-    //TODO: Handle connection exception
+    /**
+     * Connect the client to server
+     * @throws Exception thrown if the connection failed
+     */
     @Override
     public void connect() throws Exception {
         kv_out.println_debug("KV Store connect");
         clientSocket = new Socket(serverAddress, serverPort);
-        communicationModule = new KVCommunicationModule(clientSocket,500);
+        communicationModule = new KVCommunicationModule(clientSocket,1000);
         communicationModule.setLogLevel(outputlevel,logLevel);
         setRunning(true);
         setLogLevel(outputlevel,logLevel);
@@ -51,22 +54,25 @@ public class KVStore implements KVCommInterface {
 
     }
 
-    public String getServerAddress() {
-        return serverAddress;
-    }
-
-    public int getServerPort() {
-        return serverPort;
-    }
-
+    /**
+     * Check if the store interface is running or not
+     * @return true if the store interface is running
+     */
     public boolean isRunning() {
         return running;
     }
 
+    /**
+     * Set the running states of the store interface
+     * @param run run state
+     */
     public void setRunning(boolean run) {
         running = run;
     }
 
+    /**
+     * Disconnect the interfaces
+     */
     @Override
     public void disconnect(){
         setRunning(false);
@@ -81,6 +87,14 @@ public class KVStore implements KVCommInterface {
         }
     }
 
+    /**
+     * Issues a put command
+     * @param key   the key that identifies the given value.
+     * @param value the value that is indexed by the given key.
+     * @return return message from server
+     * @throws SocketException thrown when socket is closed
+     * @throws SocketTimeoutException thrown is read timeout
+     */
     @Override
     public KVMessage put(String key, String value) throws SocketException, SocketTimeoutException {
         KVJSONMessage newmessage = createEmptyMessage();
@@ -93,6 +107,13 @@ public class KVStore implements KVCommInterface {
         return response;
     }
 
+    /**
+     * Issues a get command
+     * @param key the key that identifies the value.
+     * @return return message from server
+     * @throws SocketTimeoutException thrown when socket read timeout
+     * @throws SocketException thrown when socket is closed
+     */
     @Override
     public KVMessage get(String key) throws SocketTimeoutException, SocketException {
         KVJSONMessage newmessage = createEmptyMessage();
@@ -105,6 +126,13 @@ public class KVStore implements KVCommInterface {
         return response;
     }
 
+    /**
+     * Generic message for sending and receive message
+     * @param outboundmsg outbound message that need to send
+     * @return respond from server
+     * @throws SocketException thrown if socket is closed
+     * @throws SocketTimeoutException thrown is socket is timeout
+     */
     public KVMessage send(KVMessage outboundmsg) throws SocketException, SocketTimeoutException {
         communicationModule.send(outboundmsg);
         KVJSONMessage response = communicationModule.receiveMessage();
@@ -112,10 +140,19 @@ public class KVStore implements KVCommInterface {
         return response;
     }
 
+    /**
+     * Create an empty message
+     * @return KVJSONMessage
+     */
     public static KVJSONMessage createEmptyMessage() {
         return KVCommunicationModule.getEmptyMessage();
     }
 
+    /**
+     * Change the log level of the logger
+     * @param outputlevel
+     * @param logLevel
+     */
     public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
         kv_out.changeOutputLevel(outputlevel);
         kv_out.changeLogLevel(logLevel);

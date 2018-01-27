@@ -56,7 +56,7 @@ public class KVServerTest extends TestCase {
 //        newmessage.setKey("foo");
 //        newmessage.setValue("boo");
 //        client.send(newmessage);
-//        KVMessage recievedMessage = client.get();
+//        KVMessage recievedMessage = client.getValue();
 //        assertTrue(newmessage.equal(recievedMessage));
 //    }
 //    @Test
@@ -78,8 +78,8 @@ public class KVServerTest extends TestCase {
 //
 //        client1.send(newmessage1);
 //        client2.send(newmessage2);
-//        KVMessage recievedMessage1 = client1.get();
-//        KVMessage recievedMessage2 = client2.get();
+//        KVMessage recievedMessage1 = client1.getValue();
+//        KVMessage recievedMessage2 = client2.getValue();
 //        client1.teardown();
 //        client2.teardown();
 //        assertTrue(newmessage1.equal(recievedMessage1));

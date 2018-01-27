@@ -10,10 +10,18 @@ public enum eKVExtendCacheType{
         this.str = str;
     }
 
+    /**
+     * Cast to string
+     * @return
+     */
     public String toString() {
         return str;
     }
 
+    /**
+     * Cast the extend cache stype to cache strategy
+     * @return IKVServer.CacheStrategy
+     */
     public IKVServer.CacheStrategy toCacheStrategy(){
         switch (str){
             case "FIFO": return IKVServer.CacheStrategy.FIFO;
@@ -23,6 +31,11 @@ public enum eKVExtendCacheType{
         return null;
     }
 
+    /**
+     * Create a instance of eKVExtendCacheType based on input string
+     * @param str input string
+     * @return eKVExtendCacheType
+     */
     public static eKVExtendCacheType fromString(String str) {
         switch (str) {
             case "FIFO":

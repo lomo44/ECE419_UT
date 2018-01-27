@@ -18,6 +18,7 @@ public class KVCommandPatternEcho extends KVCommandPattern{
 
     @Override
     public String getHelpMessageString() {
-        return "Description: Send an echo command to server";
+        return "Echo: \n" +
+                "    Description: Send an echo command to server";
     }
 }
