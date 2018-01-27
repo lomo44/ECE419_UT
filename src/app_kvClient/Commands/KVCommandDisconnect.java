@@ -4,6 +4,7 @@ import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
+import client.KVStore;
 
 import java.io.IOException;
 
@@ -14,7 +15,7 @@ public class KVCommandDisconnect extends KVCommand {
 
     @Override
     public KVJSONMessage execute(KVClient clientInstance) {
-        KVJSONMessage ret = clientInstance.getStore().createEmptyMessage();
+        KVJSONMessage ret = KVStore.createEmptyMessage();
         try {
             clientInstance.disconnect();
             ret.setExtendStatus(eKVExtendStatusType.DISCONNECT_SUCCESS);

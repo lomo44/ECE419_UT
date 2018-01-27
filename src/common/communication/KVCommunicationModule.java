@@ -30,7 +30,7 @@ public class KVCommunicationModule {
      * Create a empty KVMessage
      * @return
      */
-	public KVJSONMessage getEmptyMessage(){
+	public static KVJSONMessage getEmptyMessage(){
 		return new KVJSONMessage();
 	}
 
@@ -48,11 +48,12 @@ public class KVCommunicationModule {
             try {
                 outputStream = privateSocket.getOutputStream();
                 DataOutputStream data_out = new DataOutputStream(outputStream);
+                ((KVJSONMessage)in_Message).setSendTime();
                 byte[] out = ((KVJSONMessage)in_Message).toBytes();
                 data_out.write(out.length);
                 data_out.write(out);
                 data_out.flush();
-                kv_out.println_info("Sent message to client "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
+                kv_out.println_info("Sent message to "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
             }
             catch (SocketTimeoutException e){
                 throw e;
@@ -84,7 +85,7 @@ public class KVCommunicationModule {
                 byte[] array = new byte[bytelength];
                 dInputStream.read(array);
                 ret.fromBytes(array);
-                kv_out.println_info("Received message from client "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
+                kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
                 return ret;
             }
             catch (SocketTimeoutException e){
@@ -105,7 +106,7 @@ public class KVCommunicationModule {
      * @return
      */
 	public boolean isConnected(){
-		return privateSocket.isConnected();
+		return !privateSocket.isClosed();
 	}
 
 	private Socket getSocket() {

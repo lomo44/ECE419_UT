@@ -2,6 +2,7 @@ package app_kvClient.Commands;
 
 import app_kvClient.CommandPatterns.KVCommandPattern.KVCommandType;
 import app_kvClient.KVClient;
+import client.KVStore;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 
@@ -12,7 +13,11 @@ public class KVCommandPut extends KVCommand {
 
     @Override
     public KVJSONMessage execute(KVClient clientInstance) {
-        KVJSONMessage ret  = null;
+        KVJSONMessage ret = KVStore.createEmptyMessage();
+        if (clientInstance.getStore() == null) {
+            ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
+            return ret;
+        }
         try {
             ret = (KVJSONMessage)clientInstance.getStore().put(getKey(),getValue());
         } catch (Exception e) {

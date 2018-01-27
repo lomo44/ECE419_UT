@@ -4,6 +4,7 @@ import app_kvClient.CommandPatterns.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
+import client.KVStore;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -15,7 +16,11 @@ public class KVCommandGet extends KVCommand {
 
     @Override
     public KVJSONMessage execute(KVClient clientInstance) {
-        KVJSONMessage ret = clientInstance.getStore().createEmptyMessage();
+        KVJSONMessage ret = KVStore.createEmptyMessage();
+        if (clientInstance.getStore() == null) {
+            ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
+            return ret;
+        }
         try {
             ret = (KVJSONMessage) clientInstance.getStore().get(getKey());
         } catch (SocketTimeoutException e) {
