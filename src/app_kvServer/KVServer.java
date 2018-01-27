@@ -32,12 +32,12 @@ public class KVServer implements IKVServer {
         this.port = port;
         serverHandler = createServerHandler();
         handlerThread = new Thread(serverHandler);
-        setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
+        setLogLevel(eKVLogLevel.OFF,eKVLogLevel.DEBUG);
         kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
         handlerThread.start();
         this.cacheSize = cacheSize;
         cacheStrategy = eKVExtendCacheType.fromString(strategy);
-        database = new KVDatabase(cacheSize,5000,strategy);
+        database = new KVDatabase(cacheSize,50000000,strategy);
         // Pull the handler and check if the handler is running
         while(!serverHandler.isRunning()){
             try {
@@ -142,7 +142,7 @@ public class KVServer implements IKVServer {
 	 * @return a server handler instances
 	 */
     public KVServerHandler createServerHandler(){
-    	return new KVServerHandler(this.port, this,2000);
+    	return new KVServerHandler(this.port, this,800);
 	}
 
 	public boolean isHandlerRunning(){
