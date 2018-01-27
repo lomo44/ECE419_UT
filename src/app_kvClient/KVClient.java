@@ -19,14 +19,14 @@ import client.KVStore;
 
 public class KVClient implements IKVClient,Runnable {
 
-    private static Logger logger = Logger.getRootLogger();
+    private static Logger logger = Logger.getLogger("client");
     private static final String PROMPT = "Client> ";
     private KVStore client = null;
     private boolean stop = false;
     private KVCommandParser cmdParser = new KVCommandParser();
     private Scanner keyboard;
     private KVClientAttribute attribute = new KVClientAttribute();
-    private KVOut kv_out = new KVOut();
+    private static KVOut kv_out = new KVOut("client");
     private eKVLogLevel outputlevel;
     private eKVLogLevel logLevel;
 
@@ -190,15 +190,9 @@ public class KVClient implements IKVClient,Runnable {
      * @param args contains the port number at args[0].
      */
     public static void main(String[] args) {
-        try {
-            new LogSetup("logs/client.log", Level.OFF);
-            KVClient app = new KVClient(System.in);
-            app.run();
-        } catch (IOException e) {
-            System.out.println("Error! Unable to initialize logger!");
-            e.printStackTrace();
-            System.exit(1);
-        }
+        kv_out.enableLog("logs/client.log", Level.OFF);
+        KVClient app = new KVClient(System.in);
+        app.run();
         System.out.println("Exiting client main");
     }
 }

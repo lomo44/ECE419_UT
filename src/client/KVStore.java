@@ -17,8 +17,7 @@ import logger.KVOut;
 
 public class KVStore implements KVCommInterface {
 
-    private KVOut kv_out = new KVOut();
-    private Set<app_kvClient.IKVClient> listeners;
+    private KVOut kv_out = new KVOut("client");
     private boolean running;
     private String serverAddress;
     private int serverPort;
@@ -35,7 +34,6 @@ public class KVStore implements KVCommInterface {
     public KVStore(String address, int port) {
         serverAddress = address;
         serverPort = port;
-        listeners = new HashSet<app_kvClient.IKVClient>();
     }
 
     /**
@@ -46,7 +44,7 @@ public class KVStore implements KVCommInterface {
     public void connect() throws Exception {
         kv_out.println_debug("KV Store connect");
         clientSocket = new Socket(serverAddress, serverPort);
-        communicationModule = new KVCommunicationModule(clientSocket,1000);
+        communicationModule = new KVCommunicationModule(clientSocket,500,"client");
         communicationModule.setLogLevel(outputlevel,logLevel);
         setRunning(true);
         setLogLevel(outputlevel,logLevel);

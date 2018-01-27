@@ -57,7 +57,7 @@ public class KVTestClient {
      * @return KVCommunicationModule instance
      */
     public KVCommunicationModule createCommunicationModule(Socket socket, int timeout){
-        return new KVCommunicationModule(socket,0);
+        return new KVCommunicationModule(socket,0,"client");
     }
 
 

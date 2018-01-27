@@ -14,7 +14,7 @@ public class KVServer implements IKVServer {
 
     private Thread handlerThread;
     private KVServerHandler serverHandler;
-    private static KVOut kv_out = new KVOut();
+    private static KVOut kv_out = new KVOut("server");
     private int port;
     private int cacheSize;
 	private eKVExtendCacheType cacheStrategy;

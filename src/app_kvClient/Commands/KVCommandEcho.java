@@ -16,6 +16,7 @@ public class KVCommandEcho extends KVCommand {
         KVJSONMessage newmsg = KVStore.createEmptyMessage();
         newmsg.setExtendStatus(eKVExtendStatusType.ECHO);
         if (clientInstance.getStore() == null) {
+            kv_out.println_error("Client not connected to a server.");
             return newmsg;
         }
         try {

@@ -19,7 +19,7 @@ public class KVServerHandler implements Runnable {
     private int port;
     private ServerSocket serverSocket;
     private KVServer master;
-    private KVOut kv_out = new KVOut();
+    private KVOut kv_out = new KVOut("server");
     private boolean isRunning;
     private int listenerTimerout;
     /**
@@ -105,7 +105,7 @@ public class KVServerHandler implements Runnable {
      * @return KVCommunication module instance
      */
     public KVCommunicationModule createCommunicationModule(Socket socket){
-        KVCommunicationModule module = new KVCommunicationModule(socket,listenerTimerout);
+        KVCommunicationModule module = new KVCommunicationModule(socket,listenerTimerout,"server");
         module.setLogLevel(kv_out.getOutputLevel(),kv_out.getLogLevel());
         return module;
     }
