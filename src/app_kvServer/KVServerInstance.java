@@ -18,7 +18,7 @@ public class KVServerInstance implements Runnable {
 
     private KVCommunicationModule communicationModule;
     private IKVServer serverinstance;
-    private KVOut kv_out = new KVOut();
+    private KVOut kv_out = new KVOut("server");
     private boolean isRunning;
     private static final String DELETE_IDENTIFIER = "null";
     private Pattern whitespacechecker = Pattern.compile("\\s");

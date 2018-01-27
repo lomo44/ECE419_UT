@@ -17,13 +17,13 @@ import logger.KVOut;
 public class KVCommunicationModule {
     // Communication module for both server and client
     private Socket privateSocket;
-    private KVOut kv_out = new KVOut();
+    private KVOut kv_out = null;
     private int timeout;
     private boolean isInitialized = false;
-    public KVCommunicationModule(Socket in_Socket, int timeout) {
+    public KVCommunicationModule(Socket in_Socket, int timeout, String hint) {
         privateSocket = in_Socket;
         this.timeout = timeout;
-
+        this.kv_out = new KVOut(hint);
 	}
 
     /**
