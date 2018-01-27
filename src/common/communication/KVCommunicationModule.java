@@ -106,7 +106,7 @@ public class KVCommunicationModule {
      * @return
      */
 	public boolean isConnected(){
-		return privateSocket.isConnected();
+		return !privateSocket.isClosed();
 	}
 
 	private Socket getSocket() {
