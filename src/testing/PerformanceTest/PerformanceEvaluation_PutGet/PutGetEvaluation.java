@@ -18,13 +18,15 @@ public class PutGetEvaluation extends TestCase {
     private KVClient client = null;
     private KVPutGetGenerator generator = null;
     private int counter = 20;
+    private String cacheType = "";
+    private int putPercentage;
 
     protected String setCacheType(){
         return "FIFO";
     }
 
     protected int setCacheSize(){
-        return 200;
+        return 100;
     }
 
     protected int setCommandCount(){
@@ -50,12 +52,17 @@ public class PutGetEvaluation extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        putPercentage = setPutPercentage();
+        cacheType = setCacheType();
+        System.out.printf("Performance Evaluation Put Get: Cache Type: %s, Put Percentage: %d\n",cacheType,putPercentage);
         // Initialize server
-        server = new KVServer(0,setCacheSize(),setCacheType());
+        server = new KVServer(0,setCacheSize(),cacheType);
         // setup client
         client = new KVClient();
         client.newConnection("localhost",server.getPort());
-        generator = new KVPutGetGenerator(setPutPercentage(),setOverWritePercentage());
+        cacheType = setCacheType();
+        putPercentage = setPutPercentage();
+        generator = new KVPutGetGenerator(putPercentage,setOverWritePercentage());
         this.counter = setCommandCount();
         server.setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
         client.setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
