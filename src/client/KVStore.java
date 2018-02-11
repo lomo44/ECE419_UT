@@ -85,6 +85,11 @@ public class KVStore implements KVCommInterface {
         }
     }
 
+    @Override
+    public boolean isConnected() {
+        return communicationModule.isConnected();
+    }
+
     /**
      * Issues a put command
      * @param key   the key that identifies the given value.

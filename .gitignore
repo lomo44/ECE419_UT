@@ -3,6 +3,8 @@
 *.tgz
 m1-client.jar
 m1-server.jar
+m2-client.jar
+m2-server.jar
 .idea/
 .metadata
 .plugins/
