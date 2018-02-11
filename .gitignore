@@ -1,0 +1,13 @@
+*.MF
+*.class
+*.tgz
+m1-client.jar
+m1-server.jar
+.idea/
+.metadata
+.plugins/
+*.iml
+*.log
+.DS_Store
+.recommenders/
+bin
