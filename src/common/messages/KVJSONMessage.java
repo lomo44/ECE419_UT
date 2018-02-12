@@ -1,5 +1,6 @@
 package common.messages;
 import common.enums.eKVExtendStatusType;
+import ecs.IECSNode;
 import org.json.*;
 
 import java.util.HashMap;
@@ -16,7 +17,6 @@ public class KVJSONMessage implements KVMessage {
 	private static String KEY_PAIR_NAME = "key_pair";
 	private static String STATUS_NAME = "status_type";
 	private static String SEND_TIME = "send_time";
-
     /**
      * Return key as a string
      * @return key (String)
@@ -42,6 +42,11 @@ public class KVJSONMessage implements KVMessage {
 	@Override
 	public StatusType getStatus() {
 		return status;
+	}
+
+	@Override
+	public IECSNode getResponsibleServer() {
+		return null;
 	}
 
 	public eKVExtendStatusType getExtendStatusType(){

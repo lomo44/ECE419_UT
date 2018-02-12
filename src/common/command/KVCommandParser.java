@@ -1,16 +1,17 @@
-package app_kvClient;
+package common.command;
 
 
 import app_kvClient.CommandPatterns.*;
-import app_kvClient.Commands.KVCommand;
+import common.command.KVCommand;
+import common.command.KVCommandPattern;
 
 import java.util.Vector;
 
 /**
  * Command line parser for client CLI
  */
-public class KVCommandParser {
-    private Vector<KVCommandPattern> commandPatterns;
+public abstract class KVCommandParser {
+    protected Vector<KVCommandPattern> commandPatterns;
 
     public KVCommandParser(){
         commandPatterns = new Vector<KVCommandPattern>();
@@ -20,17 +21,7 @@ public class KVCommandParser {
     /**
      * Initialize the command line patterns
      */
-    public void initializeCommandPatterns(){
-        commandPatterns.add(new KVCommandPatternConnect());
-        commandPatterns.add(new KVCommandPatternDisconnect());
-        commandPatterns.add(new KVCommandPatternGet());
-        commandPatterns.add(new KVCommandPatternHelp());
-        commandPatterns.add(new KVCommandPatternLogLevel());
-        commandPatterns.add(new KVCommandPatternPut());
-        commandPatterns.add(new KVCommandPatternQuit());
-        commandPatterns.add(new KVCommandPatternEcho());
-    }
-
+    public abstract void initializeCommandPatterns();
     /**
      * Retrieved a parsed command object based on a given command input
      * @param command string input

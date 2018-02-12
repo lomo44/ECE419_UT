@@ -1,13 +1,14 @@
 package app_kvClient.Commands;
 
-import app_kvClient.CommandPatterns.KVCommandPattern;
+import common.command.KVCommand;
+import common.command.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 
 import java.io.IOException;
 
-public class KVCommandQuit extends KVCommand {
+public class KVCommandQuit extends KVCommand<KVClient> {
     public KVCommandQuit() {
         super(KVCommandPattern.KVCommandType.QUIT);
     }

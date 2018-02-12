@@ -79,7 +79,7 @@ public class BasicTest extends TestCase {
     @Test
     public void test_Get() throws InterruptedException {
         String command = "connect localhost "+port+"\n" +
-                "getValue aaa\n"+
+                "get aaa\n"+
                 "quit\n";
         client = new KVClient(new ByteArrayInputStream(command.getBytes()));
         clientThread = new Thread(client);

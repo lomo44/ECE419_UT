@@ -1,9 +1,8 @@
-package app_kvClient.Commands;
+package common.command;
 
-import app_kvClient.CommandPatterns.KVCommandPattern;
+import common.command.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 import logger.KVOut;
 
 import java.util.HashMap;
@@ -12,7 +11,7 @@ import java.util.Map;
 /**
  * Interfaces for KVCommand, use this class to implement more command for CLI
  */
-public abstract class KVCommand {
+public abstract class KVCommand<T> {
     private KVCommandPattern.KVCommandType commandType;
     private Map<String,String> parameterMap;
     protected KVOut kv_out = new KVOut("client");
@@ -49,10 +48,10 @@ public abstract class KVCommand {
 
     /**
      * Command execute handler.
-     * @param clientInstance Client instance
+     * @param Instance ObjectInstance instance
      * @return return message from CLI
      */
-    public abstract KVJSONMessage execute(KVClient clientInstance);
+    public abstract KVJSONMessage execute(T Instance);
 
     /**
      * Handle the response message

@@ -1,6 +1,7 @@
 package app_kvClient.Commands;
 
-import app_kvClient.CommandPatterns.KVCommandPattern;
+import common.command.KVCommand;
+import common.command.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
@@ -9,7 +10,7 @@ import client.KVStore;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
-public class KVCommandGet extends KVCommand {
+public class KVCommandGet extends KVCommand<KVClient> {
     public KVCommandGet() {
         super(KVCommandPattern.KVCommandType.GET);
     }
