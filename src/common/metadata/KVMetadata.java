@@ -1,6 +1,6 @@
 package common.metadata;
 
-import common.KVNetworkID;
+import common.KVNetworkNode;
 import common.messages.KVJSONMessage;
 import org.json.JSONObject;
 
@@ -8,7 +8,7 @@ import java.math.BigInteger;
 import java.util.*;
 
 public class KVMetadata {
-    private HashMap<BigInteger,KVNetworkID> data;
+    private HashMap<BigInteger, KVNetworkNode> data;
     private static final String KVMETADATA_TAG = "19a67338-3e44-4a07-a94c-dcde45767519";
     private static final String KVMETADATA_VALUE = "dc67a029-52e1-465d-9128-7ec8d8e660f9";
 
@@ -37,7 +37,7 @@ public class KVMetadata {
                 while(itor.hasNext()){
                     String hash = itor.next();
                     String networkIDstring = map.getString(hash);
-                    KVNetworkID newID = KVNetworkID.fromString(networkIDstring);
+                    KVNetworkNode newID = KVNetworkNode.fromString(networkIDstring);
                     if(newID!=null){
                         data.addNetworkIDHashPair(new BigInteger(hash),newID);
                     }
@@ -71,27 +71,27 @@ public class KVMetadata {
     }
 
     /**
-     * Add a new KVNetworkID into the metadata
-     * @param hash Hash for the KVNetworkID
-     * @param id KVNetworkID instance
+     * Add a new KVNetworkNode into the metadata
+     * @param hash Hash for the KVNetworkNode
+     * @param id KVNetworkNode instance
      */
-    public void addNetworkIDHashPair(BigInteger hash, KVNetworkID id){
+    public void addNetworkIDHashPair(BigInteger hash, KVNetworkNode id){
         data.put(hash,id);
     }
 
     /**
      * Fetch network ID based on a hash value
      * @param hash hash value
-     * @return KVNetworkID instance if found, null if not found
+     * @return KVNetworkNode instance if found, null if not found
      */
-    public KVNetworkID getNetworkIDFromHash(BigInteger hash){
+    public KVNetworkNode getNetworkIDFromHash(BigInteger hash){
         return data.get(hash);
     }
 
     /**
-     * Check if the hash corresponds to a KVNetworkID
+     * Check if the hash corresponds to a KVNetworkNode
      * @param hash Hash value
-     * @return true if a KVNetworkID corresponds to this hash, false if not.
+     * @return true if a KVNetworkNode corresponds to this hash, false if not.
      */
     boolean hasNetworkIDHash(BigInteger hash){
         return data.containsKey(hash);
@@ -106,10 +106,10 @@ public class KVMetadata {
     }
 
     /**
-     * Return KVNetworkID mapping
-     * @return KVNetworkID hash
+     * Return KVNetworkNode mapping
+     * @return KVNetworkNode hash
      */
-    private HashMap<BigInteger,KVNetworkID> getKVNetworkIDMap(){
+    private HashMap<BigInteger, KVNetworkNode> getKVNetworkIDMap(){
         return data;
     }
 

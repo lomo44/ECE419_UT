@@ -2,19 +2,20 @@ package common;
 
 import common.datastructure.Pair;
 
+import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class KVNetworkID {
+public class KVNetworkNode {
     private Pair<String, Integer> id = new Pair<>("",0);
-    private static final Pattern re_pattern = Pattern.compile("(.*)@(\\d*)");
+    private static final Pattern re_pattern = Pattern.compile("(.*) (\\d*)");
 
     /**
      * Create a network id from hostname and port number
      * @param hostname String representation of host name
      * @param portNumber Integer representation of port number
      */
-    public KVNetworkID(String hostname, int portNumber){
+    public KVNetworkNode(String hostname, int portNumber){
         id.x = hostname;
         id.y = portNumber;
     }
@@ -24,18 +25,18 @@ public class KVNetworkID {
      * @return
      */
     public String toString(){
-        return id.x +'@'+ Integer.toString(id.y);
+        return id.x +' '+ Integer.toString(id.y);
     }
 
     /**
-     * Convert string generated from toString() to KVNetworkID
+     * Convert string generated from toString() to KVNetworkNode
      * @param str Input string
-     * @return KVNetworkID instance
+     * @return KVNetworkNode instance
      */
-    public static KVNetworkID fromString(String str){
+    public static KVNetworkNode fromString(String str){
         Matcher match = re_pattern.matcher(str);
         if(match.matches()){
-            return new KVNetworkID(match.group(1),Integer.parseInt(match.group(2)));
+            return new KVNetworkNode(match.group(1),Integer.parseInt(match.group(2)));
         }
         return null;
     }
@@ -53,13 +54,13 @@ public class KVNetworkID {
     public int getPortNumber(){return id.y;}
 
     /**
-     * Check if input KVNetworkID is the same as the current one
-     * @param o input KVNetworkID instance
+     * Check if input KVNetworkNode is the same as the current one
+     * @param o input KVNetworkNode instance
      * @return true if the input instance is the same as the current one
      */
     @Override
     public boolean equals(Object o) {
-        KVNetworkID rhs = (KVNetworkID) o;
+        KVNetworkNode rhs = (KVNetworkNode) o;
         return this.id.x.matches(rhs.id.x ) && this.id.y == rhs.id.y;
     }
 }

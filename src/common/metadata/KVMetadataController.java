@@ -1,6 +1,6 @@
 package common.metadata;
 
-import common.KVNetworkID;
+import common.KVNetworkNode;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -25,7 +25,7 @@ public class KVMetadataController {
 
     /**
      * Update current metadata with new Data.This method will merge entries in the newdata into the current one
-     * Also update the sorted key set for KVNetworkID hashing
+     * Also update the sorted key set for KVNetworkNode hashing
      * @param newData new KVMetadata
      * @return True if there are any changes compared to the previous metadata, False if not
      */
@@ -48,9 +48,9 @@ public class KVMetadataController {
     /**
      * Given a hash, return its mapped NetworkID
      * @param hash input hash
-     * @return KVNetworkID
+     * @return KVNetworkNode
      */
-    public KVNetworkID getNetowrkIDMap(BigInteger hash){
+    public KVNetworkNode getNetowrkIDMap(BigInteger hash){
         for(BigInteger key : keys){
             if(key.compareTo(hash)>=1){
                 return metaData.getNetworkIDFromHash(key);
@@ -74,9 +74,9 @@ public class KVMetadataController {
 
     /**
      * Add a new NetworkID into the location
-     * @param id new KVNetworkID;
+     * @param id new KVNetworkNode;
      */
-    public void addNetworkID(KVNetworkID id) {
+    public void addNetworkID(KVNetworkNode id) {
         String idString = id.toString();
         BigInteger hash = hash(idString);
         if(this.metaData==null){

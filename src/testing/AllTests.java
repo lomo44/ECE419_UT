@@ -4,6 +4,7 @@ import common.metadata.KVMetadata;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import testing.ClientTests.KVCommandPatternTest;
+import testing.CommonModuleTests.KVRangeTest;
 import testing.CommunicationTests.*;
 import testing.DatabaseTests.KVFIFOCacheTest;
 import testing.DatabaseTests.KVLRUCacheTest;
@@ -34,6 +35,7 @@ public class AllTests {
 		clientSuite.addTestSuite(InteractionTest.class);
 		clientSuite.addTestSuite(KVMetadataControllerTests.class);
 		clientSuite.addTestSuite(KVMetadataTest.class);
+		clientSuite.addTestSuite(KVRangeTest.class);
 		// clientSuite.addTestSuite(PutGet_FIFO_2080.class);
 		// clientSuite.addTestSuite(PutGet_FIFO_5050.class);
 		// clientSuite.addTestSuite(PutGet_FIFO_8020.class);
