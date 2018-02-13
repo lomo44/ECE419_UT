@@ -22,7 +22,8 @@ public class KVNetworkID {
         }
         return null;
     }
-
+    public String getHostName(){return id.x;}
+    public int getPortNumber(){return id.y;}
     @Override
     public boolean equals(Object o) {
         KVNetworkID rhs = (KVNetworkID) o;

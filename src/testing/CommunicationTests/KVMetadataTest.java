@@ -5,10 +5,12 @@ import common.metadata.KVMetadata;
 import junit.framework.TestCase;
 import org.junit.Test;
 
+import java.math.BigInteger;
+
 public class KVMetadataTest extends TestCase {
     @Test
     public void testNetworkID_AddGet(){
-        String hash = "aa";
+        BigInteger hash = BigInteger.valueOf(123);
         KVNetworkID id = new KVNetworkID("123",1);
         KVMetadata data = new KVMetadata();
         data.addNetworkIDHashPair(hash,id);
@@ -17,12 +19,12 @@ public class KVMetadataTest extends TestCase {
     }
     @Test
     public void testNetworkID_Merge(){
-        String hashA = "aa";
+        BigInteger hashA = BigInteger.valueOf(123);
         KVNetworkID idA = new KVNetworkID("123",1);
         KVMetadata dataA = new KVMetadata();
         dataA.addNetworkIDHashPair(hashA,idA);
 
-        String hashB = "bb";
+        BigInteger hashB = BigInteger.valueOf(456);
         KVNetworkID idB = new KVNetworkID("567",2);
         KVMetadata dataB = new KVMetadata();
         dataB.addNetworkIDHashPair(hashB,idB);
@@ -32,12 +34,12 @@ public class KVMetadataTest extends TestCase {
     }
     @Test
     public void testNetworkID_Merge_Same(){
-        String hashA = "aa";
+        BigInteger hashA = BigInteger.valueOf(123);
         KVNetworkID idA = new KVNetworkID("123",1);
         KVMetadata dataA = new KVMetadata();
         dataA.addNetworkIDHashPair(hashA,idA);
 
-        String hashB = "aa";
+        BigInteger hashB = BigInteger.valueOf(123);
         KVNetworkID idB = new KVNetworkID("123",1);
         KVMetadata dataB = new KVMetadata();
         dataB.addNetworkIDHashPair(hashB,idB);
@@ -48,7 +50,7 @@ public class KVMetadataTest extends TestCase {
 
     @Test
     public void testNetworkID_toKVJSONMessage(){
-        String hashA = "aa";
+        BigInteger hashA = BigInteger.valueOf(123);
         KVNetworkID idA = new KVNetworkID("123",1);
         KVMetadata dataA = new KVMetadata();
         dataA.addNetworkIDHashPair(hashA,idA);

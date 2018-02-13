@@ -4,13 +4,14 @@ import common.KVNetworkID;
 import common.messages.KVJSONMessage;
 import org.json.JSONObject;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 public class KVMetadata {
-    private HashMap<String,KVNetworkID> data;
+    private HashMap<BigInteger,KVNetworkID> data;
     private static final String KVMETADATA_TAG = "META_DATA";
     private static final String KVMETADATA_VALUE = "META_DATA_VALUE";
     public KVMetadata(){
@@ -30,7 +31,7 @@ public class KVMetadata {
                     String networkIDstring = map.getString(hash);
                     KVNetworkID newID = KVNetworkID.fromString(networkIDstring);
                     if(newID!=null){
-                        data.addNetworkIDHashPair(hash,newID);
+                        data.addNetworkIDHashPair(new BigInteger(hash),newID);
                     }
                     else{
                         break;
@@ -45,24 +46,27 @@ public class KVMetadata {
         JSONObject object = new JSONObject();
         // Create map
         Map<String,String> outputmap = new HashMap<>();
-        for(String key : data.keySet()){
-            outputmap.put(key,data.get(key).toString());
+        for(BigInteger key : data.keySet()){
+            outputmap.put(key.toString(),data.get(key).toString());
         }
         object.put(KVMETADATA_VALUE,outputmap);
         msg.setValue(object.toString());
         msg.setKey(KVMETADATA_TAG);
         return msg;
     }
-    public void addNetworkIDHashPair(String hash, KVNetworkID id){
+    public void addNetworkIDHashPair(BigInteger hash, KVNetworkID id){
         data.put(hash,id);
     }
-    public KVNetworkID getNetworkIDFromHash(String hash){
+    public KVNetworkID getNetworkIDFromHash(BigInteger hash){
         return data.get(hash);
     }
-    public Set<String> getKeys(){
+    boolean hasNetworkIDHash(BigInteger hash){
+        return data.containsKey(hash);
+    }
+    public Set<BigInteger> getKeys(){
         return data.keySet();
     }
-    private HashMap<String,KVNetworkID> getData(){
+    private HashMap<BigInteger,KVNetworkID> getData(){
         return data;
     }
     public boolean merge(KVMetadata data){
