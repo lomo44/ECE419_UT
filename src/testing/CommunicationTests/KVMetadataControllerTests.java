@@ -1,7 +1,8 @@
 package testing.CommunicationTests;
 
-import common.KVNetworkNode;
+import common.networknode.KVNetworkNode;
 import common.metadata.KVMetadataController;
+import common.networknode.KVStorageNode;
 import junit.framework.TestCase;
 import org.junit.Test;
 
@@ -28,14 +29,14 @@ public class KVMetadataControllerTests extends TestCase{
 
     @Test
     public void testKVMetadataController_Map() throws Exception {
-        controller.addNetworkID(new KVNetworkNode("010",001));
+        controller.addStorageNode(new KVStorageNode("010",001));
         //37A33999994C8F95880620D477BC313E
-        controller.addNetworkID(new KVNetworkNode("78999",567));
+        controller.addStorageNode(new KVStorageNode("78999",567));
         //869622A839324EBD797811C72339A471
 
         String item = "test_entry_a_as"; //3FB18B08D13FB0DDF99DE01920A11EBD
         BigInteger hash = controller.hash(item);
-        KVNetworkNode id = controller.getNetowrkIDMap(hash);
+        KVNetworkNode id = controller.getResponsibleStorageNode(hash);
         assertEquals("010",id.getHostName());
         assertEquals(001,id.getPortNumber());
     }

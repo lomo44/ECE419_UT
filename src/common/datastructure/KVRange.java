@@ -12,12 +12,6 @@ public class KVRange<T extends Comparable> {
         this.lowerInclusive = lowerInclusive;
         this.upperInclusive = upperInclusive;
     }
-    public T getLowerBound(){
-        return lowerBound;
-    }
-    public T getUpperBound() {
-        return upperBound;
-    }
     public boolean inRange(T in){
         boolean inLowerBound;
         if(lowerInclusive) {

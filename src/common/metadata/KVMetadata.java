@@ -1,22 +1,24 @@
 package common.metadata;
 
-import common.KVNetworkNode;
+import common.networknode.KVNetworkNode;
 import common.messages.KVJSONMessage;
+import common.networknode.KVStorageNode;
+import database.storage.KVStorage;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
 import java.util.*;
 
 public class KVMetadata {
-    private HashMap<BigInteger, KVNetworkNode> data;
+    private HashMap<BigInteger, KVStorageNode> storageNodes;
     private static final String KVMETADATA_TAG = "19a67338-3e44-4a07-a94c-dcde45767519";
-    private static final String KVMETADATA_VALUE = "dc67a029-52e1-465d-9128-7ec8d8e660f9";
+    private static final String KVMETADATA_STORAGE_NODE = "dc67a029-52e1-465d-9128-7ec8d8e660f9";
 
     /**
      * Create new KVMetadata object
      */
     public KVMetadata(){
-        data = new HashMap<>();
+        storageNodes = new HashMap<>();
     }
 
     /**
@@ -31,15 +33,15 @@ public class KVMetadata {
             // Proper metadata, extract the value file;
             String value = msg.getValue();
             JSONObject object = new JSONObject(value);
-            if(object.has(KVMETADATA_VALUE)){
-                JSONObject map = object.getJSONObject(KVMETADATA_VALUE);
+            if(object.has(KVMETADATA_STORAGE_NODE)){
+                JSONObject map = object.getJSONObject(KVMETADATA_STORAGE_NODE);
                 Iterator<String> itor = map.keys();
                 while(itor.hasNext()){
                     String hash = itor.next();
                     String networkIDstring = map.getString(hash);
-                    KVNetworkNode newID = KVNetworkNode.fromString(networkIDstring);
+                    KVStorageNode newID = KVStorageNode.fromString(networkIDstring);
                     if(newID!=null){
-                        data.addNetworkIDHashPair(new BigInteger(hash),newID);
+                        data.addStorageNodeHashPair(new BigInteger(hash),newID);
                     }
                     else{
                         return null;
@@ -61,10 +63,10 @@ public class KVMetadata {
         JSONObject object = new JSONObject();
         // Create map
         Map<String,String> outputmap = new HashMap<>();
-        for(BigInteger key : data.keySet()){
-            outputmap.put(key.toString(),data.get(key).toString());
+        for(BigInteger key : storageNodes.keySet()){
+            outputmap.put(key.toString(), storageNodes.get(key).toString());
         }
-        object.put(KVMETADATA_VALUE,outputmap);
+        object.put(KVMETADATA_STORAGE_NODE,outputmap);
         msg.setValue(object.toString());
         msg.setKey(KVMETADATA_TAG);
         return msg;
@@ -75,8 +77,8 @@ public class KVMetadata {
      * @param hash Hash for the KVNetworkNode
      * @param id KVNetworkNode instance
      */
-    public void addNetworkIDHashPair(BigInteger hash, KVNetworkNode id){
-        data.put(hash,id);
+    public void addStorageNodeHashPair(BigInteger hash, KVStorageNode id){
+        storageNodes.put(hash,id);
     }
 
     /**
@@ -84,8 +86,8 @@ public class KVMetadata {
      * @param hash hash value
      * @return KVNetworkNode instance if found, null if not found
      */
-    public KVNetworkNode getNetworkIDFromHash(BigInteger hash){
-        return data.get(hash);
+    public KVStorageNode getStorageNodeFromHash(BigInteger hash){
+        return storageNodes.get(hash);
     }
 
     /**
@@ -93,24 +95,24 @@ public class KVMetadata {
      * @param hash Hash value
      * @return true if a KVNetworkNode corresponds to this hash, false if not.
      */
-    boolean hasNetworkIDHash(BigInteger hash){
-        return data.containsKey(hash);
+    boolean hasStorageNodeByHash(BigInteger hash){
+        return storageNodes.containsKey(hash);
     }
 
     /**
      * Get all of the network id hashes
      * @return
      */
-    public Set<BigInteger> getNetworkIDHashes(){
-        return data.keySet();
+    public Set<BigInteger> getStorageNodeHashes(){
+        return storageNodes.keySet();
     }
 
     /**
      * Return KVNetworkNode mapping
      * @return KVNetworkNode hash
      */
-    private HashMap<BigInteger, KVNetworkNode> getKVNetworkIDMap(){
-        return data;
+    private HashMap<BigInteger, KVStorageNode> getStorageNodeMap(){
+        return storageNodes;
     }
 
     /**
@@ -119,8 +121,8 @@ public class KVMetadata {
      * @return true if current one is different after merged. false if not.
      */
     public boolean merge(KVMetadata data){
-        boolean isequal = this.data.equals(data.getKVNetworkIDMap());
-        this.data.putAll(data.getKVNetworkIDMap());
+        boolean isequal = this.storageNodes.equals(data.getStorageNodeMap());
+        this.storageNodes.putAll(data.getStorageNodeMap());
         return !isequal;
     }
 
@@ -132,7 +134,7 @@ public class KVMetadata {
     @Override
     public boolean equals(Object o) {
         KVMetadata in = (KVMetadata) o;
-        boolean ret = this.data.equals(in.getKVNetworkIDMap());
+        boolean ret = this.storageNodes.equals(in.getStorageNodeMap());
         return ret;
     }
 }

@@ -1,14 +1,13 @@
-package common;
+package common.networknode;
 
 import common.datastructure.Pair;
 
-import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class KVNetworkNode {
     private Pair<String, Integer> id = new Pair<>("",0);
-    private static final Pattern re_pattern = Pattern.compile("(.*) (\\d*)");
+    protected static final Pattern re_pattern = Pattern.compile("(.*) (\\d*)");
 
     /**
      * Create a network id from hostname and port number
