@@ -1,7 +1,8 @@
 package testing.ClientTests;
 
 import app_kvClient.CommandPatterns.*;
-import app_kvClient.Commands.KVCommand;
+import common.command.KVCommand;
+import common.command.KVCommandPattern;
 import junit.framework.TestCase;
 import org.junit.Test;
 

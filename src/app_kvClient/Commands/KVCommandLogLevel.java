@@ -1,10 +1,11 @@
 package app_kvClient.Commands;
 
-import app_kvClient.CommandPatterns.KVCommandPattern;
+import common.command.KVCommand;
+import common.command.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.messages.KVJSONMessage;
 
-public class KVCommandLogLevel extends KVCommand {
+public class KVCommandLogLevel extends KVCommand<KVClient> {
     public KVCommandLogLevel() {
         super(KVCommandPattern.KVCommandType.LOG_LEVEL);
     }

@@ -1,12 +1,13 @@
 package app_kvClient.Commands;
 
-import app_kvClient.CommandPatterns.KVCommandPattern;
+import common.command.KVCommand;
+import common.command.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 import client.KVStore;
 
-public class KVCommandEcho extends KVCommand {
+public class KVCommandEcho extends KVCommand<KVClient> {
     public KVCommandEcho() {
         super(KVCommandPattern.KVCommandType.ECHO);
     }

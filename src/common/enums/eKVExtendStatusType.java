@@ -18,6 +18,10 @@ public enum eKVExtendStatusType {
     DISCONNECT_SUCCESS(13),
     DISCONNECT_FAIL(14),
     NO_RESPONSE(15),
+    SERVER_STOPPED(16),         /* Server is stopped, no requests are processed */
+    SERVER_WRITE_LOCK(17),      /* Server locked for out, only get possible */
+    SERVER_NOT_RESPONSIBLE(18),  /* Request not successful, server not responsible for key */
+    METADATA_UPDATE(19),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -60,6 +64,10 @@ public enum eKVExtendStatusType {
             case 13: return DISCONNECT_SUCCESS;
             case 14: return DISCONNECT_FAIL;
             case 15: return NO_RESPONSE;
+            case 16: return SERVER_STOPPED;
+            case 17: return SERVER_WRITE_LOCK;
+            case 18: return SERVER_NOT_RESPONSIBLE;
+            case 19: return METADATA_UPDATE;
         }
         return null;
     }
@@ -80,6 +88,9 @@ public enum eKVExtendStatusType {
             case 7: return KVMessage.StatusType.PUT_ERROR;
             case 8: return KVMessage.StatusType.DELETE_SUCCESS;
             case 9: return KVMessage.StatusType.DELETE_ERROR;
+            case 16: return KVMessage.StatusType.SERVER_STOPPED;
+            case 17: return KVMessage.StatusType.SERVER_WRITE_LOCK;
+            case 18: return KVMessage.StatusType.SERVER_NOT_RESPONSIBLE;
         }
         return null;
     }
@@ -100,6 +111,9 @@ public enum eKVExtendStatusType {
             case PUT_ERROR: return eKVExtendStatusType.PUT_ERROR;
             case DELETE_SUCCESS: return eKVExtendStatusType.DELETE_SUCCESS;
             case DELETE_ERROR: return eKVExtendStatusType.DELETE_ERROR;
+            case SERVER_STOPPED: return eKVExtendStatusType.SERVER_STOPPED;
+            case SERVER_WRITE_LOCK: return eKVExtendStatusType.SERVER_WRITE_LOCK;
+            case SERVER_NOT_RESPONSIBLE: return eKVExtendStatusType.SERVER_NOT_RESPONSIBLE;
         }
         return  null;
     }

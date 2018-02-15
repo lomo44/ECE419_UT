@@ -1,6 +1,6 @@
 package utility;
 
-import app_kvClient.Commands.KVCommand;
+import common.command.KVCommand;
 import app_kvClient.Commands.KVCommandGet;
 import app_kvClient.Commands.KVCommandPut;
 

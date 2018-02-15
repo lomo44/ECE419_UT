@@ -1,7 +1,7 @@
 package utility;
 
 
-import app_kvClient.Commands.KVCommand;
+import common.command.KVCommand;
 
 /**
  * Traffic generator class for evaluate performance

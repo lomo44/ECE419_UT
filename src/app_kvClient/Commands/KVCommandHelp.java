@@ -1,11 +1,11 @@
 package app_kvClient.Commands;
 
-import app_kvClient.CommandPatterns.KVCommandPattern;
+import common.command.KVCommand;
+import common.command.KVCommandPattern;
 import app_kvClient.KVClient;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 
-public class KVCommandHelp extends KVCommand {
+public class KVCommandHelp extends KVCommand<KVClient> {
     public KVCommandHelp() {
         super(KVCommandPattern.KVCommandType.HELP);
     }

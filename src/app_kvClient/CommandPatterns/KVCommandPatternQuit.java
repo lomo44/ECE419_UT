@@ -1,11 +1,12 @@
 package app_kvClient.CommandPatterns;
 
-import app_kvClient.Commands.KVCommand;
+import common.command.KVCommand;
 import app_kvClient.Commands.KVCommandQuit;
+import common.command.KVCommandPattern;
 
 import java.util.regex.Pattern;
 
-public class KVCommandPatternQuit extends KVCommandPattern{
+public class KVCommandPatternQuit extends KVCommandPattern {
     @Override
     public KVCommand generateCommand(String input) {
         return new KVCommandQuit();

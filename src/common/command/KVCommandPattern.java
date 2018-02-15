@@ -1,6 +1,4 @@
-package app_kvClient.CommandPatterns;
-
-import app_kvClient.Commands.KVCommand;
+package common.command;
 
 import java.util.regex.Pattern;
 

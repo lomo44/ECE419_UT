@@ -1,7 +1,7 @@
 package testing.PerformanceTest.PerformanceEvaluation_PutGet;
 
-import app_kvClient.CommandPatterns.KVCommandPattern;
-import app_kvClient.Commands.KVCommand;
+import common.command.KVCommandPattern;
+import common.command.KVCommand;
 import app_kvClient.Commands.KVCommandGet;
 import app_kvClient.Commands.KVCommandPut;
 import app_kvClient.KVClient;

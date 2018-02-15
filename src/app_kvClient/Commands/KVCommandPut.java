@@ -1,12 +1,13 @@
 package app_kvClient.Commands;
 
-import app_kvClient.CommandPatterns.KVCommandPattern.KVCommandType;
+import common.command.KVCommand;
+import common.command.KVCommandPattern.KVCommandType;
 import app_kvClient.KVClient;
 import client.KVStore;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 
-public class KVCommandPut extends KVCommand {
+public class KVCommandPut extends KVCommand<KVClient> {
     public KVCommandPut() {
         super(KVCommandType.PUT);
     }

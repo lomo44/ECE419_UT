@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
-import app_kvClient.Commands.KVCommand;
+import common.command.KVCommand;
+import common.command.KVCommandParser;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 import logger.KVOut;
@@ -23,7 +24,7 @@ public class KVClient implements IKVClient,Runnable {
     private static final String PROMPT = "Client> ";
     private KVStore client = null;
     private boolean stop = false;
-    private KVCommandParser cmdParser = new KVCommandParser();
+    private KVCommandParser cmdParser = new KVClientCommandLineParser();
     private Scanner keyboard;
     private KVClientAttribute attribute = new KVClientAttribute();
     private static KVOut kv_out = new KVOut("client");
@@ -161,7 +162,7 @@ public class KVClient implements IKVClient,Runnable {
         kv_out.println_debug("Client started.");
         while (!stop) {
             System.out.print(PROMPT);
-            KVCommand cmdInstance = cmdParser.getParsedCommand(keyboard.nextLine());
+            KVCommand<KVClient> cmdInstance = cmdParser.getParsedCommand(keyboard.nextLine());
             if (cmdInstance != null) {
                 // Command line correctly parsed
                 cmdInstance.handleResponse(executeCommand(cmdInstance));
