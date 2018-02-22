@@ -55,13 +55,21 @@ public class KVMetadataController {
      * @return KVStorageNode if there is a responsible node, null if not.
      */
     public KVStorageNode getResponsibleStorageNode(BigInteger hash){
-        for(BigInteger key: metaData.getStorageNodeHashes()){
+        for(BigInteger key: keys){
             KVStorageNode node = metaData.getStorageNodeFromHash(key);
             if(node.getHashRange().inRange(hash)){
                 return node;
             }
         }
         return null;
+    }
+
+    /**
+     * Get keys
+     * @return sorted set of hashed keys
+     */
+    public SortedSet<BigInteger> getHashes() {
+        return this.keys;
     }
 
     /**
@@ -76,6 +84,15 @@ public class KVMetadataController {
             return null;
         }
     }
+
+    /**
+     * Get storage node from hash
+     * @return KVStorageNode object
+     */
+    public KVStorageNode getStorageNodeFromHash(BigInteger hash) {
+        return metaData.getStorageNodeFromHash(hash);
+    }
+    
 
     /**
      * Add a new NetworkNode into the location
