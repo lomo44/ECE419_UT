@@ -65,6 +65,14 @@ public class KVJSONMessage implements KVMessage {
 		newObject.put(SEND_TIME, sendTime);
 		return newObject.toString().getBytes();
 	}
+	
+	public byte[] MetaDatatoBytes() {
+		JSONObject newObject = new JSONObject();
+        Map<String, String> newmap = new HashMap<String, String>();
+        newmap.put(key,Value);
+		newObject.put(KEY_PAIR_NAME,newmap);
+		return newObject.toString().getBytes();
+	}
 
     /**
      * De-serialize the incoming byte array
