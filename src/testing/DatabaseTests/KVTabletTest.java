@@ -1,6 +1,5 @@
 package testing.DatabaseTests;
 
-import database.cache.KVLFUCache;
 import database.storage.KVTablet;
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -19,12 +18,12 @@ public class KVTabletTest extends TestCase{
     @Override
     public void tearDown() throws  Exception{
         if((tablet!=null)){
-            tablet.remove();
+            tablet.clear();
         }
     }
 
     @Test
-    public void testInsertAndGet(){
+    public void testInsertAndGet() throws IOException {
         tablet.putToStorage("a","b");
         assertEquals("b",tablet.getFromStorage("a"));
     }
@@ -32,7 +31,6 @@ public class KVTabletTest extends TestCase{
     @Test
     public void testSerialization() throws IOException, ClassNotFoundException {
         tablet.putToStorage("a","b");
-        tablet.store();
         UUID id = tablet.getID();
         tablet = null;
         tablet = KVTablet.load(tablets_path,id);

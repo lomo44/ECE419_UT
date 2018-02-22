@@ -1,14 +1,14 @@
 package testing;
 
 import common.metadata.KVMetadata;
+import database.storage.KVTablet;
+import database.storage.KVTabletStorage;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import testing.ClientTests.KVCommandPatternTest;
 import testing.CommonModuleTests.KVRangeTest;
 import testing.CommunicationTests.*;
-import testing.DatabaseTests.KVFIFOCacheTest;
-import testing.DatabaseTests.KVLRUCacheTest;
-import testing.DatabaseTests.KVLFUCacheTest;
+import testing.DatabaseTests.*;
 import testing.IntegrationTests.*;
 import testing.ServerTests.KVServerTest;
 import testing.PerformanceTest.PerformanceEvaluation_PutGet.*;
@@ -21,7 +21,6 @@ public class AllTests {
 		clientSuite.addTestSuite(InteractionTest.class);
 		clientSuite.addTestSuite(AdditionalTest.class);
 		clientSuite.addTestSuite(KVJSONMessageTest.class);
-		//clientSuite.addTestSuite(KVServerTest.class);
 		clientSuite.addTestSuite(FunctionalityLRUServerTest.class);
 		clientSuite.addTestSuite(FunctionalityFIFOServerTest.class);
 		clientSuite.addTestSuite(FunctionalityLFUServerTest.class);
@@ -36,15 +35,8 @@ public class AllTests {
 		clientSuite.addTestSuite(KVMetadataControllerTests.class);
 		clientSuite.addTestSuite(KVMetadataTest.class);
 		clientSuite.addTestSuite(KVRangeTest.class);
-		// clientSuite.addTestSuite(PutGet_FIFO_2080.class);
-		// clientSuite.addTestSuite(PutGet_FIFO_5050.class);
-		// clientSuite.addTestSuite(PutGet_FIFO_8020.class);
-		// clientSuite.addTestSuite(PutGet_LRU_2080.class);
-		// clientSuite.addTestSuite(PutGet_LRU_5050.class);
-		// clientSuite.addTestSuite(PutGet_LRU_8020.class);
-		// clientSuite.addTestSuite(PutGet_LFU_2080.class);
-		// clientSuite.addTestSuite(PutGet_LFU_5050.class);
-		// clientSuite.addTestSuite(PutGet_LFU_8020.class);
+		clientSuite.addTestSuite(KVTabletTest.class);
+		clientSuite.addTestSuite(KVTabletStorageTest.class);
 		return clientSuite;
 	}
 	
