@@ -10,7 +10,7 @@ import java.math.BigInteger;
 import java.util.*;
 
 public class KVMetadata {
-    private HashMap<BigInteger, KVStorageNode> storageNodes;
+    protected HashMap<BigInteger, KVStorageNode> storageNodes;
     private static final String KVMETADATA_TAG = "19a67338-3e44-4a07-a94c-dcde45767519";
     private static final String KVMETADATA_STORAGE_NODE = "dc67a029-52e1-465d-9128-7ec8d8e660f9";
 
