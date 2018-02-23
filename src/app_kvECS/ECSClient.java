@@ -2,23 +2,39 @@ package app_kvECS;
 
 import common.zookeeper.*;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.log4j.Level;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import ecs.IECSNode;
 import logger.KVOut;
 
+/*
+ * mode				0:PERSISTENT
+ * 				    1:EPHEMERAL
+ * 					2:PERSISTENT_SEQUENTIAL
+ * 					3.EPHEMERAL_SEQUENTIAL
+ */
+
+
 public class ECSClient implements IECSClient {
     
-	private static Map<String,String[]> config;
     private static KVOut kv_out = new KVOut("ECS");
-    private ZKWatcher zkClient;
-
+    private ZKadmin zkClient;
+    private Collection<String> FutureActiveServerSnapShot;
 	public ECSClient(String configFile){
 		try {
-			zkClient= new ZKWatcher("localhost:2181",kv_out,importConfig(configFile));
+			zkClient= new ZKadmin("localhost:2181",kv_out,importConfig(configFile));
 		} catch (IOException e) {
 			System.out.print("Error while importing config");
 			e.printStackTrace();
@@ -62,8 +78,24 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean awaitNodes(int count, int timeout) throws Exception {
-        // TODO
-        return false;
+	    	ExecutorService await = Executors.newSingleThreadExecutor();
+	        Callable<Boolean> checkawait = new Callable<Boolean>() {
+	            @Override
+	            public Boolean call() {
+	             	boolean result=false;
+	            		while(FutureActiveServerSnapShot.containsAll(zkClient.getActiveServers())) {
+						List<String> activeServer =new ArrayList<String>(zkClient.getActiveServers());
+						Collections.sort(activeServer);
+						if (FutureActiveServerSnapShot.equals(activeServer)) {
+							result=true;
+							break;
+							}
+	            		}
+	    	            return result;
+	            }
+	        };
+	        Future<Boolean> result = await.submit(checkawait);
+	        return result.get(timeout, TimeUnit.SECONDS);
     }
 
     @Override
@@ -110,9 +142,16 @@ public class ECSClient implements IECSClient {
     public static void main(String[] args) {
         kv_out.enableLog("logs/ECS.log", Level.ALL);
         ECSClient admin = new ECSClient(args[0]);
-    		ZKWatcher zkClient = admin.zkClient;
+    		ZKadmin zkClient = admin.zkClient;
     		zkClient.connect();
     		zkClient.setupServer();
+    		zkClient.setupNodes(3);
+    		try {
+				Thread.sleep(600000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
     		zkClient.disconnect();
     }
 }
