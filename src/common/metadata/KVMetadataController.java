@@ -8,7 +8,9 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -48,7 +50,10 @@ public class KVMetadataController {
         }
         return changed;
     }
-
+    
+    public KVMetadata getMetaData() {
+    		return metaData;
+    }
     /**
      * Given a hash, return its responsible NetworkNode
      * @param hash input hash
@@ -92,6 +97,22 @@ public class KVMetadataController {
             this.keys.add(hash);
             generateHashRange();
         }
+    }
+    
+    public void createMetaData(List<KVStorageNode> nodes) {
+    		Iterator<KVStorageNode> itor = nodes.iterator();
+    			metaData = new KVMetadata();
+    			this.keys = new TreeSet<>();
+    		while(itor.hasNext()) {
+    			KVStorageNode node=itor.next();
+    			String idString = node.toString();
+    	        BigInteger hash = hash(idString);
+    			if(!metaData.hasStorageNodeByHash(hash)){
+    	            this.metaData.addStorageNodeHashPair(hash,node);
+    	            this.keys.add(hash);    		
+    			}
+    		}
+		generateHashRange();
     }
 
     /**

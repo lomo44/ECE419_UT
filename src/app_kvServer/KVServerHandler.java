@@ -34,6 +34,8 @@ public class KVServerHandler implements Runnable {
                 serverSocket.setSoTimeout(this.listenerTimerout);
             }
             kv_out.println_info("Server listening on port "+port);
+            kv_out.println_debug("Server IP:"+serverSocket.getLocalSocketAddress());
+
         }
         catch (SocketException e){
             // e.printStackTrace();
