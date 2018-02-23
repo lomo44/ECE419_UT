@@ -4,9 +4,9 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
 public class ZKmodifyData {
-	private ZKWatcher client;
-	
-	public ZKmodifyData(ZKWatcher ZK) {
+	private ZKadmin client;
+
+	public ZKmodifyData(ZKadmin ZK) {
 		client=ZK;
 	}
 	

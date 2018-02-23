@@ -17,11 +17,17 @@ public class ZKcreateNode implements Runnable{
 	private ZooKeeper zk;
 	boolean finish;
 	
+	//thread handler
 	public ZKcreateNode(String Path, int Mode, String Content, ZooKeeper ZK) {
 		path=Path;
 		content=Content;
 		zk=ZK;
 		mode = flagtoCreateMode(Mode);
+	}
+	
+	//normal handler
+	public ZKcreateNode(ZooKeeper ZK) {
+		zk=ZK;
 	}
 	
 	private CreateMode flagtoCreateMode(int flag) {
@@ -35,53 +41,72 @@ public class ZKcreateNode implements Runnable{
 		return mode;
 	}
 
-	private StringCallback createNodeCallBack = new StringCallback() {
+	private StringCallback createNodeThreadCallBack = new StringCallback() {
 		public void processResult(int rc, String path, Object ctx, String name) {
 			switch (Code.get(rc)) {
 	        case CONNECTIONLOSS:
-	        		if (ctx!=null) createNodeThread();
-	        		else createNodeAsync();
+	        		 createNodeThread();
 	            break;
 	        case OK:
 	        		System.out.println("Znode " + path + " created");
-	        		if (ctx!=null) {
-	        			synchronized(ctx) { 
-	        				ctx.notifyAll(); 
-	        			}
-	        		}
+	        		synchronized(ctx) { ctx.notifyAll(); }
 	            break;
 	        case NODEEXISTS:
 	        		System.out.println("Znode " + path + " already exist");
-	        		if (ctx!=null) {
-	        			synchronized(ctx) { 
-	        				ctx.notifyAll(); 
-	        			}
-	        		}	        		break;
+        			synchronized(ctx) { ctx.notifyAll(); }
+        			break;
 	        default:
 	        		System.out.println("Error while creating Znode " + path);
-	        		if (ctx!=null) {
-	        			synchronized(ctx) { 
-	        				ctx.notifyAll(); 
-	        			}
-	        		}	    
+        			synchronized(ctx) { ctx.notifyAll(); }    
 	        	}
 		}
 	};
-	
-	public void createNodeAsync() {
-		zk.create(path,content.getBytes(),
-				ZooDefs.Ids.OPEN_ACL_UNSAFE,
-				mode,
-				createNodeCallBack,
-				null);	
-	}
 	
 	private void createNodeThread() {
 		zk.create(path,content.getBytes(),
 				ZooDefs.Ids.OPEN_ACL_UNSAFE,
 				mode,
-				createNodeCallBack,
-				this);	
+				createNodeThreadCallBack,
+				null);	
+	}
+	
+	@Override
+	public void run() {
+		createNodeThread();
+		synchronized(this) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void createNodeAsync(String path, String content, int mode) {
+		 StringCallback createNodeAsyncCallBack = new StringCallback() {
+				public void processResult(int rc, String path, Object ctx, String name) {
+					switch (Code.get(rc)) {
+			        case CONNECTIONLOSS:
+			        		createNodeAsync(path, content, mode);
+			            break;
+			        case OK:
+			        		System.out.println("Znode " + path + " created");
+			            break;
+			        case NODEEXISTS:
+			        		System.out.println("Znode " + path + " already exist");
+			        		break;
+			        default:
+			        		System.out.println("Error while creating Znode " + path);    
+			        	}
+				}
+		 };
+				
+		zk.create(path,content.getBytes(),
+				ZooDefs.Ids.OPEN_ACL_UNSAFE,
+				flagtoCreateMode(mode),
+				createNodeAsyncCallBack,
+				null);	
 	}
 	
 	public void createNodeSync(String path, String content, int mode) {
@@ -108,17 +133,4 @@ public class ZKcreateNode implements Runnable{
 		}
 	}
 	
-
-	@Override
-	public void run() {
-		createNodeThread();
-		synchronized(this) {
-			try {
-				this.wait();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
 }

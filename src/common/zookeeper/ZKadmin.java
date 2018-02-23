@@ -23,58 +23,24 @@ import common.networknode.KVStorageNode;
 
 
 
-public class ZKWatcher implements Watcher{
+public class ZKadmin extends ZKInstance {
 
-	
-	protected ZooKeeper zk;
-	private String hostPort;
-	final CountDownLatch connection = new CountDownLatch(1);
-	private KVOut kv_out;
 	protected List<String> ActiveServer = new ArrayList<String>();
 	protected Map<String,String[]> config;
-	protected KVMetadataController Metadatacontroller = new KVMetadataController();
 
-	public ZKWatcher(String hostPort,KVOut logger, Map<String,String[]> configuration) {
-		this.hostPort=hostPort;
-		this.kv_out=logger;
-		this.config=configuration;
+	public ZKadmin(String hostPort,KVOut logger, Map<String,String[]> configuration) {
+		super(hostPort,logger);
+		this.config= configuration;
 	}
 	
-	public void connect() {
-		try {
-			zk = new ZooKeeper(hostPort,15000,this);
-		    connection.await();
-		} catch (IOException | InterruptedException e) {
-			System.out.println("Error occurs when connecting to ZK server");
-			e.printStackTrace();
-		}
+	public List<String> getActiveServers(){
+		return ActiveServer;
 	}
 	
-	public void disconnect() {
-		try {
-			zk.close();
-		} catch (InterruptedException e) {
-			System.out.println("Error occurs when disconnecting ZK server");
-			e.printStackTrace();
-		}
-	}
-	
-	private void executeJob(Runnable R) {
-		Thread T = new Thread(R);
-		T.start();
-	}
-	
-	/*
-	 * mode				0:PERSISTENT
-	 * 				    1:EPHEMERAL
-	 * 					2:PERSISTENT_SEQUENTIAL
-	 * 					3.EPHEMERAL_SEQUENTIAL
-	 */
-	public Thread createNode(String nodename , int mode, String content) {
-		ZKcreateNode handler = new ZKcreateNode(nodename,mode,content,zk);
-		Thread T = new Thread(handler);
-		return T;
-	}
+//	private void executeJob(Runnable R) {
+//		Thread T = new Thread(R);
+//		T.start();
+//	}
 		
 	public List<KVStorageNode> addNodes(int count,List<String> serverstoAdd) {
 		 serverstoAdd.removeAll(ActiveServer);
@@ -97,7 +63,13 @@ public class ZKWatcher implements Watcher{
 								.MetaDatatoBytes();
 	}
 	
-	public void initServerMetaData(String childServerDir, String metaDatadir) {
+	public void setupServer() {
+		ZKmonitorServers handler = new ZKmonitorServers(this);
+		initServerMetaData("/servers","/metadata");
+		handler.monitorServers("/servers");
+	}
+	
+	private void initServerMetaData(String childServerDir, String metaDatadir) {
 		try {
 			List<String> childServers=zk.getChildren(childServerDir,false);
 			System.out.println("Metadata found, active servers #: " + childServers.size());
@@ -120,31 +92,18 @@ public class ZKWatcher implements Watcher{
 		}
 		ZKcreateNode handler = new ZKcreateNode(metaDatadir,0,"",zk);
 		handler.createNodeSync("/metadata","",0);
-
 	}
 	
-	public void setupServer() {
-		ZKmonitorServers handler = new ZKmonitorServers(this);
-		initServerMetaData("/servers","/metadata");
-		handler.monitorServers("/servers");
-	}
-	
-	public void setupNodes(int count) {
+	public List<KVStorageNode> setupNodes(int count) {
 		List<KVStorageNode> nodes = addNodes(count,new ArrayList<String>(config.keySet()));
 		byte[] metadata = genMetadata(nodes);
 		ZKmodifyData ModifyDataHandle = new ZKmodifyData(this);
 		ModifyDataHandle.setDataSync("/metadata", metadata,-1);
 		byte[] output = ModifyDataHandle.getDataSync("/metadata");
 		assert output==metadata;
+		return nodes;
 	}
 	
-	@Override
-	public void process(WatchedEvent event) {
-		System.out.println(event);
-		if (event.getState()==KeeperState.SyncConnected) {
-			connection.countDown();
-		}
-	}
 }
 
 

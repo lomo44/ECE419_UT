@@ -22,12 +22,12 @@ import common.networknode.KVStorageNode;
 
 public class ZKmonitorServers {
 	
-	private ZKWatcher client;
-
-	public ZKmonitorServers(ZKWatcher C) {
+	private ZKadmin client;
+	
+	
+	public ZKmonitorServers(ZKadmin C) {
 		client=C;
 	}
-
 	
 	private ChildrenCallback ServerMonitorCallback = new ChildrenCallback() {
 		public void processResult(int rc, String path, Object ctx,List<String> children) {
@@ -36,7 +36,7 @@ public class ZKmonitorServers {
 	        	monitorServers(path);
 	            break;
 	        case OK:
-	        		client.ActiveServer = children;
+	        		((ZKadmin)ctx).ActiveServer = children;
 	        		System.out.println("Metadata found, active servers:" + client.ActiveServer.size());
 	            break;
 	        case NONODE:
@@ -50,7 +50,7 @@ public class ZKmonitorServers {
 	
 	private Watcher ServerStateMonitor = new Watcher() {
 		public void process(WatchedEvent e) {
-			if(e.getType() == EventType.NodeChildrenChanged) { 	
+			if(e.getType() == EventType.NodeChildrenChanged) {
 				monitorServers(e.getPath());
 			}
 		}
