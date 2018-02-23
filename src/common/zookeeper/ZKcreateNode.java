@@ -83,7 +83,7 @@ public class ZKcreateNode implements Runnable{
 		}
 	}
 	
-	public void createNodeAsync(String path, String content, int mode) {
+	public void createNodeAsync(String path, final String content, final int mode) {
 		 StringCallback createNodeAsyncCallBack = new StringCallback() {
 				public void processResult(int rc, String path, Object ctx, String name) {
 					switch (Code.get(rc)) {
