@@ -72,11 +72,11 @@ public class KVJSONMessage implements KVMessage {
      * @return base class KVMessage
      * @throws IllegalArgumentException If the incoming byte array is not valid
      */
-	public KVMessage fromBytes(byte[] in_Bytes) throws IllegalArgumentException {
+	public KVMessage fromBytes(byte[] in_Bytes,int offset, int length) throws IllegalArgumentException {
         JSONObject keypair;
         JSONObject newObject;
         try{
-            newObject = new JSONObject(new String(in_Bytes));
+            newObject = new JSONObject(new String(in_Bytes, offset,length));
             keypair =  newObject.getJSONObject(KEY_PAIR_NAME);
         }
         catch (JSONException e){
