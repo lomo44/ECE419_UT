@@ -13,12 +13,16 @@ import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import logger.KVOut;
 
+import static java.lang.Math.min;
+
 public class KVCommunicationModule {
     // Communication module for both server and client
     private Socket privateSocket;
     private KVOut kv_out = null;
-    private boolean isInitialized = false;
-    public KVCommunicationModule(Socket in_Socket,String hint) {
+    private int bufferedSize = 512;
+    private byte[] internalBuffer = new byte[2000000];
+
+    public KVCommunicationModule(Socket in_Socket, String hint) {
         privateSocket = in_Socket;
         this.kv_out = new KVOut(hint);
 	}
@@ -40,13 +44,9 @@ public class KVCommunicationModule {
         if(!privateSocket.isClosed()){
             OutputStream outputStream;
             try {
-                outputStream = privateSocket.getOutputStream();
-                DataOutputStream data_out = new DataOutputStream(outputStream);
                 ((KVJSONMessage)in_Message).setSendTime();
                 byte[] out = ((KVJSONMessage)in_Message).toBytes();
-                data_out.write(out.length);
-                data_out.write(out);
-                data_out.flush();
+                bufferedWrite(out);
                 kv_out.println_info("Sent message to "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
             }
             catch (IOException e) {
@@ -63,22 +63,12 @@ public class KVCommunicationModule {
      * @return KVMessage
      * @throws SocketException thrown if socket is closed
      */
-    public KVJSONMessage receiveMessage() throws SocketException, InterruptedException {
+    public KVJSONMessage receiveMessage() throws SocketException{
         if(!privateSocket.isClosed()){
             try {
-                InputStream in_Message = privateSocket.getInputStream();
-                DataInputStream dInputStream = new DataInputStream(in_Message);
                 KVJSONMessage ret = getEmptyMessage();
-                int bytelength = dInputStream.read();
-                if(bytelength >= 0){
-                    byte[] array = new byte[bytelength];
-                    dInputStream.read(array);
-                    ret.fromBytes(array);
-                    kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
-                }
-                else{
-                    throw new InterruptedException();
-                }
+                ret.fromBytes(internalBuffer,0,bufferedRead());
+                kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
                 return ret;
 
             }
@@ -124,5 +114,60 @@ public class KVCommunicationModule {
 	public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
 	    kv_out.changeLogLevel(logLevel);
 	    kv_out.changeOutputLevel(outputlevel);
+    }
+
+    /**
+     * Overwrite the current buffer size for reading and writing the data out
+     * @param bufferedSize new buffer size
+     */
+    public void setBufferedSize(int bufferedSize) {
+        this.bufferedSize = bufferedSize;
+    }
+
+    /**
+     * Helping function to buffered read from the socket
+     * @return output byte array
+     * @throws IOException thrown when there is problem getting the InputStream
+     */
+    private int bufferedRead() throws IOException {
+        InputStream in_Message = privateSocket.getInputStream();
+        DataInputStream dInputStream = new DataInputStream(in_Message);
+        int length = dInputStream.readInt();
+	    int bytesCount = length;
+	    int outputPosition = 0;
+	    int chunksize;
+	    int byteRead;
+	    while (bytesCount > 0){
+            chunksize = min(bytesCount, bufferedSize);
+            byteRead = dInputStream.read(internalBuffer,outputPosition,chunksize);
+            if(byteRead < 0){
+                throw new IOException();
+            }
+            outputPosition+=byteRead;
+            bytesCount-=byteRead;
+        }
+        return length;
+    }
+
+    /**
+     * Heplong function for buffered write to the socket
+     * @param output output buffer
+     * @throws IOException thrown when the there is a problme getting the output stream
+     */
+    private void bufferedWrite(byte[] output) throws IOException {
+        OutputStream outputStream = privateSocket.getOutputStream();
+        DataOutputStream data_out = new DataOutputStream(outputStream);
+        int bytesToBeWritten = output.length;
+        int writePosition = 0;
+        int chunksize;
+        // First write out the length of the buffer
+        data_out.writeInt(output.length);
+        while(bytesToBeWritten > 0){
+            chunksize = min(bytesToBeWritten, bufferedSize);
+            data_out.write(output,writePosition,chunksize);
+            writePosition+=chunksize;
+            bytesToBeWritten-=chunksize;
+        }
+        data_out.flush();
     }
 }

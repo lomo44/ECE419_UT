@@ -19,6 +19,7 @@ public class AllTests {
 		TestSuite clientSuite = new TestSuite("Basic Storage ServerTest-Suite");
 		//clientSuite.addTestSuite(ConnectionTest.class);
 		//clientSuite.addTestSuite(InteractionTest.class);
+		clientSuite.addTestSuite(LargeFileTranmissionTest.class);
 		clientSuite.addTestSuite(AdditionalTest.class);
 		clientSuite.addTestSuite(KVJSONMessageTest.class);
 		clientSuite.addTestSuite(FunctionalityLRUServerTest.class);
