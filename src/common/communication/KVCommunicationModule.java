@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
@@ -18,11 +17,9 @@ public class KVCommunicationModule {
     // Communication module for both server and client
     private Socket privateSocket;
     private KVOut kv_out = null;
-    private int timeout;
     private boolean isInitialized = false;
-    public KVCommunicationModule(Socket in_Socket, int timeout, String hint) {
+    public KVCommunicationModule(Socket in_Socket,String hint) {
         privateSocket = in_Socket;
-        this.timeout = timeout;
         this.kv_out = new KVOut(hint);
 	}
 
@@ -39,10 +36,7 @@ public class KVCommunicationModule {
      * @param in_Message outbound message
      * @throws SocketException will be thrown if socket is closed
      */
-    public void send(KVMessage in_Message) throws SocketException, SocketTimeoutException {
-        if(!isInitialized){
-            initialize();
-        }
+    public void send(KVMessage in_Message) throws SocketException{
         if(!privateSocket.isClosed()){
             OutputStream outputStream;
             try {
@@ -54,9 +48,6 @@ public class KVCommunicationModule {
                 data_out.write(out);
                 data_out.flush();
                 kv_out.println_info("Sent message to "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
-            }
-            catch (SocketTimeoutException e){
-                throw e;
             }
             catch (IOException e) {
                 throw new SocketException();
@@ -72,24 +63,24 @@ public class KVCommunicationModule {
      * @return KVMessage
      * @throws SocketException thrown if socket is closed
      */
-    public KVJSONMessage receiveMessage() throws SocketException, SocketTimeoutException {
-        if(!isInitialized){
-            initialize();
-        }
+    public KVJSONMessage receiveMessage() throws SocketException, InterruptedException {
         if(!privateSocket.isClosed()){
             try {
                 InputStream in_Message = privateSocket.getInputStream();
                 DataInputStream dInputStream = new DataInputStream(in_Message);
                 KVJSONMessage ret = getEmptyMessage();
                 int bytelength = dInputStream.read();
-                byte[] array = new byte[bytelength];
-                dInputStream.read(array);
-                ret.fromBytes(array);
-                kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
+                if(bytelength >= 0){
+                    byte[] array = new byte[bytelength];
+                    dInputStream.read(array);
+                    ret.fromBytes(array);
+                    kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
+                }
+                else{
+                    throw new InterruptedException();
+                }
                 return ret;
-            }
-            catch (SocketTimeoutException e){
-                throw e;
+
             }
             catch (IOException e) {
                 //e.printStackTrace();
@@ -116,16 +107,6 @@ public class KVCommunicationModule {
 	private Socket getSocket() {
 	    return privateSocket;
     }
-
-    /**
-     * Initialize the communication module
-     * @throws SocketException
-     */
-	public void initialize() throws SocketException {
-		if(timeout > 0){
-			this.privateSocket.setSoTimeout(this.timeout);
-		}
-	}
 
     /**
      * Close the communication module

@@ -2,9 +2,6 @@ package client;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.util.HashSet;
-import java.util.Set;
 import java.net.SocketException;
 import java.lang.System;
 
@@ -44,7 +41,7 @@ public class KVStore implements KVCommInterface {
     public void connect() throws Exception {
         kv_out.println_debug("KV Store connect");
         clientSocket = new Socket(serverAddress, serverPort);
-        communicationModule = new KVCommunicationModule(clientSocket,500,"client");
+        communicationModule = new KVCommunicationModule(clientSocket,"client");
         communicationModule.setLogLevel(outputlevel,logLevel);
         setRunning(true);
         setLogLevel(outputlevel,logLevel);
@@ -96,10 +93,9 @@ public class KVStore implements KVCommInterface {
      * @param value the value that is indexed by the given key.
      * @return return message from server
      * @throws SocketException thrown when socket is closed
-     * @throws SocketTimeoutException thrown is read timeout
      */
     @Override
-    public KVMessage put(String key, String value) throws SocketException, SocketTimeoutException {
+    public KVMessage put(String key, String value) throws SocketException, InterruptedException {
         KVJSONMessage newmessage = createEmptyMessage();
         newmessage.setValue(value);
         newmessage.setKey(key);
@@ -114,11 +110,10 @@ public class KVStore implements KVCommInterface {
      * Issues a get command
      * @param key the key that identifies the value.
      * @return return message from server
-     * @throws SocketTimeoutException thrown when socket read timeout
      * @throws SocketException thrown when socket is closed
      */
     @Override
-    public KVMessage get(String key) throws SocketTimeoutException, SocketException {
+    public KVMessage get(String key) throws SocketException, InterruptedException {
         KVJSONMessage newmessage = createEmptyMessage();
         newmessage.setKey(key);
         newmessage.setValue("");
@@ -134,9 +129,8 @@ public class KVStore implements KVCommInterface {
      * @param outboundmsg outbound message that need to send
      * @return respond from server
      * @throws SocketException thrown if socket is closed
-     * @throws SocketTimeoutException thrown is socket is timeout
      */
-    public KVMessage send(KVMessage outboundmsg) throws SocketException, SocketTimeoutException {
+    public KVMessage send(KVMessage outboundmsg) throws SocketException, InterruptedException {
         communicationModule.send(outboundmsg);
         KVJSONMessage response = communicationModule.receiveMessage();
         kv_out.println_debug("ECHO RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");

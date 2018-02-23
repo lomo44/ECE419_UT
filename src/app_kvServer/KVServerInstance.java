@@ -9,7 +9,6 @@ import logger.KVOut;
 
 import java.io.IOException;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.util.regex.Pattern;
 
 import static common.messages.KVMessage.StatusType.*;
@@ -41,14 +40,11 @@ public class KVServerInstance implements Runnable {
                 KVJSONMessage in_msg = communicationModule.receiveMessage();
                 communicationModule.send(handleMessage(in_msg));
             }
-            catch (SocketTimeoutException e){
-                //System.out.println("Received timeout");
-            }
             catch (SocketException e){
                 isRunning = false;
             }
-            catch(Exception e){
-
+            catch(InterruptedException e){
+                isRunning = false;
             }
         }
         kv_out.println_debug("Instance exit");
@@ -71,7 +67,7 @@ public class KVServerInstance implements Runnable {
      * @param in_message inbound message
      * @return KVMessage outbound message
      */
-    public KVMessage handleMessage(KVJSONMessage in_message){
+    public KVMessage handleMessage(KVJSONMessage in_message) throws InterruptedException {
         String out = String.format("Received inbound message, key: %s, value: %s,Operator: %d",
                 in_message.getKey(),in_message.getValue(),in_message.getExtendStatusType().getValue());
         kv_out.println_debug(out);
