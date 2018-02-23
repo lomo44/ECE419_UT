@@ -34,4 +34,11 @@ public class KVRange<T extends Comparable> {
             return inLowerBound || inUpperBound;
         }
     }
+    public String[] convertToString() {
+        if (lowerInclusive) {
+            return new String[]{upperBound.toString(),lowerBound.toString()};
+        } else {
+            return new String[]{lowerBound.toString(),upperBound.toString()};
+        }
+    }
 }

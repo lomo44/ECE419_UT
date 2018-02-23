@@ -13,7 +13,7 @@ public class KVJSONMessage implements KVMessage {
 	private String Value = "";
 	private long sendTime = -1;
 	private StatusType status;
-	private KVMetadata data;
+	private IECSNode ecsNode;
 	private eKVExtendStatusType extendStatusType;
 
 	private static String KEY_PAIR_NAME = "key_pair";
@@ -47,16 +47,12 @@ public class KVJSONMessage implements KVMessage {
 	}
 
 	/**
-	 * Return metadata
-	 * @return KVMetadata
+	 * Return server responsible
+	 * @return ECSNode
 	 */
-	public KVMetadata getMetadata() {
-		return data;
-	}
-
 	@Override
 	public IECSNode getResponsibleServer() {
-		return null;
+		return ecsNode;
 	}
 
 	public eKVExtendStatusType getExtendStatusType(){
