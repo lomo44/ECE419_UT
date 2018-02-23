@@ -2,10 +2,19 @@ package app_kvECS;
 
 import java.util.Map;
 import java.util.Collection;
+import java.util.Scanner;
+
+import common.command.KVCommandParser;
+import common.command.KVCommand;
 
 import ecs.IECSNode;
 
 public class ECSClient implements IECSClient {
+
+    private boolean stop = false;
+    private static final String PROMPT = "ECSClient>";
+    private KVCommandParser cmdParser = new ECSClientCommandLineParser();
+    private Scanner keyboard;
 
     @Override
     public boolean start() {
@@ -65,6 +74,25 @@ public class ECSClient implements IECSClient {
     public IECSNode getNodeByKey(String Key) {
         // TODO
         return null;
+    }
+
+    /**
+     * Run ECSClient
+     */
+    public void run() {
+        while (!stop) {
+            System.out.print(PROMPT);
+            KVCommand<ECSClient> cmdInstance = cmdParser.getParsedCommand(keyboard.nextLine());
+            if (cmdInstance != null) {
+                executeCommand(cmdInstance);
+            } else {
+                printHelp();
+            }
+        }
+    }
+
+    public void executeCommand(KVCommand cmdInstance) {
+        cmdInstance.execute(this);
     }
 
     public static void main(String[] args) {
