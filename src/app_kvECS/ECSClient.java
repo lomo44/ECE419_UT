@@ -72,7 +72,7 @@ public class ECSClient implements IECSClient {
 
     @Override
     public Collection<IECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
-    		
+    		zkClient.setupNodes(count);
         return null;
     }
 
@@ -139,19 +139,49 @@ public class ECSClient implements IECSClient {
         return configInMem;
     }
     
+    private void runServer(String key,String host, 
+    						  String path, String port, 
+    						  String CacheSize,  String replaceStrat) throws IOException, InterruptedException 
+    {
+    		String[] args = new String[] { "ssh", "-i", key, 
+    									  "-n", host, "nohup",
+    									  "java","-jar",path,port,CacheSize,replaceStrat,"</dev/null &>/dev/null &"};
+
+    		System.out.println("start init server...");
+    		Process proc = new ProcessBuilder(args).start();
+        BufferedReader reader =  
+              new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String line = "";
+        while((line = reader.readLine()) != null) {
+            System.out.print(line + "\n");
+        }
+       int exitcode = proc.waitFor();
+       if (exitcode != 0) {
+           throw new IOException("Server init failed " + exitcode);
+       }
+    }   
+    
     public static void main(String[] args) {
         kv_out.enableLog("logs/ECS.log", Level.ALL);
         ECSClient admin = new ECSClient(args[0]);
     		ZKadmin zkClient = admin.zkClient;
     		zkClient.connect();
     		zkClient.setupServer();
-    		zkClient.setupNodes(3);
-    		try {
-				Thread.sleep(600000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//    		try {
+//				admin.runServer("id_rsa",
+//						  "nintengao@192.168.2.10",
+//						  "~/ECE419_UT/m2-server.jar",
+//						  "50000","10","FIFO");
+//			} catch (IOException | InterruptedException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+//    		try {
+//				Thread.sleep(600000);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
     		zkClient.disconnect();
     }
 }
