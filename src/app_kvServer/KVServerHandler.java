@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.util.Vector;
 
 // Incomming connection handler
@@ -21,7 +20,6 @@ public class KVServerHandler implements Runnable {
     private KVServer master;
     private KVOut kv_out = new KVOut("server");
     private boolean isRunning;
-    private int listenerTimerout;
     /**
      * Common thread implementation
      */
@@ -30,9 +28,6 @@ public class KVServerHandler implements Runnable {
         kv_out.println_info("Initialize server.");
         try{
             serverSocket = new ServerSocket(port);
-            if (this.listenerTimerout > 0) {
-                serverSocket.setSoTimeout(this.listenerTimerout);
-            }
             kv_out.println_info("Server listening on port "+port);
         }
         catch (SocketException e){
@@ -55,9 +50,6 @@ public class KVServerHandler implements Runnable {
                     Socket client = serverSocket.accept();
                     initiateServerInstance(client);
                     kv_out.println_info("Server connected to "+client.getInetAddress().getHostName()+" on port "+client.getPort());
-                }
-                catch (SocketTimeoutException e){
-                    //System.out.println("Server timeout");
                 }
                 catch (SocketException e){
                     // Socket close
@@ -89,13 +81,12 @@ public class KVServerHandler implements Runnable {
      * @param port port of the server
      * @param managerServer instance of the management server
      */
-    public KVServerHandler(int port, KVServer managerServer, int listener_timeout){
+    public KVServerHandler(int port, KVServer managerServer){
         this.port = port;
         master = managerServer;
         aliveinstancethreads = new Vector<Thread>();
         aliveInstances = new Vector<KVServerInstance>();
         isRunning = false;
-        this.listenerTimerout = listener_timeout;
     }
 
     /**
@@ -105,7 +96,7 @@ public class KVServerHandler implements Runnable {
      * @return KVCommunication module instance
      */
     public KVCommunicationModule createCommunicationModule(Socket socket){
-        KVCommunicationModule module = new KVCommunicationModule(socket,listenerTimerout,"server");
+        KVCommunicationModule module = new KVCommunicationModule(socket,"server");
         module.setLogLevel(kv_out.getOutputLevel(),kv_out.getLogLevel());
         return module;
     }
@@ -144,9 +135,10 @@ public class KVServerHandler implements Runnable {
      * @throws InterruptedException thrown when threads cannot be joined
      * @throws IOException thrown when buffer cannot be clo
      */
-    public void stop() throws InterruptedException, IOException {
+    public void stop() throws IOException {
         kv_out.println_debug("Try to stop the handler");
         isRunning = false;
+        serverSocket.close();
     }
 
     /**

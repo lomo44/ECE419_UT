@@ -210,7 +210,7 @@ public class KVServer implements IKVServer {
 	 * @return a server handler instances
 	 */
     public KVServerHandler createServerHandler(){
-    	return new KVServerHandler(this.port, this,800);
+    	return new KVServerHandler(this.port, this);
 	}
 
     /**

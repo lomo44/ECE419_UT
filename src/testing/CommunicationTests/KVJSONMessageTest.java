@@ -29,7 +29,7 @@ public class KVJSONMessageTest extends TestCase {
         message.setStatus(KVMessage.StatusType.PUT);
         byte[] bytearray = message.toBytes();
         KVJSONMessage newmessage = new KVJSONMessage();
-        newmessage.fromBytes(bytearray);
+        newmessage.fromBytes(bytearray,0,bytearray.length);
         assertEquals(newmessage.getKey(),"foo");
         assertEquals(newmessage.getValue(),"boo");
     }
