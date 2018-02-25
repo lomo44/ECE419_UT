@@ -10,6 +10,8 @@ import database.storage.KVTabletStorage;
 import database.storage.MMStorage;
 
 import java.io.IOException;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class KVDatabase implements IKVDatabase {
@@ -19,8 +21,9 @@ public class KVDatabase implements IKVDatabase {
 	private long storageSize;
 	private KVCache cache;
 	private KVStorage storage;
+	private ReadWriteLock writeLock = new ReentrantReadWriteLock();
 	
-	public KVDatabase (int sizeofCache,long sizeofStorage,String cacheStrat) throws ClassNotFoundException, IOException {
+	public KVDatabase (int sizeofCache,long sizeofStorage,String cacheStrat){
 		storageSize =sizeofStorage;
 		cacheSize = sizeofCache;
 		cacheStrategy = eKVExtendCacheType.fromString(cacheStrat);
@@ -40,26 +43,37 @@ public class KVDatabase implements IKVDatabase {
 
 
 	@Override
-	public synchronized String getKV(String key) throws Exception {
+	public String getKV(String key) throws Exception {
 		String value= null;
+		lockRead();
 		try {
 			value = cache.getFromCache(key);
 		} catch (Exception e) {
 			try {
 				value=storage.getFromStorage(key);
 				cache.putToCache(key, value);
+				unlockRead();
 				return value;
 			} catch (Exception e1) {
+			    unlockRead();
 				throw e1;
 			}
 		}
+		unlockRead();
 		return value;
 	}
 
 	@Override
-	public synchronized void putKV(String key, String value) throws Exception {
-			cache.putToCache(key, value);
-			storage.putToStorage(key, value);
+	public void putKV(String key, String value) throws Exception {
+        lockRead();
+	    try {
+            cache.putToCache(key, value);
+            storage.putToStorage(key, value);
+        } catch (Exception e) {
+            unlockRead();
+            throw e;
+        }
+        unlockRead();
 	}
 
 
@@ -93,5 +107,20 @@ public class KVDatabase implements IKVDatabase {
 		cache.clearCache();
 		storage.clearStorage();
 	}
+
+	public void lockWrite(){
+	    this.writeLock.writeLock().lock();
+    }
+
+    public void unlockWrite(){
+	    this.writeLock.writeLock().unlock();
+    }
+
+    private void lockRead(){
+	    this.writeLock.readLock().lock();;
+    }
+    private void unlockRead(){
+        this.writeLock.readLock().unlock();;
+    }
 
 }
