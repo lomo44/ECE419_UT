@@ -34,9 +34,10 @@ public class KVTabletStorage implements KVStorage {
      * keys in to a map for future searching
      * @param tabletStoragePath tablet storage path
      */
-    public KVTabletStorage(String tabletStoragePath){
+    public KVTabletStorage(String tabletStoragePath, int maxEntryCounterPerTablet){
         initializeTablets(tabletStoragePath);
         this.tabletStoragePath = tabletStoragePath;
+        this.maxEntryCounterPerTablet = maxEntryCounterPerTablet;
     }
 
     @Override
@@ -52,7 +53,7 @@ public class KVTabletStorage implements KVStorage {
         }
     }
     @Override
-    public synchronized String getFromStorage(String key){
+    public synchronized String getFromStorage(String key) throws Exception {
         UUID id = getResponsibleTabletID(key);
         if(id!=null){
             KVTablet tablet = KVTablet.load(tabletStoragePath,id);
@@ -60,7 +61,7 @@ public class KVTabletStorage implements KVStorage {
                 return tablet.getFromStorage(key);
             }
         }
-        return null;
+        throw new Exception();
     }
     @Override
     public synchronized void putToStorage(String key, String value) throws IOException{

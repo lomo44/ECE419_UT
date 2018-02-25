@@ -6,6 +6,7 @@ import database.cache.KVLFUCache;
 import database.cache.KVCache;
 import database.cache.KVLRUCache;
 import database.storage.KVStorage;
+import database.storage.KVTabletStorage;
 import database.storage.MMStorage;
 
 import java.io.IOException;
@@ -23,7 +24,7 @@ public class KVDatabase implements IKVDatabase {
 		storageSize =sizeofStorage;
 		cacheSize = sizeofCache;
 		cacheStrategy = eKVExtendCacheType.fromString(cacheStrat);
-		storage = new MMStorage(storageSize);
+		storage = new KVTabletStorage("./tmp",1200);
 		switch(cacheStrategy) {
 			case FIFO:
 				cache = new KVFIFOCache(cacheSize);
