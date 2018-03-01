@@ -13,7 +13,7 @@ import java.util.HashMap;
 
 public class KVMigrationModule {
 
-    private HashMap<KVStorageNode,KVCommunicationModule> connectionTable;
+    private HashMap<KVNetworkNode,KVCommunicationModule> connectionTable;
 
     public KVMigrationModule(){
         this.connectionTable = new HashMap<>();
@@ -24,12 +24,13 @@ public class KVMigrationModule {
      */
     public void close(){
         //Iterate through the cocmmunication module and close the connection
-        for (KVStorageNode node: connectionTable.keySet()
+        for (KVNetworkNode node: connectionTable.keySet()
              ) {
             KVCommunicationModule module = connectionTable.get(node);
             try {
                 module.close();
             } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -41,7 +42,7 @@ public class KVMigrationModule {
      * @return server response
      * @throws IOException thrown if the connection between the servers cannot be made
      */
-    public KVJSONMessage migrate(KVStorageNode outputNode, KVMigrationMessage msg) throws IOException {
+    public KVJSONMessage migrate(KVNetworkNode outputNode, KVMigrationMessage msg) throws IOException {
         if(!connectionTable.containsKey(outputNode)){
             // Previous Connection doesn't exist, need to create a new one
             Socket newConnection = outputNode.createSocket();

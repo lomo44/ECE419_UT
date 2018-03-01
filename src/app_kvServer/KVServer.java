@@ -2,6 +2,10 @@ package app_kvServer;
 
 import common.enums.eKVExtendCacheType;
 import common.enums.eKVLogLevel;
+import common.metadata.KVMetadata;
+import common.metadata.KVMetadataController;
+import common.networknode.KVNetworkNode;
+import common.networknode.KVStorageNode;
 import database.KVDatabase;
 import org.apache.log4j.Level;
 import logger.KVOut;
@@ -19,6 +23,9 @@ public class KVServer implements IKVServer {
     private int cacheSize;
 	private eKVExtendCacheType cacheStrategy;
 	private KVDatabase database;
+	private KVStorageNode storageNode;
+
+	private KVMetadataController metadataController = new KVMetadataController();
     /**
      * Start KV Server at given port
      * @param port given port for storage server to operate
@@ -31,11 +38,12 @@ public class KVServer implements IKVServer {
      */
      
     public KVServer(int port, int cacheSize, String strategy) throws IOException, ClassNotFoundException {
+        setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
+        kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
+
         this.port = port;
         serverHandler = createServerHandler();
         handlerThread = new Thread(serverHandler);
-        setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
-        kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
         handlerThread.start();
         this.cacheSize = cacheSize;
         cacheStrategy = eKVExtendCacheType.fromString(strategy);
@@ -251,6 +259,10 @@ public class KVServer implements IKVServer {
         serverHandler.setLogLevel(outputlevel,logLevel);
     }
 
+    public KVNetworkNode getNetworkNode(){
+	    return serverHandler.getNetworkNode();
+    }
+
     @Override
 	public void start() {
 		// TODO
@@ -263,12 +275,12 @@ public class KVServer implements IKVServer {
 
     @Override
     public void lockWrite() {
-		// TODO
+        this.database.lockWrite();
 	}
 
     @Override
     public void unlockWrite() {
-		// TODO
+        this.database.unlockWrite();
 	}
 
     @Override
@@ -276,4 +288,17 @@ public class KVServer implements IKVServer {
 		// TODO
 		return false;
 	}
+
+	private void initialization(){
+	    // create zookeeper node and update metadata
+    }
+
+
+	public boolean isKeyResponsible(String key){
+        return storageNode.isResponsible(metadataController.hash(key));
+    }
+
+    public KVMetadata getCurrentMetadata(){
+	    return metadataController.getCurrentMetaData();
+    }
 }

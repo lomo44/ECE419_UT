@@ -22,6 +22,9 @@ public enum eKVExtendStatusType {
     SERVER_WRITE_LOCK(17),      /* Server locked for out, only get possible */
     SERVER_NOT_RESPONSIBLE(18),  /* Request not successful, server not responsible for key */
     METADATA_UPDATE(19),
+    MIGRATION_COMPLETE(20),
+    MIGRATION_DATA(21),
+    MIGRATION_INCOMPLETE(22),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -68,6 +71,9 @@ public enum eKVExtendStatusType {
             case 17: return SERVER_WRITE_LOCK;
             case 18: return SERVER_NOT_RESPONSIBLE;
             case 19: return METADATA_UPDATE;
+            case 20: return MIGRATION_COMPLETE;
+            case 21: return MIGRATION_DATA;
+            case 22: return MIGRATION_INCOMPLETE;
         }
         return null;
     }

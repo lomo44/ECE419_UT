@@ -1,12 +1,13 @@
 package common.messages;
 
+import common.enums.eKVExtendStatusType;
 import org.json.JSONObject;
 
 import java.util.HashMap;
 
 public class KVMigrationMessage {
-    public final static String KVMIGRATIONMESSAGE_IDENTIFIER = "MigrationMessageHAHA";
-    public final static String KVMIGRATIONMESSAGE_PAYLOAD_ID = "Payload";
+    public final static String KVMIGRATIONMESSAGE_IDENTIFIER = "539a5ed2-a118-40b6-8981-b7e4878ced1b";
+    public final static String KVMIGRATIONMESSAGE_PAYLOAD_ID = "cc1046ba-8949-4f0e-a7f9-ea0597c1de25";
     HashMap<String, String> entries;
     public KVMigrationMessage(){
         entries = new HashMap<>();
@@ -48,6 +49,7 @@ public class KVMigrationMessage {
         JSONObject payload = new JSONObject();
         payload.put(KVMIGRATIONMESSAGE_PAYLOAD_ID,entries);
         ret.setValue(payload.toString());
+        ret.setExtendStatus(eKVExtendStatusType.MIGRATION_DATA);
         return ret;
     }
 
@@ -58,7 +60,7 @@ public class KVMigrationMessage {
      */
     public static KVMigrationMessage fromKVJSONMessage(KVJSONMessage message){
         KVMigrationMessage ret = null;
-        if(message.getKey().matches(KVMIGRATIONMESSAGE_IDENTIFIER)){
+        if(message.getKey().matches(KVMIGRATIONMESSAGE_IDENTIFIER) && message.getExtendStatusType() == eKVExtendStatusType.MIGRATION_DATA){
             ret = new KVMigrationMessage();
             String payloadString = message.getValue();
             JSONObject payload = new JSONObject(payloadString);

@@ -3,6 +3,7 @@ package app_kvServer;
 
 import common.communication.KVCommunicationModule;
 import common.enums.eKVLogLevel;
+import common.networknode.KVNetworkNode;
 import logger.KVOut;
 
 import java.io.IOException;
@@ -107,7 +108,7 @@ public class KVServerHandler implements Runnable {
      * @param master Singleton master server interface
      * @return a new server instance
      */
-    public KVServerInstance createServerInstance(KVCommunicationModule com, IKVServer master){
+    public KVServerInstance createServerInstance(KVCommunicationModule com, KVServer master){
         KVServerInstance newInstance =  new KVServerInstance(com,master);
         newInstance.changeLogLevel(kv_out.getOutputLevel(),kv_out.getLogLevel());
         return newInstance;
@@ -181,5 +182,9 @@ public class KVServerHandler implements Runnable {
              ) {
             instance.changeLogLevel(outputlevel,logLevel);
         }
+    }
+
+    public KVNetworkNode getNetworkNode(){
+        return new KVNetworkNode(serverSocket.getInetAddress().getHostName(),serverSocket.getLocalPort());
     }
 }

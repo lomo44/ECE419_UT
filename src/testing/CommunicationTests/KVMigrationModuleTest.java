@@ -1,19 +1,29 @@
 package testing.CommunicationTests;
 
+import app_kvClient.Commands.KVCommandGet;
+import app_kvClient.Commands.KVCommandPut;
 import app_kvClient.KVClient;
+import app_kvServer.KVMigrationModule;
 import app_kvServer.KVServer;
+import common.messages.KVJSONMessage;
+import common.messages.KVMessage;
+import common.messages.KVMigrationMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
 import utility.KVPutGetGenerator;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Vector;
 
+import static common.enums.eKVExtendStatusType.MIGRATION_COMPLETE;
+
 public class KVMigrationModuleTest extends TestCase {
-    public Vector<KVServer> serverList = new Vector<>();
-    public Vector<KVClient> clientList = new Vector<>();
-    public KVPutGetGenerator generator;
+    private Vector<KVServer> serverList = new Vector<>();
+    private Vector<KVClient> clientList = new Vector<>();
+    private KVPutGetGenerator generator;
+    private KVMigrationModule migrationModule = new KVMigrationModule();
 
     public int numOfClientServerPair = 10;
     public int msgPerServer = 7;
@@ -38,6 +48,7 @@ public class KVMigrationModuleTest extends TestCase {
     protected void tearDown() throws Exception {
         for (KVServer server: serverList
              ) {
+            server.clearStorage();
             server.close();
         }
         for (KVClient client: clientList
@@ -48,8 +59,43 @@ public class KVMigrationModuleTest extends TestCase {
     }
 
     @Test
-    public void testKVMigrationModule_Basic(){
-
-
+    public void testKVMigrationModule_Basic() throws IOException {
+        String tag = "AddressInfo";
+        for (KVServer server: serverList){
+            KVMigrationMessage msg = new KVMigrationMessage();
+            msg.add(tag,server.getNetworkNode().toString());
+            KVJSONMessage ret = migrationModule.migrate(server.getNetworkNode(),msg);
+            assertEquals(MIGRATION_COMPLETE,ret.getExtendStatusType());
+        }
+        KVCommandGet getCommand = new KVCommandGet();
+        getCommand.setKey(tag);
+        for(int i = 0; i < clientList.size();i++){
+            KVMessage getResponse = clientList.elementAt(i).executeCommand(getCommand);
+            assertEquals(serverList.elementAt(i).getNetworkNode().toString(),getResponse.getValue());
+        }
+    }
+    @Test
+    public void testKVMigrationModule_MultiThreaded(){
+        String tag = "AddressInfo";
+        for(KVServer server :serverList){
+            Thread newThread = new Thread(() -> {
+                KVMigrationMessage msg = new KVMigrationMessage();
+                msg.add(tag,server.getNetworkNode().toString());
+                KVJSONMessage ret = null;
+                try {
+                    ret = migrationModule.migrate(server.getNetworkNode(),msg);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                assertEquals(MIGRATION_COMPLETE,ret.getExtendStatusType());
+            });
+            newThread.start();
+        }
+        KVCommandGet getCommand = new KVCommandGet();
+        getCommand.setKey(tag);
+        for(int i = 0; i < clientList.size();i++){
+            KVMessage getResponse = clientList.elementAt(i).executeCommand(getCommand);
+            assertEquals(serverList.elementAt(i).getNetworkNode().toString(),getResponse.getValue());
+        }
     }
 }

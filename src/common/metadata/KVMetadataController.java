@@ -8,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -109,7 +110,8 @@ public class KVMetadataController {
         byte[] thedigest = digestObject.digest(bytesOfMessage);
         return new BigInteger(1,thedigest);
     }
-    public void generateHashRange(){
+
+    private void generateHashRange(){
         Iterator<BigInteger> itor = keys.iterator();
         if(itor.hasNext()){
             BigInteger previous = itor.next();
@@ -120,5 +122,20 @@ public class KVMetadataController {
             }
             metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(keys.first(),previous,true,false));
         }
+    }
+
+    public KVStorageNode getStorageNode(String hostname, int portNumber){
+        HashMap<BigInteger, KVStorageNode> map = metaData.getStorageNodeMap();
+        for(BigInteger hash: map.keySet()){
+            KVStorageNode node = map.get(hash);
+            if(node.getHostName().matches(hostname) && node.getPortNumber()==portNumber){
+                return node;
+            }
+        }
+        return null;
+    }
+
+    public KVMetadata getCurrentMetaData(){
+        return metaData;
     }
 }

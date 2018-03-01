@@ -26,7 +26,7 @@ public class KVStorageNode extends KVNetworkNode{
         this.hashRange = hashRange;
     }
 
-    boolean isResponsible(BigInteger hash){
+    public boolean isResponsible(BigInteger hash){
         if(hashRange!=null){
             return hashRange.inRange(hash);
         }
