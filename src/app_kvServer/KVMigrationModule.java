@@ -45,7 +45,7 @@ public class KVMigrationModule {
         if(!connectionTable.containsKey(outputNode)){
             // Previous Connection doesn't exist, need to create a new one
             Socket newConnection = outputNode.createSocket();
-            KVCommunicationModule newCommunicationModule = new KVCommunicationModule(newConnection,-1,"localhost");
+            KVCommunicationModule newCommunicationModule = new KVCommunicationModule(newConnection,"localhost");
             connectionTable.put(outputNode,newCommunicationModule);
         }
         // Find the communication module initiates the migration
