@@ -78,17 +78,20 @@ public class KVMigrationModuleTest extends TestCase {
     public void testKVMigrationModule_MultiThreaded(){
         String tag = "AddressInfo";
         for(KVServer server :serverList){
-            Thread newThread = new Thread(() -> {
-                KVMigrationMessage msg = new KVMigrationMessage();
-                msg.add(tag,server.getNetworkNode().toString());
-                KVJSONMessage ret = null;
-                try {
-                    ret = migrationModule.migrate(server.getNetworkNode(),msg);
-                } catch (IOException e) {
-                    e.printStackTrace();
+            Thread newThread = new Thread(){
+                @Override
+                public void run() {
+                    KVMigrationMessage msg = new KVMigrationMessage();
+                    msg.add(tag,server.getNetworkNode().toString());
+                    KVJSONMessage ret = null;
+                    try {
+                        ret = migrationModule.migrate(server.getNetworkNode(),msg);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    assertEquals(MIGRATION_COMPLETE,ret.getExtendStatusType());
                 }
-                assertEquals(MIGRATION_COMPLETE,ret.getExtendStatusType());
-            });
+            };
             newThread.start();
         }
         KVCommandGet getCommand = new KVCommandGet();

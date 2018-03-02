@@ -44,8 +44,8 @@ public class KVServerHandler implements Runnable {
                 kv_out.println_error("Unable to close server socket on port "+port);
             }
         }
-        isRunning = true;
         if(serverSocket != null){
+            isRunning = true;
             while(isRunning && !serverSocket.isClosed()){
                 try {
                     Socket client = serverSocket.accept();
