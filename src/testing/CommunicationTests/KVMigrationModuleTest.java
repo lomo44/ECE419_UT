@@ -76,7 +76,7 @@ public class KVMigrationModuleTest extends TestCase {
     }
     @Test
     public void testKVMigrationModule_MultiThreaded(){
-        String tag = "AddressInfo";
+        final String tag = "AddressInfo";
         for(final KVServer server :serverList){
             Thread newThread = new Thread(){
                 @Override
