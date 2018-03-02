@@ -91,6 +91,16 @@ public class KVTabletStorage implements KVStorage {
         }
     }
 
+    @Override
+    public Set<String> getKeys() {
+        Set<String> keys = new HashSet<>();
+        for (UUID id: tabletKeyMap.keySet()
+             ) {
+            keys.addAll(tabletKeyMap.get(id));
+        }
+        return keys;
+    }
+
     public void setMaxEntryCounterPerTablet(int maxEntryCounterPerTablet) {
         this.maxEntryCounterPerTablet = maxEntryCounterPerTablet;
     }

@@ -1,6 +1,7 @@
 package database.storage;
 
 import java.io.IOException;
+import java.util.Set;
 
 public interface KVStorage {
 	/**
@@ -30,6 +31,8 @@ public interface KVStorage {
 	public void putToStorage(String key, String value) throws Exception;
 
 
+
+	public Set<String> getKeys();
 
 	/**
 	 * Clear the storage of the server

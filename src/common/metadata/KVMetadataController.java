@@ -117,23 +117,25 @@ public class KVMetadataController {
             BigInteger previous = itor.next();
             while(itor.hasNext()){
                 BigInteger current = itor.next();
-                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(current,previous,true,false));
+                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(current,previous.subtract(BigInteger.valueOf(1)),true,true));
                 previous = current;
             }
-            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(keys.first(),previous,true,false));
+            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(keys.first(),previous.subtract(BigInteger.valueOf(1)),true,true));
         }
     }
 
     public KVStorageNode getStorageNode(String hostname, int portNumber){
-        HashMap<BigInteger, KVStorageNode> map = metaData.getStorageNodeMap();
-        for(BigInteger hash: map.keySet()){
-            KVStorageNode node = map.get(hash);
-            if(node.getHostName().matches(hostname) && node.getPortNumber()==portNumber){
-                return node;
-            }
-        }
-        return null;
+        return getStorageNode(new KVNetworkNode(hostname,portNumber));
     }
+
+    public KVStorageNode getStorageNode(String targetName){
+        return getStorageNode(KVNetworkNode.fromString(targetName));
+    }
+
+    public KVStorageNode getStorageNode(KVNetworkNode node){
+        return getCurrentMetaData().getStorageNodeFromHash(hash(node.toString()));
+    }
+
 
     public KVMetadata getCurrentMetaData(){
         return metaData;

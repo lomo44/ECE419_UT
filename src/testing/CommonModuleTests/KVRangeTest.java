@@ -79,4 +79,57 @@ public class KVRangeTest extends TestCase {
         assertEquals(false,range.inRange(3));
         assertEquals(true,range.inRange(4));
     }
+
+    @Test
+    public void testKVRangeTest_ExtendRage_UpperInclusive(){
+        KVRange<Integer> rangeA = new KVRange<>(4,5,true,true);
+        KVRange<Integer> rangeB = new KVRange<>(4,10, true,true);
+        KVRange<Integer> rangeC = rangeB.getExtension(rangeA);
+        assertEquals(rangeC, new KVRange<>(5,10,false,true));
+    }
+
+    @Test
+    public void testKVRangeTest_ExtendRage_UpperExclusive(){
+        KVRange<Integer> rangeA = new KVRange<>(4,5,true,false);
+        KVRange<Integer> rangeB = new KVRange<>(4,10, true,true);
+        KVRange<Integer> rangeC = rangeB.getExtension(rangeA);
+        assertEquals(rangeC, new KVRange<>(5,10,true,true));
+    }
+
+    @Test
+    public void testKVRangeTest_ExtendRage_LowerInclusive(){
+        KVRange<Integer> rangeA = new KVRange<>(4,5,true,true);
+        KVRange<Integer> rangeB = new KVRange<>(0,5, true,true);
+        KVRange<Integer> rangeC = rangeB.getExtension(rangeA);
+        assertEquals(rangeC, new KVRange<>(0,4,true,false));
+    }
+
+    @Test
+    public void testKVRangeTest_ExtendRage_LowerExclusive(){
+        KVRange<Integer> rangeA = new KVRange<>(4,5,false,true);
+        KVRange<Integer> rangeB = new KVRange<>(0,5, true,true);
+        KVRange<Integer> rangeC = rangeB.getExtension(rangeA);
+        assertEquals(rangeC, new KVRange<>(0,4,true,true));
+    }
+
+    @Test
+    public void testKVRangeTest_Inclusive_Inclusive(){
+        KVRange<Integer> rangeA = new KVRange<>(0,5,false,true);
+        KVRange<Integer> rangeB = new KVRange<>(2,3, true,true);
+        assertEquals(true,rangeA.isInclusive(rangeB));
+    }
+
+    @Test
+    public void testKVRangeTest_Inclusive_Exclusive(){
+        KVRange<Integer> rangeA = new KVRange<>(0,5,false,true);
+        KVRange<Integer> rangeB = new KVRange<>(0,1, true,true);
+        assertEquals(false,rangeA.isInclusive(rangeB));
+    }
+
+    @Test
+    public void testKVRangeTest_Intersect(){
+        KVRange<Integer> rangeA = new KVRange<>(0,5,false,true);
+        KVRange<Integer> rangeB = new KVRange<>(1,6, true,true);
+        assertEquals(true,rangeA.isIntersect(rangeB));
+    }
 }

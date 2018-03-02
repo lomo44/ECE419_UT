@@ -1,6 +1,7 @@
 package database.storage;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -82,6 +83,11 @@ public class MMStorage implements KVStorage{
 		byte[] output = serialize(storageOnMem);
 		buffer.putInt(output.length+4);
 		buffer.put(output);
+	}
+
+	@Override
+	public Set<String> getKeys() {
+		return storageOnMem.keySet();
 	}
 
 	@Override

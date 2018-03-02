@@ -10,6 +10,7 @@ import database.storage.KVTabletStorage;
 import database.storage.MMStorage;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -76,6 +77,9 @@ public class KVDatabase implements IKVDatabase {
         unlockRead();
 	}
 
+	public Set<String> getKeys(){
+		return storage.getKeys();
+	}
 
 	@Override
 	public void kill() throws IOException {

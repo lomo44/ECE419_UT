@@ -31,7 +31,7 @@ public class KVStorageNode extends KVNetworkNode{
             return hashRange.inRange(hash);
         }
         else {
-            return false;
+            return true;
         }
     }
 
