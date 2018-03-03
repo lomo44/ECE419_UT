@@ -7,7 +7,6 @@ import common.messages.KVMessage;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 
 /**
  * Simple client that used for testing
@@ -31,13 +30,12 @@ public class KVTestClient {
 
     /**
      * Init the client
-     * @param timeout client side timeout
      * @throws IOException thrown when there is a problem connecting to the client
      */
-    public void init(int timeout) throws IOException {
+    public void init() throws IOException {
         if(initialized == false){
             Socket newsocket = new Socket(this.hostname,this.portnumber);
-            communicationModule = createCommunicationModule(newsocket, timeout);
+            communicationModule = createCommunicationModule(newsocket);
             initialized = true;
         }
     }
@@ -53,11 +51,10 @@ public class KVTestClient {
     /**
      * Create a communication module, can be override to create difference communication module
      * @param socket live socket
-     * @param timeout timeout for communication module
      * @return KVCommunicationModule instance
      */
-    public KVCommunicationModule createCommunicationModule(Socket socket, int timeout){
-        return new KVCommunicationModule(socket,0,"client");
+    public KVCommunicationModule createCommunicationModule(Socket socket){
+        return new KVCommunicationModule(socket,"client");
     }
 
 
@@ -65,9 +62,8 @@ public class KVTestClient {
      * Send a message from client
      * @param msg KVMessage
      * @throws SocketException thrown if the connection is closed
-     * @throws SocketTimeoutException thrown if time out
      */
-    public void send(KVMessage msg) throws SocketException, SocketTimeoutException {
+    public void send(KVMessage msg) throws SocketException {
         communicationModule.send(msg);
     }
 
@@ -75,9 +71,8 @@ public class KVTestClient {
      * Retrieve a message from server
      * @return KVMessage instance send from server
      * @throws SocketException thrown when socket is closed
-     * @throws SocketTimeoutException thrown when receiving time out
      */
-    public KVMessage get() throws SocketException, SocketTimeoutException {
+    public KVMessage get() throws SocketException, InterruptedException {
         return communicationModule.receiveMessage();
     }
 

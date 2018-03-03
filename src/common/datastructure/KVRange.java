@@ -1,5 +1,7 @@
 package common.datastructure;
 
+import java.math.BigInteger;
+
 public class KVRange<T extends Comparable> {
     private T lowerBound;
     private T upperBound;
@@ -33,5 +35,10 @@ public class KVRange<T extends Comparable> {
             // lower bound is greater than the upper bound, enable wrapper
             return inLowerBound || inUpperBound;
         }
+    }
+
+    public static KVRange<BigInteger> fromString(
+            String lowerBound, String upperBound, boolean LowerInclusive, boolean UpperInclusive){
+        return new KVRange<>(new BigInteger(lowerBound),new BigInteger(upperBound),LowerInclusive,UpperInclusive);
     }
 }

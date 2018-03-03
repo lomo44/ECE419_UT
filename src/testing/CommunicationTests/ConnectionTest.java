@@ -47,7 +47,7 @@ public class ConnectionTest extends TestCase {
 	@Test
 	public void testUnknownHost() {
 		Exception ex = null;
-		KVStore kvClient = new KVStore("unknown", port);
+		KVStore kvClient = new KVStore("unknown123", port);
 		
 		try {
 			kvClient.connect();

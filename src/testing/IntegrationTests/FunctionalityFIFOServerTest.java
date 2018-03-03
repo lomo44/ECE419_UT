@@ -115,6 +115,21 @@ public class FunctionalityFIFOServerTest extends TestCase {
     }
 
     @Test
+    public void testClientBasic_DeleteErrorEmptyKey(){
+        assertTrue(server.isHandlerRunning());
+        assertTrue(client.isConnected());
+        KVCommandPut putInstance = new KVCommandPut();
+        putInstance.setKey("Hello");
+        putInstance.setValue("World 123");
+        KVMessage putResponse = client.executeCommand(putInstance);
+        assertTrue(putResponse.getStatus() == KVMessage.StatusType.PUT_SUCCESS);
+        putInstance.setKey("");
+        putInstance.setValue("");
+        KVMessage deleteResponse = client.executeCommand(putInstance);
+        assertEquals(deleteResponse.getStatus(),KVMessage.StatusType.DELETE_ERROR);
+    }
+
+    @Test
     public void testClientBasic_DeleteError(){
         assertTrue(server.isHandlerRunning());
         assertTrue(client.isConnected());
