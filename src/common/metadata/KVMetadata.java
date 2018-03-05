@@ -21,6 +21,12 @@ public class KVMetadata {
         storageNodes = new HashMap<>();
     }
 
+
+    public static KVMetadata fromBytes(byte[] data){
+        KVJSONMessage msg = new KVJSONMessage();
+        msg.fromBytes(data,0,data.length);
+        return fromKVJSONMessage(msg);
+    }
     /**
      * Create a KVMetadata from a KVJSONMessage
      * @param msg KVJSONMessage
@@ -71,6 +77,11 @@ public class KVMetadata {
         msg.setKey(KVMETADATA_TAG);
         return msg;
     }
+
+    public byte[] toBytes(){
+        return toKVJSONMessage().toBytes();
+    }
+
 
     /**
      * Add a new KVNetworkNode into the metadata
