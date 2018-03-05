@@ -8,6 +8,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -109,16 +110,34 @@ public class KVMetadataController {
         byte[] thedigest = digestObject.digest(bytesOfMessage);
         return new BigInteger(1,thedigest);
     }
-    public void generateHashRange(){
+
+    private void generateHashRange(){
         Iterator<BigInteger> itor = keys.iterator();
         if(itor.hasNext()){
             BigInteger previous = itor.next();
             while(itor.hasNext()){
                 BigInteger current = itor.next();
-                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(current,previous,true,false));
+                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(current,previous.subtract(BigInteger.valueOf(1)),true,true));
                 previous = current;
             }
-            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(keys.first(),previous,true,false));
+            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(keys.first(),previous.subtract(BigInteger.valueOf(1)),true,true));
         }
+    }
+
+    public KVStorageNode getStorageNode(String hostname, int portNumber){
+        return getStorageNode(new KVNetworkNode(hostname,portNumber));
+    }
+
+    public KVStorageNode getStorageNode(String targetName){
+        return getStorageNode(KVNetworkNode.fromString(targetName));
+    }
+
+    public KVStorageNode getStorageNode(KVNetworkNode node){
+        return getCurrentMetaData().getStorageNodeFromHash(hash(node.toString()));
+    }
+
+
+    public KVMetadata getCurrentMetaData(){
+        return metaData;
     }
 }

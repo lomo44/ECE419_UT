@@ -1,5 +1,6 @@
 package testing;
 
+import common.messages.KVMigrationMessage;
 import common.metadata.KVMetadata;
 import database.storage.KVTablet;
 import database.storage.KVTabletStorage;
@@ -38,6 +39,7 @@ public class AllTests {
 		clientSuite.addTestSuite(KVRangeTest.class);
 		clientSuite.addTestSuite(KVTabletTest.class);
 		clientSuite.addTestSuite(KVTabletStorageTest.class);
+		clientSuite.addTestSuite(KVMigrationMessageTest.class);
 		return clientSuite;
 	}
 	

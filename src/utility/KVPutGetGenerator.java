@@ -3,6 +3,7 @@ package utility;
 import common.command.KVCommand;
 import app_kvClient.Commands.KVCommandGet;
 import app_kvClient.Commands.KVCommandPut;
+import common.datastructure.Pair;
 
 import java.util.HashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -101,5 +102,9 @@ public class KVPutGetGenerator extends IKVTrafficGenerator {
             }
         }
         return false;
+    }
+
+    public Pair<String,String> getRandomEntry(){
+        return new Pair<>(getRandomeString(keyLength),getRandomeString(payloadLength));
     }
 }

@@ -3,6 +3,7 @@ package app_kvServer;
 
 import common.communication.KVCommunicationModule;
 import common.enums.eKVLogLevel;
+import common.networknode.KVNetworkNode;
 import logger.KVOut;
 
 import java.io.IOException;
@@ -43,8 +44,8 @@ public class KVServerHandler implements Runnable {
                 kv_out.println_error("Unable to close server socket on port "+port);
             }
         }
-        isRunning = true;
         if(serverSocket != null){
+            isRunning = true;
             while(isRunning && !serverSocket.isClosed()){
                 try {
                     Socket client = serverSocket.accept();
@@ -107,7 +108,7 @@ public class KVServerHandler implements Runnable {
      * @param master Singleton master server interface
      * @return a new server instance
      */
-    public KVServerInstance createServerInstance(KVCommunicationModule com, IKVServer master){
+    public KVServerInstance createServerInstance(KVCommunicationModule com, KVServer master){
         KVServerInstance newInstance =  new KVServerInstance(com,master);
         newInstance.changeLogLevel(kv_out.getOutputLevel(),kv_out.getLogLevel());
         return newInstance;
@@ -169,6 +170,10 @@ public class KVServerHandler implements Runnable {
         return serverSocket.getLocalPort();
     }
 
+    public String getHostName() {return serverSocket.getInetAddress().getHostName();}
+
+    public String getHostAddress() {return serverSocket.getInetAddress().getHostAddress();}
+
     /**
      * Change the log and output level of the logger for this handler
      * @param outputlevel output level
@@ -181,5 +186,9 @@ public class KVServerHandler implements Runnable {
              ) {
             instance.changeLogLevel(outputlevel,logLevel);
         }
+    }
+
+    public KVNetworkNode getNetworkNode(){
+        return new KVNetworkNode(getHostName(),getPort());
     }
 }

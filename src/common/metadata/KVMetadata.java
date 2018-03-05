@@ -111,7 +111,7 @@ public class KVMetadata {
      * Return KVNetworkNode mapping
      * @return KVNetworkNode hash
      */
-    private HashMap<BigInteger, KVStorageNode> getStorageNodeMap(){
+    public HashMap<BigInteger, KVStorageNode> getStorageNodeMap(){
         return storageNodes;
     }
 
