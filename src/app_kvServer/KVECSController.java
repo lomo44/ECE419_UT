@@ -1,5 +1,6 @@
 package app_kvServer;
 
+import common.messages.KVJSONMessage;
 import common.metadata.KVMetadata;
 import common.metadata.KVMetadataController;
 import org.apache.zookeeper.KeeperException;
@@ -19,7 +20,7 @@ public class KVECSController {
     private String uniqueName;
     private KVServer server;
     private KVMetadataController metadataController;
-    private CountDownLatch latch;
+    private CountDownLatch connectionLatch = new CountDownLatch(1);
     private boolean connected = false;
     private Watcher metadataWacher;
     private Watcher configDataWatcher;
@@ -31,31 +32,18 @@ public class KVECSController {
     }
 
     public void connect(String uniqueName, String zk_hostname, int zk_port) throws IOException, InterruptedException, KeeperException {
-        zk = new ZooKeeper(createConnectionString(uniqueName, zk_hostname, zk_port), 5000, new Watcher() {
-            @Override
-            public void process(WatchedEvent event) {
-                switch (event.getState()){
-                    case ConnectedReadOnly:
-                    case SaslAuthenticated:
-                    case NoSyncConnected:
-                    case SyncConnected:{
-                        connected = true;
-                        latch.countDown();
-                        break;
-                    }
-                    default:{
-                        latch.countDown();
-                        break;
-                    }
-                }
-            }
-        });
-        latch.await();
+        this.uniqueName = uniqueName;
+        initConfigDataWatcher();
+        initMetadataWatcher();
+        initMainWatcher();
+        zk = new ZooKeeper(createConnectionString(uniqueName, zk_hostname, zk_port), 5000,mainWatcher);
+        connectionLatch.wait();
         if(!connected){
             throw new IOException("Unable to create connection");
         }
-        initConfigDataWatcher();
-        initMetadataWatcher();
+        processConfigData();
+        connectionLatch.wait();
+        processMetaData();
     }
 
     private String createConnectionString(String uniqueName, String zk_hostname, int zk_port){
@@ -76,7 +64,6 @@ public class KVECSController {
                 }
             }
         };
-        processMetaData();
     }
 
     private void initConfigDataWatcher() throws KeeperException, InterruptedException {
@@ -97,7 +84,25 @@ public class KVECSController {
     }
 
     private void initMainWatcher(){
-
+        mainWatcher = new Watcher() {
+            @Override
+            public void process(WatchedEvent event) {
+                switch (event.getState()){
+                    case ConnectedReadOnly:
+                    case SaslAuthenticated:
+                    case NoSyncConnected:
+                    case SyncConnected:{
+                        connected = true;
+                        connectionLatch.countDown();
+                        break;
+                    }
+                    default:{
+                        connectionLatch.countDown();
+                        break;
+                    }
+                }
+            }
+        };
     }
 
     private String getCurrentServerRootPath(){
@@ -115,14 +120,23 @@ public class KVECSController {
     private void processMetaData(){
         try {
             byte[] data = zk.getData(getCurrentMetadataPath(),metadataWacher,null);
-            metadataController.update(KVMetadata.fromBytes(data));
+            KVMetadata newMetaddata = KVMetadata.fromBytes(data);
+            server.handleChangeInMetadata(newMetaddata);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void processConfigData(){
-        //TODO: finish
+        try{
+            byte[] data = zk.getData(getCurrentConfigPath(),configDataWatcher,null);
+            KVJSONMessage msg = new KVJSONMessage();
+            msg.fromBytes(data,0,data.length);
+            KVServerConfig config = KVServerConfig.fromKVJSONMessage(msg);
+            server.handleChangeInConfigData(config);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }

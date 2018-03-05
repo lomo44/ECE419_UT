@@ -24,11 +24,11 @@ public class KVDatabase implements IKVDatabase {
 	private KVStorage storage;
 	private ReadWriteLock writeLock = new ReentrantReadWriteLock();
 	
-	public KVDatabase (int sizeofCache,long sizeofStorage,String cacheStrat){
+	public KVDatabase (int sizeofCache,long sizeofStorage,String cacheStrat,String storagePath){
 		storageSize =sizeofStorage;
 		cacheSize = sizeofCache;
 		cacheStrategy = eKVExtendCacheType.fromString(cacheStrat);
-		storage = new KVTabletStorage("./tmp",1200);
+		storage = new KVTabletStorage(storagePath,1200);
 		switch(cacheStrategy) {
 			case FIFO:
 				cache = new KVFIFOCache(cacheSize);
