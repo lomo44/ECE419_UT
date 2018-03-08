@@ -135,4 +135,11 @@ public class KVMetadata {
         boolean ret = this.storageNodes.equals(in.getStorageNodeMap());
         return ret;
     }
+
+    /**
+     * Clear the content of the metadata
+     */
+    public void clear(){
+        this.storageNodes.clear();
+    }
 }

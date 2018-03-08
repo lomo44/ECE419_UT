@@ -3,6 +3,7 @@ package common.metadata;
 import common.datastructure.KVRange;
 import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
+import database.storage.KVStorage;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -102,21 +103,26 @@ public class KVMetadataController {
             generateHashRange();
         }
     }
-    
-    public void createMetaData(List<KVStorageNode> nodes) {
-    		Iterator<KVStorageNode> itor = nodes.iterator();
-    			metaData = new KVMetadata();
-    			this.keys = new TreeSet<>();
-    		while(itor.hasNext()) {
-    			KVStorageNode node=itor.next();
-    			String idString = node.toString();
-    	        BigInteger hash = hash(idString);
-    			if(!metaData.hasStorageNodeByHash(hash)){
-    	            this.metaData.addStorageNodeHashPair(hash,node);
-    	            this.keys.add(hash);    		
-    			}
-    		}
-		generateHashRange();
+
+    public void addStorageNodes(List<KVStorageNode> nodes){
+        if(this.metaData == null){
+            update(new KVMetadata());
+        }
+        for (KVStorageNode node: nodes
+             ) {
+            String idString = node.toString();
+            BigInteger hash = hash(idString);
+            if(!metaData.hasStorageNodeByHash(hash)){
+                this.metaData.addStorageNodeHashPair(hash,node);
+                this.keys.add(hash);
+            }
+        }
+        generateHashRange();
+    }
+
+    public void clearStorageNodes(){
+        metaData.clear();
+        keys.clear();
     }
 
     /**

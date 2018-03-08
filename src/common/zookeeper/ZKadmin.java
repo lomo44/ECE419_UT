@@ -31,8 +31,8 @@ public class ZKadmin extends ZKInstance {
 	protected List<String> ActiveServer = new ArrayList<String>();
 	protected Set<String> PendingTask = new HashSet<String>(); 
 	protected Map<String,String[]> config;
-	private 	ZKAdminMonitor serverMonitorHandler = new ZKAdminMonitor(this);
-	
+	private   ZKAdminMonitor serverMonitorHandler = new ZKAdminMonitor(this);
+	private KVMetadataController metadataController = new KVMetadataController();
 
 	public ZKadmin(String hostPort,KVOut logger, Map<String,String[]> configuration) {
 		super(hostPort,logger);
@@ -63,8 +63,9 @@ public class ZKadmin extends ZKInstance {
 	}
 	
 	private byte[] genMetadata(List<KVStorageNode> nodes) {
-		Metadatacontroller.createMetaData(nodes);
-		return Metadatacontroller.getMetaData()
+		metadataController.clearStorageNodes();
+		metadataController.addStorageNodes(nodes);
+		return metadataController.getMetaData()
 								.toKVJSONMessage()
 								.MetaDatatoBytes();
 	}

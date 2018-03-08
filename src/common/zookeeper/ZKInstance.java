@@ -3,6 +3,7 @@ package common.zookeeper;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import app_kvServer.KVServer;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -18,10 +19,9 @@ public abstract class ZKInstance implements Watcher {
 	protected String hostPort;
 	final CountDownLatch connection = new CountDownLatch(1);
 	protected KVOut kv_out;
-	protected KVMetadataController Metadatacontroller = new KVMetadataController();
 	protected ZKcreateNode createNodeHandler; 
 	protected ZKDataHandler DataHandler;
-	public ZKInstance(String hostPort,KVOut logger) {
+	public ZKInstance(String hostPort, KVOut logger) {
 		this.hostPort=hostPort;
 		this.kv_out=logger;
 	}

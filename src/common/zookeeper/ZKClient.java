@@ -3,6 +3,7 @@ package common.zookeeper;
 import java.util.ArrayList;
 import java.util.List;
 
+import app_kvServer.KVServer;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadata;
 import logger.KVOut;
@@ -14,16 +15,17 @@ public class ZKClient extends ZKInstance{
 	private String serverPath;
 	private ZKClientMonitor ClientMonitorHandler= new ZKClientMonitor(this);
 	protected List<String> TaskQueue = new ArrayList<String>();
-	
-	public ZKClient(String hostPort, KVOut logger, String servername) {
-		super(hostPort, logger);
+	private KVServer serverInstance;
+	public ZKClient(String hostPort,String servername, KVServer serverInstance) {
+		super(hostPort, serverInstance.getLogger());
 		serverPath = "/" + servername;
+		this.serverInstance = serverInstance;
 	}
 
-	protected void updataMetaData(byte[] metadata) {
+	protected void updataMetaData(byte[] metadata) throws Exception {
 		KVJSONMessage temp = new KVJSONMessage();
 		temp.MetadatafromBytes(metadata, 0, metadata.length);
-		Metadatacontroller.putMetaData(KVMetadata.fromKVJSONMessage(temp)); 
+		serverInstance.handleChangeInMetadata(KVMetadata.fromKVJSONMessage(temp));
 	}
 
 	@Override

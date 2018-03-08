@@ -11,6 +11,7 @@ import common.metadata.KVMetadata;
 import common.metadata.KVMetadataController;
 import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
+import common.zookeeper.ZKClient;
 import database.KVDatabase;
 import org.apache.log4j.Level;
 import logger.KVOut;
@@ -36,7 +37,7 @@ public class KVServer implements IKVServer {
     private eKVServerStatus serverStatus = eKVServerStatus.STOPPED;
 	private KVMetadataController metadataController = new KVMetadataController();
 	private KVMigrationModule migrationModule = new KVMigrationModule();
-	private KVECSController ecsController;
+	private ZKClient zkClient;
 	private String uniqueName = "tmp";
     /**
      * Start KV Server at given port
@@ -83,14 +84,9 @@ public class KVServer implements IKVServer {
 	 */
 	public KVServer(String name, String zkHostname, int zkPort) {
         //kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
+        zkClient = new ZKClient(zkHostname,Integer.toString(zkPort),this);
+        zkClient.connect();
         this.uniqueName = name;
-        ecsController = new KVECSController(this,metadataController);
-        try {
-            ecsController.connect(name,zkHostname,zkPort);
-        } catch (Exception e) {
-
-        }
-
         this.port = zkPort;
         serverHandler = createServerHandler();
         setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
@@ -423,4 +419,7 @@ public class KVServer implements IKVServer {
 	    return serverStatus == eKVServerStatus.STOPPED;
     }
 
+    public KVOut getLogger() {
+        return kv_out;
+    }
 }

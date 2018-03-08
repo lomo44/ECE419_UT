@@ -73,7 +73,11 @@ public class ZKClientMonitor {
 	
 	public void MonitorMetaData(String path) {
 		byte[] metadata = client.DataHandler.getDataSync(path,MetadataWatcher);
-		client.updataMetaData(metadata);
+		try {
+			client.updataMetaData(metadata);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
 	
