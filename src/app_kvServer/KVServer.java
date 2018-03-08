@@ -84,8 +84,10 @@ public class KVServer implements IKVServer {
 	 */
 	public KVServer(String name, String zkHostname, int zkPort) {
         //kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
-        zkClient = new ZKClient(zkHostname,Integer.toString(zkPort),this);
+        zkClient = new ZKClient(zkHostname+":"+Integer.toString(zkPort),name,this);
         zkClient.connect();
+        KVServerConfig config = zkClient.getCurrentServerConfig();
+        database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),name);
         this.uniqueName = name;
         this.port = zkPort;
         serverHandler = createServerHandler();

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import app_kvServer.KVServer;
+import app_kvServer.KVServerConfig;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadata;
 import logger.KVOut;
@@ -16,8 +17,8 @@ public class ZKClient extends ZKInstance{
 	private ZKClientMonitor ClientMonitorHandler= new ZKClientMonitor(this);
 	protected List<String> TaskQueue = new ArrayList<String>();
 	private KVServer serverInstance;
-	public ZKClient(String hostPort,String servername, KVServer serverInstance) {
-		super(hostPort, serverInstance.getLogger());
+	public ZKClient(String connectionString, String servername, KVServer serverInstance) {
+		super(connectionString, serverInstance.getLogger());
 		serverPath = "/" + servername;
 		this.serverInstance = serverInstance;
 	}
@@ -26,6 +27,11 @@ public class ZKClient extends ZKInstance{
 		KVJSONMessage temp = new KVJSONMessage();
 		temp.MetadatafromBytes(metadata, 0, metadata.length);
 		serverInstance.handleChangeInMetadata(KVMetadata.fromKVJSONMessage(temp));
+	}
+
+	public KVServerConfig getCurrentServerConfig(){
+		//TODO::
+		return new KVServerConfig();
 	}
 
 	@Override

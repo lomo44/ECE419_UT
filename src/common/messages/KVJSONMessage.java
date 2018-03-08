@@ -11,8 +11,8 @@ public class KVJSONMessage implements KVMessage {
 	private String key = "";
 	private String Value = "";
 	private long sendTime = -1;
-	private StatusType status;
-	private eKVExtendStatusType extendStatusType;
+	private StatusType status = StatusType.GET_SUCCESS;
+	private eKVExtendStatusType extendStatusType = eKVExtendStatusType.UNKNOWN_ERROR;
 
 	private static String KEY_PAIR_NAME = "key_pair";
 	private static String STATUS_NAME = "status_type";
@@ -63,14 +63,6 @@ public class KVJSONMessage implements KVMessage {
 		newObject.put(KEY_PAIR_NAME,newmap);
 		newObject.put(STATUS_NAME, extendStatusType.getValue());
 		newObject.put(SEND_TIME, sendTime);
-		return newObject.toString().getBytes();
-	}
-	
-	public byte[] MetaDatatoBytes() {
-		JSONObject newObject = new JSONObject();
-        Map<String, String> newmap = new HashMap<String, String>();
-        newmap.put(key,Value);
-		newObject.put(KEY_PAIR_NAME,newmap);
 		return newObject.toString().getBytes();
 	}
 

@@ -48,7 +48,7 @@ public class KVExclusiveMessage {
         JSONObject payload = new JSONObject();
         payload.put(payloadID, entries);
         ret.setValue(payload.toString());
-        ret.setExtendStatus(eKVExtendStatusType.MIGRATION_DATA);
+        ret.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
         return ret;
     }
 }

@@ -42,12 +42,12 @@ public class ZKadmin extends ZKInstance {
 	public List<String> getActiveServers(){
 		return ActiveServer;
 	}
-	
+
 //	private void executeJob(Runnable R) {
 //		Thread T = new Thread(R);
 //		T.start();
 //	}
-		
+
 	public List<KVStorageNode> addNodes(int count,List<String> serverstoAdd) {
 		 serverstoAdd.removeAll(ActiveServer);
 		 Collections.shuffle(serverstoAdd);
@@ -66,8 +66,7 @@ public class ZKadmin extends ZKInstance {
 		metadataController.clearStorageNodes();
 		metadataController.addStorageNodes(nodes);
 		return metadataController.getMetaData()
-								.toKVJSONMessage()
-								.MetaDatatoBytes();
+								.toKVJSONMessage().toBytes();
 	}
 	
 	public void setupServer() {
