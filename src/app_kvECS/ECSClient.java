@@ -72,7 +72,7 @@ public class ECSClient implements IECSClient {
 
     @Override
     public Collection<IECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
-    		zkClient.setupNodes(count);
+    		zkClient.updateMetadata(count);
         return null;
     }
 
@@ -167,6 +167,7 @@ public class ECSClient implements IECSClient {
     		ZKadmin zkClient = admin.zkClient;
     		zkClient.connect();
     		zkClient.setupServer();
+    		zkClient.updateMetadata(3);
 //    		try {
 //				admin.runServer("id_rsa",
 //						  "nintengao@192.168.2.10",

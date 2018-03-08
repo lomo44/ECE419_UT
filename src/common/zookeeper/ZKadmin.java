@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.MemoryHandler;
 
@@ -17,6 +19,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 
+import common.messages.KVJSONMessage;
 import common.metadata.KVMetadata;
 import common.metadata.KVMetadataController;
 import common.networknode.KVStorageNode;
@@ -26,11 +29,14 @@ import common.networknode.KVStorageNode;
 public class ZKadmin extends ZKInstance {
 
 	protected List<String> ActiveServer = new ArrayList<String>();
+	protected Set<String> PendingTask = new HashSet<String>(); 
 	protected Map<String,String[]> config;
+	private 	ZKAdminMonitor serverMonitorHandler = new ZKAdminMonitor(this);
+	
 
 	public ZKadmin(String hostPort,KVOut logger, Map<String,String[]> configuration) {
 		super(hostPort,logger);
-		this.config= configuration;
+		this.config=configuration;
 	}
 	
 	public List<String> getActiveServers(){
@@ -47,13 +53,13 @@ public class ZKadmin extends ZKInstance {
 		 Collections.shuffle(serverstoAdd);
 		 serverstoAdd = serverstoAdd.subList(0, count);
 		 serverstoAdd.addAll(ActiveServer);
-		 List<KVStorageNode> storageNodes = new ArrayList<KVStorageNode>();
+		 List<KVStorageNode> finallistOfServers = new ArrayList<KVStorageNode>();
 		 for (String server: serverstoAdd) {
 			 String[] value= config.get(server);
 			 KVStorageNode node = new KVStorageNode(value[0],Integer.parseInt(value[1]));
-			 storageNodes.add(node);
+			 finallistOfServers.add(node);
 		 }
-		 return storageNodes;
+		 return finallistOfServers;
 	}
 	
 	private byte[] genMetadata(List<KVStorageNode> nodes) {
@@ -64,42 +70,40 @@ public class ZKadmin extends ZKInstance {
 	}
 	
 	public void setupServer() {
-		ZKmonitorServers handler = new ZKmonitorServers(this);
-		initServerMetaData("/servers","/metadata");
-		handler.monitorServers("/servers");
+		init();
+		serverMonitorHandler.monitorServers(SERVEROOT);
 	}
 	
-	private void initServerMetaData(String childServerDir, String metaDatadir) {
+	@Override
+	protected void init() {
 		try {
-			List<String> childServers=zk.getChildren(childServerDir,false);
-			System.out.println("Metadata found, active servers #: " + childServers.size());
+			List<String> childServers=zk.getChildren(SERVEROOT,false);
+			System.out.println("server root found, active servers #: " + childServers.size());
+			createNodeHandler.createNodeSync(METADATA,"",0);
+			
 		} catch (KeeperException e) {
 			switch (e.code()){
 			case CONNECTIONLOSS:
-				initServerMetaData(childServerDir,metaDatadir);
+				init();
 				break;
 			case NONODE:
-        			System.out.println("No Metadata found, creating Metadata: " + childServerDir);
-				ZKcreateNode handler = new ZKcreateNode(childServerDir,0,"",zk);
-				handler.createNodeSync(childServerDir,"",0);
+        			System.out.println("No Servers found, creating server root: " + SERVEROOT);
+				createNodeHandler.createNodeSync(SERVEROOT,"",0);
 				break;
 			default:
-        			System.out.println("Error while init Metadata " + childServerDir);
+        			System.out.println("Error while init server root " + SERVEROOT);
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		ZKcreateNode handler = new ZKcreateNode(metaDatadir,0,"",zk);
-		handler.createNodeSync("/metadata","",0);
 	}
 	
-	public List<KVStorageNode> setupNodes(int count) {
+	public List<KVStorageNode> updateMetadata(int count) {
 		List<KVStorageNode> nodes = addNodes(count,new ArrayList<String>(config.keySet()));
 		byte[] metadata = genMetadata(nodes);
-		ZKmodifyData ModifyDataHandle = new ZKmodifyData(this);
-		ModifyDataHandle.setDataSync("/metadata", metadata,-1);
-		byte[] output = ModifyDataHandle.getDataSync("/metadata");
+		DataHandler.setDataSync(METADATA, metadata,-1);
+		byte[] output = DataHandler.getDataSync(METADATA);
 		assert output==metadata;
 		return nodes;
 	}

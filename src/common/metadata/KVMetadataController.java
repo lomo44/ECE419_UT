@@ -54,6 +54,10 @@ public class KVMetadataController {
     public KVMetadata getMetaData() {
     		return metaData;
     }
+    
+    public void putMetaData(KVMetadata newData) {
+    		metaData = newData;
+    }
     /**
      * Given a hash, return its responsible NetworkNode
      * @param hash input hash
