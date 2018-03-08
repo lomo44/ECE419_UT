@@ -70,26 +70,31 @@ public class KVServerInstance implements Runnable {
         String out = String.format("Received inbound message, key: %s, value: %s,Operator: %d",
                 in_message.getKey(),in_message.getValue(),in_message.getExtendStatusType().getValue());
         kv_out.println_debug(out);
-        eKVExtendStatusType statusType = in_message.getExtendStatusType();
-        KVJSONMessage retMessage = communicationModule.getEmptyMessage();
-        switch (statusType){
-            case GET:{
-                return handleGet(in_message);
-            }
-            case PUT:{
-                return handlePut(in_message);
-            }
-            case ECHO:{
-                return in_message;
-            }
-            case MIGRATION_DATA:{
-                return handleMigration(in_message);
-            }
-            default:{
-                retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
-            }
+        if(serverinstance.isStopped()){
+            return handleServerStopped(in_message);
         }
-        return retMessage;
+        else{
+            eKVExtendStatusType statusType = in_message.getExtendStatusType();
+            KVJSONMessage retMessage = communicationModule.getEmptyMessage();
+            switch (statusType){
+                case GET:{
+                    return handleGet(in_message);
+                }
+                case PUT:{
+                    return handlePut(in_message);
+                }
+                case ECHO:{
+                    return in_message;
+                }
+                case MIGRATION_DATA:{
+                    return handleMigration(in_message);
+                }
+                default:{
+                    retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
+                }
+            }
+            return retMessage;
+        }
     }
 
     /**
@@ -201,6 +206,12 @@ public class KVServerInstance implements Runnable {
             }
         }
         serverinstance.unlockWrite();
+        return ret;
+    }
+
+    private KVMessage handleServerStopped(KVJSONMessage msg){
+        KVJSONMessage ret = communicationModule.getEmptyMessage();
+        ret.setStatus(SERVER_STOPPED);
         return ret;
     }
     private KVJSONMessage handleIrresponsibleRequest(){
