@@ -1,8 +1,7 @@
 package common.metadata;
 
 import common.datastructure.KVRange;
-import common.networknode.KVNetworkNode;
-import common.networknode.KVStorageNode;
+import ecs.ECSNode;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -59,14 +58,22 @@ public class KVMetadataController {
      * @param hash input hash
      * @return KVStorageNode if there is a responsible node, null if not.
      */
-    public KVStorageNode getResponsibleStorageNode(BigInteger hash){
-        for(BigInteger key: metaData.getStorageNodeHashes()){
-            KVStorageNode node = metaData.getStorageNodeFromHash(key);
+    public ECSNode getResponsibleStorageNode(BigInteger hash){
+        for(BigInteger key: keys){
+            ECSNode node = metaData.getStorageNodeFromHash(key);
             if(node.getHashRange().inRange(hash)){
                 return node;
             }
         }
         return null;
+    }
+
+    /**
+     * Get keys
+     * @return sorted set of hashed keys
+     */
+    public SortedSet<BigInteger> getHashes() {
+        return this.keys;
     }
 
     /**
@@ -83,10 +90,19 @@ public class KVMetadataController {
     }
 
     /**
+     * Get storage node from hash
+     * @return KVStorageNode object
+     */
+    public ECSNode getStorageNodeFromHash(BigInteger hash) {
+        return metaData.getStorageNodeFromHash(hash);
+    }
+    
+
+    /**
      * Add a new NetworkNode into the location
      * @param node new KVNetworkNode;
      */
-    public void addStorageNode(KVStorageNode node) {
+    public void addStorageNode(ECSNode node) {
         String idString = node.toString();
         BigInteger hash = hash(idString);
         if(this.metaData==null){

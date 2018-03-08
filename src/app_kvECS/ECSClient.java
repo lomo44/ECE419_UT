@@ -10,6 +10,11 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Level;
 import java.util.Collection;
+import java.util.Scanner;
+
+import common.command.KVCommandParser;
+import common.command.KVCommand;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +33,13 @@ import logger.KVOut;
 
 
 public class ECSClient implements IECSClient {
-    
+
+    private boolean stop = false;
+    private static final String PROMPT = "ECSClient>";
+    private KVCommandParser cmdParser = new ECSClientCommandLineParser();
+    private Scanner keyboard;
+
+
     private static KVOut kv_out = new KVOut("ECS");
     private ZKadmin zkClient;
     private Collection<String> FutureActiveServerSnapShot;
@@ -66,13 +77,13 @@ public class ECSClient implements IECSClient {
 
     @Override
     public Collection<IECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
-    		
-    		return null;
+        // TODO
+        return null;
     }
 
     @Override
     public Collection<IECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
-    		
+        // TODO
         return null;
     }
 
@@ -115,10 +126,32 @@ public class ECSClient implements IECSClient {
         // TODO
         return null;
     }
-    
-    
+
+    /**
+     * Run ECSClient
+     */
+    public void run() {
+        while (!stop) {
+            System.out.print(PROMPT);
+            KVCommand<ECSClient> cmdInstance = cmdParser.getParsedCommand(keyboard.nextLine());
+            if (cmdInstance != null) {
+                executeCommand(cmdInstance);
+            } else {
+                printHelp();
+            }
+        }
+    }
+
+    public void executeCommand(KVCommand cmdInstance) {
+        cmdInstance.execute(this);
+    }
+
+    public void printHelp() {
+        cmdParser.printECSHelpMessages();
+    }
+
     private Map<String, String[]> importConfig(String file) throws IOException {
-    		
+
     		Map <String,String[]> configInMem= new HashMap <String,String[]>();
     		FileReader config = new FileReader(file);
 		BufferedReader readbuf = new BufferedReader(config);
@@ -129,16 +162,16 @@ public class ECSClient implements IECSClient {
         		fileRead=readbuf.readLine();
         }
         readbuf.close();
-        
+
         /* testprint config map
         for (Map.Entry<String, String[]> entry : configInMem.entrySet()) {
             System.out.println(entry.getKey()+" : "+Arrays.toString(entry.getValue()));
-        }   
+        }
         */
-        
+
         return configInMem;
     }
-    
+
     public static void main(String[] args) {
         kv_out.enableLog("logs/ECS.log", Level.ALL);
         ECSClient admin = new ECSClient(args[0]);
@@ -155,6 +188,3 @@ public class ECSClient implements IECSClient {
     		zkClient.disconnect();
     }
 }
-
-
-

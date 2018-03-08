@@ -51,6 +51,14 @@ public class KVCommandPut extends KVCommand<KVClient> {
                 kv_out.println_error("Failed PUT request.");
                 break;
             }
+            case SERVER_WRITE_LOCK:{
+                kv_out.println_error("Failed PUT request.");
+                break;
+            }
+            case SERVER_STOPPED:{
+                kv_out.println_error("Server stopped.");
+                break;
+            }
             case UNKNOWN_ERROR:{
                 kv_out.println_error("Unknown error.");
                 break;

@@ -11,6 +11,7 @@ import java.util.Vector;
  * Command line parser for client CLI
  */
 public abstract class KVCommandParser {
+    protected Vector<KVCommandPattern> ECScommandPatterns;
     protected Vector<KVCommandPattern> commandPatterns;
 
     public KVCommandParser(){
@@ -43,6 +44,15 @@ public abstract class KVCommandParser {
     public void printHelpMessages(){
         for (KVCommandPattern pattern: commandPatterns
              ) {
+            System.out.println(pattern.getHelpMessageString());
+        }
+    }
+
+    /**
+     * Print help messages of the ECS command
+     */
+    public void printECSHelpMessages() {
+        for (KVCommandPattern pattern: ECScommandPatterns) {
             System.out.println(pattern.getHelpMessageString());
         }
     }

@@ -1,16 +1,14 @@
 package common.metadata;
 
-import common.networknode.KVNetworkNode;
 import common.messages.KVJSONMessage;
-import common.networknode.KVStorageNode;
-import database.storage.KVStorage;
+import ecs.ECSNode;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
 import java.util.*;
 
 public class KVMetadata {
-    protected HashMap<BigInteger, KVStorageNode> storageNodes;
+    private HashMap<BigInteger, ECSNode> storageNodes;
     private static final String KVMETADATA_TAG = "19a67338-3e44-4a07-a94c-dcde45767519";
     private static final String KVMETADATA_STORAGE_NODE = "dc67a029-52e1-465d-9128-7ec8d8e660f9";
 
@@ -39,7 +37,7 @@ public class KVMetadata {
                 while(itor.hasNext()){
                     String hash = itor.next();
                     String networkIDstring = map.getString(hash);
-                    KVStorageNode newID = KVStorageNode.fromString(networkIDstring);
+                    ECSNode newID = ECSNode.fromString(networkIDstring);
                     if(newID!=null){
                         data.addStorageNodeHashPair(new BigInteger(hash),newID);
                     }
@@ -77,7 +75,7 @@ public class KVMetadata {
      * @param hash Hash for the KVNetworkNode
      * @param id KVNetworkNode instance
      */
-    public void addStorageNodeHashPair(BigInteger hash, KVStorageNode id){
+    public void addStorageNodeHashPair(BigInteger hash, ECSNode id){
         storageNodes.put(hash,id);
     }
 
@@ -86,7 +84,7 @@ public class KVMetadata {
      * @param hash hash value
      * @return KVNetworkNode instance if found, null if not found
      */
-    public KVStorageNode getStorageNodeFromHash(BigInteger hash){
+    public ECSNode getStorageNodeFromHash(BigInteger hash){
         return storageNodes.get(hash);
     }
 
@@ -111,7 +109,7 @@ public class KVMetadata {
      * Return KVNetworkNode mapping
      * @return KVNetworkNode hash
      */
-    private HashMap<BigInteger, KVStorageNode> getStorageNodeMap(){
+    private HashMap<BigInteger, ECSNode> getStorageNodeMap(){
         return storageNodes;
     }
 

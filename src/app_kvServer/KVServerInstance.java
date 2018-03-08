@@ -83,6 +83,7 @@ public class KVServerInstance implements Runnable {
                     if(!isKeyValid(in_message.getKey()))
                         throw new Exception();
                     kv_out.println_info("Received GET request from client.");
+                    // check if in range
                     String value = serverinstance.getKV(in_message.getKey());
                     retMessage.setStatus(KVMessage.StatusType.GET_SUCCESS);
                     retMessage.setKey(in_message.getKey());
@@ -102,6 +103,7 @@ public class KVServerInstance implements Runnable {
                     if(!isKeyValid(in_message.getKey()))
                         throw new Exception();
                     String value = serverinstance.getKV(in_message.getKey());
+                    // check if in range
                     if(!value.matches(update_value)) {
                         if(update_value.matches(DELETE_IDENTIFIER) || update_value.matches("")){
                             kv_out.println_info("Received DELETE request from client.");

@@ -3,16 +3,21 @@ package client;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.net.SocketException;
 import java.lang.System;
+import java.math.BigInteger;
 
+import ecs.ECSNode;
+
+import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
-import common.messages.KVJSONMessage;
 
+import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
 import common.communication.KVCommunicationModule;
+import common.metadata.KVMetadataController;
+import common.metadata.KVMetadata;
 import logger.KVOut;
 
 public class KVStore implements KVCommInterface {
@@ -25,6 +30,7 @@ public class KVStore implements KVCommInterface {
     private eKVLogLevel outputlevel = eKVLogLevel.DEBUG;
     private eKVLogLevel logLevel = eKVLogLevel.DEBUG;
     private KVCommunicationModule communicationModule;
+    private KVMetadataController metadata_controller;
 
     /**
      * Initialize KVStore with address and port of KVServer
@@ -32,6 +38,7 @@ public class KVStore implements KVCommInterface {
      * @param port the port of the KVServer
      */
     public KVStore(String address, int port) {
+        metadata_controller = new KVMetadataController();
         serverAddress = address;
         serverPort = port;
     }
@@ -91,6 +98,22 @@ public class KVStore implements KVCommInterface {
     }
 
     /**
+     * Disconnect then reconnect
+     * @param address the new hostname
+     * @param port the new port
+     */
+    public void reconnect(String address, int port) {
+        disconnect();
+        serverAddress = address;
+        serverPort = port;
+        try {
+            connect();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Issues a put command
      * @param key   the key that identifies the given value.
      * @param value the value that is indexed by the given key.
@@ -104,10 +127,58 @@ public class KVStore implements KVCommInterface {
         newmessage.setValue(value);
         newmessage.setKey(key);
         newmessage.setStatus(KVMessage.StatusType.PUT);
-        communicationModule.send(newmessage);
+        BigInteger hashedKey;
+        SortedSet<BigInteger> hashedKeys = metadata_controller.getHashes();
+        Iterator<BigInteger> itor = null;
+        if (hashedKeys != null && !hashedKeys.isEmpty())
+            itor = hashedKeys.iterator();
+        while (true) {
+            try {
+                communicationModule.send(newmessage);
+                break;
+            } catch (SocketException e) {
+                if (itor == null || !itor.hasNext()) {
+                    System.out.println("Failed to send message.");
+                    throw e;
+                }
+                hashedKey = itor.next();
+                ECSNode server = metadata_controller.getStorageNodeFromHash(hashedKey);
+                reconnect(server.getNodeHost(),server.getNodePort());
+                continue;
+            } catch (SocketTimeoutException ste) {
+                System.out.println("Socket timeout.");
+                throw ste;
+            }
+        }
         KVJSONMessage response = communicationModule.receiveMessage();
+        while (response.getExtendStatusType() == eKVExtendStatusType.SERVER_NOT_RESPONSIBLE) {
+            KVJSONMessage metadata_update = createEmptyMessage();
+            metadata_update.setExtendStatus(eKVExtendStatusType.METADATA_UPDATE);
+            communicationModule.send(metadata_update);
+            response = communicationModule.receiveMessage();
+            System.out.println("Receive metadata update.");
+        }
+        if (response.getExtendStatusType() == eKVExtendStatusType.METADATA_UPDATE) {
+            KVMetadata metadata = KVMetadata.fromKVJSONMessage(response);
+            metadata_controller.update(metadata);
+            hashedKey = metadata_controller.hash(key);
+            ECSNode server = getResponsibleServer(hashedKey);
+            reconnect(server.getNodeHost(), server.getNodePort());
+            communicationModule.send(newmessage);
+            response = communicationModule.receiveMessage();
+            System.out.println("Receive put success.");
+        }
         kv_out.println_debug("PUT RTT: " + (System.currentTimeMillis()-response.getSendTime()) + "ms.");
         return response;
+    }
+
+    /**
+     * Returns server responsible for hashed key
+     * @parm hashedKey the key that identifies the server
+     * @return KVStorageNode server
+     */
+    public ECSNode getResponsibleServer(BigInteger hash) {
+        return metadata_controller.getResponsibleStorageNode(hash);
     }
 
     /**
@@ -123,8 +194,42 @@ public class KVStore implements KVCommInterface {
         newmessage.setKey(key);
         newmessage.setValue("");
         newmessage.setStatus(KVMessage.StatusType.GET);
-        communicationModule.send(newmessage);
+        BigInteger hashedKey;
+        SortedSet<BigInteger> hashedKeys = metadata_controller.getHashes();
+        Iterator<BigInteger> itor = null;
+        if (hashedKeys != null && !hashedKeys.isEmpty())
+            itor = hashedKeys.iterator();
+        while (true) {
+            try {
+                communicationModule.send(newmessage);
+                break;
+            } catch (SocketException e) {
+                if (itor == null || !itor.hasNext())
+                    throw e;
+                hashedKey = itor.next();
+                ECSNode server = metadata_controller.getStorageNodeFromHash(hashedKey);
+                reconnect(server.getNodeHost(),server.getNodePort());
+                continue;
+            } catch (SocketTimeoutException ste) {
+                throw ste;
+            }
+        }
         KVJSONMessage response = communicationModule.receiveMessage();
+        while (response.getExtendStatusType() == eKVExtendStatusType.SERVER_NOT_RESPONSIBLE) {
+            KVJSONMessage metadata_update = createEmptyMessage();
+            metadata_update.setExtendStatus(eKVExtendStatusType.METADATA_UPDATE);
+            communicationModule.send(metadata_update);
+            response = communicationModule.receiveMessage();
+        }
+        if (response.getExtendStatusType() == eKVExtendStatusType.METADATA_UPDATE) {
+            KVMetadata metadata = KVMetadata.fromKVJSONMessage(response);
+            metadata_controller.update(metadata);
+            hashedKey = metadata_controller.hash(key);
+            ECSNode server = getResponsibleServer(hashedKey);
+            reconnect(server.getNodeHost(), server.getNodePort());
+            communicationModule.send(newmessage);
+            response = communicationModule.receiveMessage();
+        }
         kv_out.println_debug("GET RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");
         return response;
     }
