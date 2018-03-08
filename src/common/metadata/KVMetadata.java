@@ -1,9 +1,8 @@
 package common.metadata;
 
-import common.networknode.KVNetworkNode;
+import common.messages.KVExclusiveMessage;
 import common.messages.KVJSONMessage;
 import common.networknode.KVStorageNode;
-import database.storage.KVStorage;
 import org.json.JSONObject;
 
 import java.math.BigInteger;
@@ -11,8 +10,8 @@ import java.util.*;
 
 public class KVMetadata {
     private HashMap<BigInteger, KVStorageNode> storageNodes;
-    private static final String KVMETADATA_TAG = "19a67338-3e44-4a07-a94c-dcde45767519";
-    private static final String KVMETADATA_STORAGE_NODE = "dc67a029-52e1-465d-9128-7ec8d8e660f9";
+    private static final String KVMETADATA_IDENTIFIER = "19a67338-3e44-4a07-a94c-dcde45767519";
+    private static final String KVMETADATA_PAYLOAD_ID = "dc67a029-52e1-465d-9128-7ec8d8e660f9";
 
     /**
      * Create new KVMetadata object
@@ -21,37 +20,37 @@ public class KVMetadata {
         storageNodes = new HashMap<>();
     }
 
+
+    public static KVMetadata fromBytes(byte[] data){
+        KVJSONMessage msg = new KVJSONMessage();
+        msg.fromBytes(data,0,data.length);
+        return fromKVJSONMessage(msg);
+    }
     /**
      * Create a KVMetadata from a KVJSONMessage
      * @param msg KVJSONMessage
      * @return KVMetadata is conversion success, null if conversion failed.
      */
     public static KVMetadata fromKVJSONMessage(KVJSONMessage msg) {
-        KVMetadata data;
-        if(msg.getKey().matches(KVMETADATA_TAG)){
+        KVMetadata data = null;
+        KVExclusiveMessage msgParsed = new KVExclusiveMessage(KVMETADATA_IDENTIFIER,KVMETADATA_PAYLOAD_ID);
+        if(msgParsed.loadFromKVJSONMessage(msg)){
             data = new KVMetadata();
-            // Proper metadata, extract the value file;
-            String value = msg.getValue();
-            JSONObject object = new JSONObject(value);
-            if(object.has(KVMETADATA_STORAGE_NODE)){
-                JSONObject map = object.getJSONObject(KVMETADATA_STORAGE_NODE);
-                Iterator<String> itor = map.keys();
-                while(itor.hasNext()){
-                    String hash = itor.next();
-                    String networkIDstring = map.getString(hash);
-                    KVStorageNode newID = KVStorageNode.fromString(networkIDstring);
-                    if(newID!=null){
-                        data.addStorageNodeHashPair(new BigInteger(hash),newID);
-                    }
-                    else{
-                        return null;
-                    }
+            HashMap<String, String> entries = msgParsed.getEntries();
+            Set<String> hashes = msgParsed.getEntries().keySet();
+            for (String hash: hashes
+                 ) {
+                String networkIDstring = entries.get(hash);
+                KVStorageNode newID = KVStorageNode.fromString(networkIDstring);
+                if(newID!=null){
+                    data.addStorageNodeHashPair(new BigInteger(hash),newID);
                 }
-                return data;
+                else{
+                    return null;
+                }
             }
-            return null;
         }
-        return null;
+        return data;
     }
 
     /**
@@ -59,18 +58,17 @@ public class KVMetadata {
      * @return KVJSONMessage instance
      */
     public KVJSONMessage toKVJSONMessage(){
-        KVJSONMessage msg = new KVJSONMessage() ;
-        JSONObject object = new JSONObject();
-        // Create map
-        Map<String,String> outputmap = new HashMap<>();
+        KVExclusiveMessage msg = new KVExclusiveMessage(KVMETADATA_IDENTIFIER,KVMETADATA_PAYLOAD_ID);
         for(BigInteger key : storageNodes.keySet()){
-            outputmap.put(key.toString(), storageNodes.get(key).toString());
+            msg.add(key.toString(), storageNodes.get(key).toString());
         }
-        object.put(KVMETADATA_STORAGE_NODE,outputmap);
-        msg.setValue(object.toString());
-        msg.setKey(KVMETADATA_TAG);
-        return msg;
+        return msg.toKVJSONMessage();
     }
+
+    public byte[] toBytes(){
+        return toKVJSONMessage().toBytes();
+    }
+
 
     /**
      * Add a new KVNetworkNode into the metadata
