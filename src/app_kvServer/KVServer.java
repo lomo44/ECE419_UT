@@ -83,13 +83,20 @@ public class KVServer implements IKVServer {
 	 * @param zkPort		port where zookeeper is running
 	 */
 	public KVServer(String name, String zkHostname, int zkPort) {
-        //kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
-        zkClient = new ZKClient(zkHostname+":"+Integer.toString(zkPort),name,this);
-        zkClient.connect();
-        KVServerConfig config = zkClient.getCurrentServerConfig();
-        database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),name);
         this.uniqueName = name;
         this.port = zkPort;
+	    //kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
+        try {
+            zkClient = new ZKClient(zkHostname+":"+Integer.toString(zkPort),name,this);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        //zkClient.connect();
+        //KVServerConfig config = zkClient.getCurrentServerConfig();
+	}
+
+	public void initializeServer(KVServerConfig config, KVMetadata metadata){
+        database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),this.uniqueName);
         serverHandler = createServerHandler();
         setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
         handlerThread = new Thread(serverHandler);
@@ -104,7 +111,8 @@ public class KVServer implements IKVServer {
         }
         this.port = serverHandler.getPort();
         metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort()));
-	}
+        metadataController.update(metadata);
+    }
 
 
     /**

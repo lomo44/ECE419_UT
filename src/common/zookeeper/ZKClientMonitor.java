@@ -44,7 +44,7 @@ public class ZKClientMonitor {
 	        		MonitorTask(path);
 	            break;
 	        case OK:
-	        		((ZKClient)ctx).TaskQueue = children;
+	        		//((ZKClient)ctx).TaskQueue = children;
 	        		System.out.println("Task " + children.toString() + " found");
 	            break;
 	        case NONODE:
