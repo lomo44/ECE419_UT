@@ -84,7 +84,7 @@ public class KVCommunicationModule {
                 int bytelength = dInputStream.read();
                 byte[] array = new byte[bytelength];
                 dInputStream.read(array);
-                ret.fromBytes(array);
+                ret.fromBytes(array,0,array.length);
                 kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
                 return ret;
             }

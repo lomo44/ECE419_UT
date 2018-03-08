@@ -7,7 +7,9 @@ import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.KeeperException.*;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.Stat;
 import org.apache.zookeeper.AsyncCallback.ChildrenCallback;
+import org.apache.zookeeper.AsyncCallback.StatCallback;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.Code;
@@ -20,13 +22,12 @@ import common.metadata.KVMetadataController;
 import common.networknode.KVStorageNode;
 
 
-public class ZKmonitorServers {
+public class ZKAdminMonitor {
 	
-	private ZKadmin client;
+	private ZKadmin admin;
 	
-	
-	public ZKmonitorServers(ZKadmin C) {
-		client=C;
+	public ZKAdminMonitor(ZKadmin C) {
+		admin=C;
 	}
 	
 	private ChildrenCallback ServerMonitorCallback = new ChildrenCallback() {
@@ -36,15 +37,42 @@ public class ZKmonitorServers {
 	        	monitorServers(path);
 	            break;
 	        case OK:
-	        		((ZKadmin)ctx).ActiveServer = children;
-	        		System.out.println("Metadata found, active servers:" + client.ActiveServer.size());
+	        		System.out.println("Server root node " + path + " found, active servers:" + admin.ActiveServer.size());
 	            break;
 	        case NONODE:
-	        		System.out.println("No Metadata found");
+	        		System.out.println("Server root node: " + path + " not found");
 	            break;
 	        default:
-	        		System.out.println("Error while setting up Metadata " + path);
+	        		System.out.println("Error while getting servers");
 	        }
+		}
+	};
+	
+	
+	private StatCallback TaskCallBack = new StatCallback() {
+		public void processResult(int rc, String path, Object ctx, Stat stat) {
+			switch (Code.get(rc)) {
+	        case CONNECTIONLOSS:
+	        		TaskMonitor(path);
+	            break;
+	        case OK:
+	        		System.out.println("Task " + path + " found");
+	            break;
+	        case NONODE:
+	        		System.out.println("Server Metadata: " + path + " not found");
+	            break;
+	        default:
+	        		System.out.println("Error while getting servers");
+	        }
+		}
+	};
+	
+	
+	private Watcher TaskWatcher = new Watcher() {
+		public void process(WatchedEvent e) {
+			if(e.getType() == EventType.NodeDeleted) {
+				admin.PendingTask.remove(e.getPath());
+			}
 		}
 	};
 	
@@ -55,12 +83,18 @@ public class ZKmonitorServers {
 			}
 		}
 	};
-
-	public void monitorServers(String path) {
-		client.zk.getChildren(path,
-				ServerStateMonitor,
-				ServerMonitorCallback,
-				client);
+	
+	public void TaskMonitor(String path) {
+		admin.zk.exists(path, 
+				TaskWatcher, 
+				TaskCallBack, 
+				admin);
 	}
 	
+	public void monitorServers(String path) {
+		admin.zk.getChildren(path,
+				ServerStateMonitor,
+				ServerMonitorCallback,
+				admin);
+	}
 }

@@ -1,18 +1,20 @@
 package common.zookeeper;
 
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.Stat;
 
-public class ZKmodifyData {
-	private ZKadmin client;
+public class ZKDataHandler {
+	private ZooKeeper zk ;
 
-	public ZKmodifyData(ZKadmin ZK) {
-		client=ZK;
+	public ZKDataHandler(ZooKeeper ZK) {
+		zk=ZK;
 	}
 	
 	public void setDataSync(String path, byte[] content, int version) {
 		try {
-			client.zk.setData(path, content, version);
+			zk.setData(path, content, version);
 			System.out.println("Data " + content.toString() + "set successfully");
 		} catch (KeeperException e) {
 			switch(e.code()) {
@@ -30,7 +32,7 @@ public class ZKmodifyData {
 	
 	public byte[] getDataSync(String path) {
 		try {
-			 byte[] output=client.zk.getData(path, false, null);
+			 byte[] output=zk.getData(path, false, null);
 			 return output;
 		} catch (KeeperException e) {
 			System.out.println(e.getMessage());
@@ -39,5 +41,19 @@ public class ZKmodifyData {
 			e.printStackTrace();
 		}
 			return null;
+	}
+	
+	public byte[] getDataSync(String path, Watcher watcher) {
+		try {
+			 byte[] output=zk.getData(path, watcher, null);
+			 return output;
+		} catch (KeeperException e) {
+			System.out.println(e.getMessage());
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 }
