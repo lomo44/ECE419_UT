@@ -1,7 +1,8 @@
 package common.metadata;
 
 import common.datastructure.KVRange;
-import ecs.ECSNode;
+import common.networknode.*;
+import database.storage.KVStorage;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -58,9 +59,9 @@ public class KVMetadataController {
      * @param hash input hash
      * @return KVStorageNode if there is a responsible node, null if not.
      */
-    public ECSNode getResponsibleStorageNode(BigInteger hash){
+    public KVStorageNode getResponsibleStorageNode(BigInteger hash){
         for(BigInteger key: keys){
-            ECSNode node = metaData.getStorageNodeFromHash(key);
+            KVStorageNode node = metaData.getStorageNodeFromHash(key);
             if(node.getHashRange().inRange(hash)){
                 return node;
             }
@@ -93,7 +94,7 @@ public class KVMetadataController {
      * Get storage node from hash
      * @return KVStorageNode object
      */
-    public ECSNode getStorageNodeFromHash(BigInteger hash) {
+    public KVStorageNode getStorageNodeFromHash(BigInteger hash) {
         return metaData.getStorageNodeFromHash(hash);
     }
     
@@ -102,7 +103,7 @@ public class KVMetadataController {
      * Add a new NetworkNode into the location
      * @param node new KVNetworkNode;
      */
-    public void addStorageNode(ECSNode node) {
+    public void addStorageNode(KVStorageNode node) {
         String idString = node.toString();
         BigInteger hash = hash(idString);
         if(this.metaData==null){
@@ -146,16 +147,34 @@ public class KVMetadataController {
         byte[] thedigest = digestObject.digest(bytesOfMessage);
         return new BigInteger(1,thedigest);
     }
-    public void generateHashRange(){
+
+    private void generateHashRange(){
         Iterator<BigInteger> itor = keys.iterator();
         if(itor.hasNext()){
             BigInteger previous = itor.next();
             while(itor.hasNext()){
                 BigInteger current = itor.next();
-                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(current,previous,true,false));
+                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(current,previous.subtract(BigInteger.valueOf(1)),true,true));
                 previous = current;
             }
-            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(keys.first(),previous,true,false));
+            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(keys.first(),previous.subtract(BigInteger.valueOf(1)),true,true));
         }
+    }
+
+    public KVStorageNode getStorageNode(String hostname, int portNumber){
+        return getStorageNode(new KVNetworkNode(hostname,portNumber));
+    }
+
+    public KVStorageNode getStorageNode(String targetName){
+        return getStorageNode(KVNetworkNode.fromString(targetName));
+    }
+
+    public KVStorageNode getStorageNode(KVNetworkNode node){
+        return getCurrentMetaData().getStorageNodeFromHash(hash(node.toString()));
+    }
+
+
+    public KVMetadata getCurrentMetaData(){
+        return metaData;
     }
 }

@@ -2,6 +2,8 @@ package common.networknode;
 
 import common.datastructure.Pair;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,6 +25,7 @@ public class KVNetworkNode {
      * Convert ID into string representation
      * @return
      */
+    @Override
     public String toString(){
         return id.x +' '+ Integer.toString(id.y);
     }
@@ -61,5 +64,23 @@ public class KVNetworkNode {
     public boolean equals(Object o) {
         KVNetworkNode rhs = (KVNetworkNode) o;
         return this.id.x.matches(rhs.id.x ) && this.id.y == rhs.id.y;
+    }
+
+    /**
+     * Generate the hash code for the current NetworkNode
+     * @return
+     */
+    @Override
+    public int hashCode() {
+        return this.toString().hashCode();
+    }
+
+    /**
+     * Create socket based on the network name and port number
+     * @return Socket instance if successfully created
+     * @throws IOException
+     */
+    public Socket createSocket() throws IOException {
+        return new Socket(this.getHostName(),this.getPortNumber());
     }
 }

@@ -19,7 +19,7 @@ public class KVCommandPatternAddNode extends KVCommandPattern {
     }
 
     @Override
-    public Pattern generateRegex() { return Pattern.compile("^addNode (\\d*) (\\S*)$"); }
+    public Pattern generateRegex() { return Pattern.compile("^addNode (\\S+) (\\d+)$"); }
 
     @Override
     public String getHelpMessageString() {

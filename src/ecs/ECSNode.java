@@ -84,6 +84,6 @@ public class ECSNode implements IECSNode {
      */
     @Override
     public String[] getNodeHashRange() {
-        return hashRange.convertToString();
+        return hashRange.getHashRange();
     }
 }

@@ -53,6 +53,9 @@ public class KVTablet{
         membuffer.clear();
         File file = new File(filepath+"/"+id.toString());
         file.delete();
+        if(file.getParentFile().listFiles().length == 0){
+            file.getParentFile().delete();
+        }
     }
 
 
@@ -113,6 +116,10 @@ public class KVTablet{
      * @throws IOException thrown if there were IOError occurred.
      */
     private void store() throws IOException {
+        File targetFile = new File(filepath + "/" + id.toString());
+        if(!targetFile.getParentFile().exists()){
+            targetFile.getParentFile().mkdirs();
+        }
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         ObjectOutputStream stream = new ObjectOutputStream(outStream);
         stream.writeObject(membuffer);

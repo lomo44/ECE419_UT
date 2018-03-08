@@ -1,30 +1,29 @@
 package app_kvECS.CommandPatterns;
 
+import app_kvECS.Commands.KVCommandGetNodeByKey;
 import common.command.KVCommand;
-import app_kvECS.Commands.KVCommandRemoveNode;
 import common.command.KVCommandPattern;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class KVCommandPatternRemoveNode extends KVCommandPattern {
+public class KVCommandPatternGetNodeByKey extends KVCommandPattern {
     @Override
     public KVCommand generateCommand(String input) {
         Matcher matcher = commandRegex.matcher(input);
         matcher.find();
-        KVCommandRemoveNode newcommand = new KVCommandRemoveNode();
-        newcommand.setIndex(matcher.group(1));
+        KVCommandGetNodeByKey newcommand = new KVCommandGetNodeByKey();
         return newcommand;
     }
 
     @Override
     public Pattern generateRegex() {
-        return Pattern.compile("^removeNode (\\S+)$");
+        return Pattern.compile("^getNodeByKey (\\S+)$");
     }
 
     @Override
     public String getHelpMessageString() {
-        return  "removeNode <index of server>\n" +
-                "   Description: Remove a specified server from the application through its index\n";
+        return "getNodeByKey\n" +
+                "   Description: Returns the IECSNode responsible for the given key\n";
     }
 }

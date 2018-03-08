@@ -5,8 +5,8 @@ import common.command.KVCommandPattern;
 import app_kvECS.ECSClient;
 import common.messages.KVJSONMessage;
 
-public class KVCommandStart extends KVCommand<ECSClient> {
-    public KVCommandStart() { super(KVCommandPattern.KVCommandType.START); }
+public class KVCommandGetNodeByKey extends KVCommand<ECSClient> {
+    public KVCommandGetNodeByKey() { super(KVCommandPattern.KVCommandType.GET_NODE_BY_KEY); }
 
     @Override
     public KVJSONMessage execute(ECSClient clientInstance) {

@@ -31,6 +31,7 @@ public class PersistencyFIFOServerTest extends TestCase {
             client = null;
         }
         if(server!=null){
+            server.clearStorage();
             server.close();
             server = null;
         }

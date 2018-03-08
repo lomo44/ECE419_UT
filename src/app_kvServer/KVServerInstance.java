@@ -5,11 +5,12 @@ import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 import common.messages.KVMessage;
+import common.messages.KVMigrationMessage;
 import logger.KVOut;
 
 import java.io.IOException;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 
 import static common.messages.KVMessage.StatusType.*;
@@ -17,13 +18,13 @@ import static common.messages.KVMessage.StatusType.*;
 public class KVServerInstance implements Runnable {
 
     private KVCommunicationModule communicationModule;
-    private IKVServer serverinstance;
+    private KVServer serverinstance;
     private KVOut kv_out = new KVOut("server");
     private boolean isRunning;
     private static final String DELETE_IDENTIFIER = "null";
     private Pattern whitespacechecker = Pattern.compile("\\s");
 
-    public KVServerInstance(KVCommunicationModule communicationModule, IKVServer server){
+    public KVServerInstance(KVCommunicationModule communicationModule, KVServer server){
         this.communicationModule = communicationModule;
         serverinstance = server;
         isRunning = false;
@@ -41,14 +42,8 @@ public class KVServerInstance implements Runnable {
                 KVJSONMessage in_msg = communicationModule.receiveMessage();
                 communicationModule.send(handleMessage(in_msg));
             }
-            catch (SocketTimeoutException e){
-                //System.out.println("Received timeout");
-            }
             catch (SocketException e){
                 isRunning = false;
-            }
-            catch(Exception e){
-
             }
         }
         kv_out.println_debug("Instance exit");
@@ -71,7 +66,7 @@ public class KVServerInstance implements Runnable {
      * @param in_message inbound message
      * @return KVMessage outbound message
      */
-    public KVMessage handleMessage(KVJSONMessage in_message){
+    public KVMessage handleMessage(KVJSONMessage in_message) {
         String out = String.format("Received inbound message, key: %s, value: %s,Operator: %d",
                 in_message.getKey(),in_message.getValue(),in_message.getExtendStatusType().getValue());
         kv_out.println_debug(out);
@@ -79,77 +74,16 @@ public class KVServerInstance implements Runnable {
         KVJSONMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
             case GET:{
-                try{
-                    if(!isKeyValid(in_message.getKey()))
-                        throw new Exception();
-                    kv_out.println_info("Received GET request from client.");
-                    // check if in range
-                    String value = serverinstance.getKV(in_message.getKey());
-                    retMessage.setStatus(KVMessage.StatusType.GET_SUCCESS);
-                    retMessage.setKey(in_message.getKey());
-                    retMessage.setValue(value);
-                    kv_out.println_debug("Found corresponding key/value store for GET request.");
-                }
-                catch (Exception e){
-                    // Exception happened when query for value
-                    retMessage.setStatus(KVMessage.StatusType.GET_ERROR);
-                    kv_out.println_debug("Could not find corresponding key/value store for GET request.");
-                }
-                break;
+                return handleGet(in_message);
             }
             case PUT:{
-                String update_value = in_message.getValue();
-                try {
-                    if(!isKeyValid(in_message.getKey()))
-                        throw new Exception();
-                    String value = serverinstance.getKV(in_message.getKey());
-                    // check if in range
-                    if(!value.matches(update_value)) {
-                        if(update_value.matches(DELETE_IDENTIFIER) || update_value.matches("")){
-                            kv_out.println_info("Received DELETE request from client.");
-                            retMessage.setStatus(DELETE_SUCCESS);
-                        }
-                        else{
-                            kv_out.println_info("Received PUT_UPDATE request from client.");
-                            retMessage.setStatus(PUT_UPDATE);
-                            retMessage.setKey(in_message.getKey());
-                            retMessage.setValue(in_message.getValue());
-                        }
-                    }
-                    else {
-                        kv_out.println_info("Received PUT request from client.");
-                        retMessage.setStatus(PUT_SUCCESS);
-                        break;
-                    }
-                } catch (Exception e) {
-                    if(!isKeyValid(in_message.getKey())){
-                        retMessage.setStatus(PUT_ERROR);
-                        return retMessage;
-                    }
-                    if(update_value.matches(DELETE_IDENTIFIER) || update_value.matches("")) {
-                        retMessage.setStatus(DELETE_ERROR);
-                        break;
-                    }
-                    else {
-                        retMessage.setStatus(PUT_SUCCESS);
-                    }
-                }
-                try {
-                    serverinstance.putKV(in_message.getKey(),in_message.getValue());
-                    kv_out.println_debug("Inserted/updated/deleted corresponding key/value store for PUT request.");
-                } catch (Exception e) {
-                    if(in_message.getValue().matches(DELETE_IDENTIFIER) || update_value.matches("")){
-                        retMessage.setStatus(DELETE_ERROR);
-                        kv_out.println_debug("Could not delete corresponding key/value store for DELETE request.");
-                    }else {
-                        retMessage.setStatus(PUT_ERROR);
-                        kv_out.println_debug("Could not insert/update corresponding key/value store for PUT/PUT_UPDATE requst.");
-                    }
-                }
-                break;
+                return handlePut(in_message);
             }
             case ECHO:{
                 return in_message;
+            }
+            case MIGRATION_DATA:{
+                return handleMigration(in_message);
             }
             default:{
                 retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
@@ -169,6 +103,111 @@ public class KVServerInstance implements Runnable {
         communicationModule.setLogLevel(outputlevel,logLevel);
     }
 
+    private KVMessage handleDelete(KVJSONMessage msg){
+        KVJSONMessage emptyMessage = communicationModule.getEmptyMessage();
+        if(isKeyValid(msg.getKey())){
+            if(isKeyResponsible(msg.getKey())){
+                try {
+                    serverinstance.getKV(msg.getKey());
+                } catch (Exception e) {
+                    emptyMessage.setStatus(DELETE_ERROR);
+                    return emptyMessage;
+                }
+                try {
+                    serverinstance.putKV(msg.getKey(),msg.getValue());
+                    emptyMessage.setStatus(DELETE_SUCCESS);
+                } catch (Exception e) {
+                    emptyMessage.setStatus(DELETE_ERROR);
+                }
+            }
+            else{
+                return handleIrresponsibleRequest();
+            }
+        }
+        else{
+            emptyMessage.setStatus(DELETE_ERROR);
+        }
+        return emptyMessage;
+    }
+    private KVMessage handlePut(KVJSONMessage msg){
+        if(isValidDeleteIdentifier(msg.getValue())){
+            return handleDelete(msg);
+        }
+        else{
+            KVJSONMessage response = communicationModule.getEmptyMessage();
+            if(isKeyValid(msg.getKey())){
+                if(isKeyResponsible(msg.getKey())){
+                    try {
+                        serverinstance.getKV(msg.getKey());
+                        response.setStatus(PUT_UPDATE);
+                        response.setKey(msg.getKey());
+                        response.setValue(msg.getValue());
+                    } catch (Exception e) {
+                        // Key doesn't exist, new entry
+                        response.setStatus(PUT_SUCCESS);
+                    }
+                    try {
+                        serverinstance.putKV(msg.getKey(),msg.getValue());
+                    } catch (Exception e1) {
+                        kv_out.println_error(String.format("Key $s is not in range of this server",msg.getKey()));
+                        response.setStatus(SERVER_NOT_RESPONSIBLE);
+                    }
+                }
+                else{
+                    return handleIrresponsibleRequest();
+                }
+            }
+            else {
+                response.setStatus(PUT_ERROR);
+            }
+            return response;
+        }
+    }
+    private KVMessage handleGet(KVJSONMessage msg){
+        KVJSONMessage response = communicationModule.getEmptyMessage();
+        if(isKeyValid(msg.getKey())){
+            if(isKeyResponsible(msg.getKey())){
+                try {
+                    String ret = serverinstance.getKV(msg.getKey());
+                    response.setKey(msg.getKey());
+                    response.setValue(ret);
+                    response.setStatus(GET_SUCCESS);
+                } catch (Exception e) {
+                    response.setStatus(GET_ERROR);
+                }
+            }
+            else{
+                return handleIrresponsibleRequest();
+            }
+        }
+        else{
+            response.setStatus(GET_ERROR);
+        }
+        return response;
+    }
+    private KVMessage handleMigration(KVJSONMessage msg){
+        KVJSONMessage ret = communicationModule.getEmptyMessage();
+        ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
+        serverinstance.lockWrite();
+        // Migration process started
+        KVMigrationMessage migrationMessage = KVMigrationMessage.fromKVJSONMessage(msg);
+        HashMap<String, String> entries = migrationMessage.getEntries();
+        for(String key: entries.keySet()){
+            try {
+                serverinstance.putKV(key,entries.get(key));
+            } catch (Exception e) {
+                kv_out.println_fatal("Incorrect migration data. Key is not in range");
+                ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+            }
+        }
+        serverinstance.unlockWrite();
+        return ret;
+    }
+    private KVJSONMessage handleIrresponsibleRequest(){
+        KVJSONMessage ret =  serverinstance.getCurrentMetadata().toKVJSONMessage();
+        ret.setStatus(SERVER_NOT_RESPONSIBLE);
+        return ret;
+    }
     /**
      * Check if the key is valid
      * @param key
@@ -176,5 +215,11 @@ public class KVServerInstance implements Runnable {
      */
     private  boolean isKeyValid(String key){
         return !key.matches("") && !whitespacechecker.matcher(key).find() && key.length() <= 20;
+    }
+    private boolean isValidDeleteIdentifier(String value){
+        return value.matches(DELETE_IDENTIFIER) || value.matches("");
+    }
+    private boolean isKeyResponsible(String key){
+        return serverinstance.isKeyResponsible(key);
     }
 }

@@ -1,5 +1,6 @@
 package testing;
 
+import common.messages.KVMigrationMessage;
 import common.metadata.KVMetadata;
 import database.storage.KVTablet;
 import database.storage.KVTabletStorage;
@@ -17,8 +18,9 @@ import testing.PerformanceTest.PerformanceEvaluation_PutGet.*;
 public class AllTests {
 	public static Test suite() {
 		TestSuite clientSuite = new TestSuite("Basic Storage ServerTest-Suite");
-		clientSuite.addTestSuite(ConnectionTest.class);
-		clientSuite.addTestSuite(InteractionTest.class);
+		//clientSuite.addTestSuite(ConnectionTest.class);
+		//clientSuite.addTestSuite(InteractionTest.class);
+		clientSuite.addTestSuite(LargeFileTranmissionTest.class);
 		clientSuite.addTestSuite(AdditionalTest.class);
 		clientSuite.addTestSuite(KVJSONMessageTest.class);
 		clientSuite.addTestSuite(FunctionalityLRUServerTest.class);
@@ -37,6 +39,7 @@ public class AllTests {
 		clientSuite.addTestSuite(KVRangeTest.class);
 		clientSuite.addTestSuite(KVTabletTest.class);
 		clientSuite.addTestSuite(KVTabletStorageTest.class);
+		clientSuite.addTestSuite(KVMigrationMessageTest.class);
 		return clientSuite;
 	}
 	

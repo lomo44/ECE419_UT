@@ -22,6 +22,17 @@ public enum eKVExtendStatusType {
     SERVER_WRITE_LOCK(17),      /* Server locked for out, only get possible */
     SERVER_NOT_RESPONSIBLE(18),  /* Request not successful, server not responsible for key */
     METADATA_UPDATE(19),
+    MIGRATION_COMPLETE(20),
+    MIGRATION_DATA(21),
+    MIGRATION_INCOMPLETE(22),
+    ADD_NODE_SUCCESS(23),
+    ADD_NODE_FAIL(24),
+    SETUP_NODE_SUCCESS(25),
+    SETUP_NODE_FAIL(26),
+    REMOVE_NODE_SUCCESS(27),
+    REMOVE_NODE_FAIL(28),
+    GET_NODE_SUCCESS(29),
+    GET_NODE_FAIL(30),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -68,6 +79,9 @@ public enum eKVExtendStatusType {
             case 17: return SERVER_WRITE_LOCK;
             case 18: return SERVER_NOT_RESPONSIBLE;
             case 19: return METADATA_UPDATE;
+            case 20: return MIGRATION_COMPLETE;
+            case 21: return MIGRATION_DATA;
+            case 22: return MIGRATION_INCOMPLETE;
         }
         return null;
     }

@@ -8,7 +8,6 @@ import common.messages.KVJSONMessage;
 import client.KVStore;
 
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 
 public class KVCommandGet extends KVCommand<KVClient> {
     public KVCommandGet() {
@@ -25,23 +24,8 @@ public class KVCommandGet extends KVCommand<KVClient> {
         }
         try {
             ret = (KVJSONMessage) clientInstance.getStore().get(getKey());
-        } catch (SocketTimeoutException e) {
-            // Socket Timeout, need to retry
-            int i =0;
-            while(i < clientInstance.getAttribute().timeoutRetryCount){
-                try {
-                    ret = (KVJSONMessage)clientInstance.getStore().get(getKey());
-                    break;
-                } catch (SocketTimeoutException e1) {
-                    System.out.println("Timeout, retry count: "+i);
-                    i++;
-                } catch (SocketException e1) {
-                    ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
-                    clientInstance.disconnect();
-                    break;
-                }
-            }
-        } catch (SocketException e) {
+        }
+        catch (SocketException e) {
             ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
             clientInstance.disconnect();
         }

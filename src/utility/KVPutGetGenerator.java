@@ -3,18 +3,20 @@ package utility;
 import common.command.KVCommand;
 import app_kvClient.Commands.KVCommandGet;
 import app_kvClient.Commands.KVCommandPut;
+import common.datastructure.Pair;
 
 import java.util.HashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Math.min;
 
-public class KVPutGetGenerator implements IKVTrafficGenerator {
+public class KVPutGetGenerator extends IKVTrafficGenerator {
     private int putPercentage = 50;
     private int overwritePercentage = 50;
     private int keyLength = 10;
+    private int payloadLength = 10;
     private HashMap<String, String> dataContent;
-    private String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()";
+
 
 
     public KVPutGetGenerator(int putPercentage, int overwritePercentage){
@@ -29,24 +31,23 @@ public class KVPutGetGenerator implements IKVTrafficGenerator {
         overwritePercentage = min(percentage,100);
     }
 
-    private String getRandomeString(int length){
-        // Clean previous build string
-        StringBuilder stringBuilder = new StringBuilder();
-        while(stringBuilder.length() < length){
-            stringBuilder.append(alphabet.charAt(ThreadLocalRandom.current().nextInt(0,alphabet.length())));
-        }
-        return  stringBuilder.toString();
+    public void setKeyLength(int keyLength) {
+        this.keyLength = keyLength;
     }
 
-    private int getRandomPercentage(){
-        return ThreadLocalRandom.current().nextInt(0,100);
+    public void setPayloadLength(int payloadLength) {
+        this.payloadLength = payloadLength;
     }
 
-    private KVCommandGet generateGet(){
+    public KVCommandGet generateGet(){
         // Generate getValue command
         KVCommandGet commandGet = new KVCommandGet();
-        commandGet.setKey(getRandomKeyFromContent());
-        return commandGet;
+        String key = getRandomKeyFromContent();
+        if(key!=null){
+            commandGet.setKey(key);
+            return commandGet;
+        }
+        return null;
     }
 
     private String getRandomKeyFromContent(){
@@ -59,19 +60,19 @@ public class KVPutGetGenerator implements IKVTrafficGenerator {
             }
             keyCounter++;
         }
-        return "";
+        return null;
     }
 
-    private KVCommandPut generatePut(){
+    public KVCommandPut generatePut(){
         KVCommandPut ret = new KVCommandPut();
         if(getRandomPercentage()<overwritePercentage && this.dataContent.size()!=0){
             // Generate overwrite command
-            ret.setValue(getRandomeString(keyLength));
+            ret.setValue(getRandomeString(payloadLength));
             ret.setKey(getRandomKeyFromContent());
         }
         else{
             // Generate new put command
-            ret.setValue(getRandomeString(keyLength));
+            ret.setValue(getRandomeString(payloadLength));
             ret.setKey(getRandomeString(keyLength));
         }
         dataContent.put(ret.getKey(),ret.getValue());
@@ -92,5 +93,18 @@ public class KVPutGetGenerator implements IKVTrafficGenerator {
         else{
             return generatePut();
         }
+    }
+
+    public boolean verify(String key, String value){
+        if(dataContent.containsKey(key)){
+            if(dataContent.get(key).equals(value)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Pair<String,String> getRandomEntry(){
+        return new Pair<>(getRandomeString(keyLength),getRandomeString(payloadLength));
     }
 }
