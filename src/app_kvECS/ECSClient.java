@@ -52,19 +52,19 @@ public class ECSClient implements IECSClient {
 		}
 	}
     @Override
-    public boolean start() {
+    public boolean start() throws Exception {
         // TODO
         return false;
     }
 
     @Override
-    public boolean stop() {
+    public boolean stop() throws Exception {
         // TODO
         return false;
     }
 
     @Override
-    public boolean shutdown() {
+    public boolean shutdown() throws Exception {
         // TODO
         return false;
     }
@@ -83,7 +83,7 @@ public class ECSClient implements IECSClient {
 
     @Override
     public Collection<IECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
-        // TODO
+	    zkClient.updateMetadata(count);
         return null;
     }
 
@@ -112,6 +112,11 @@ public class ECSClient implements IECSClient {
     @Override
     public boolean removeNodes(Collection<String> nodeNames) {
         // TODO
+        return false;
+    }
+
+    public boolean removeNode(int index) {
+	    // TODO
         return false;
     }
 
@@ -151,7 +156,7 @@ public class ECSClient implements IECSClient {
     }
 
     private Map<String, String[]> importConfig(String file) throws IOException {
-
+    		
     		Map <String,String[]> configInMem= new HashMap <String,String[]>();
     		FileReader config = new FileReader(file);
 		BufferedReader readbuf = new BufferedReader(config);
@@ -162,14 +167,37 @@ public class ECSClient implements IECSClient {
         		fileRead=readbuf.readLine();
         }
         readbuf.close();
-
+        
         /* testprint config map
         for (Map.Entry<String, String[]> entry : configInMem.entrySet()) {
             System.out.println(entry.getKey()+" : "+Arrays.toString(entry.getValue()));
-        }
+        }   
         */
-
+        
         return configInMem;
+    }
+
+
+    private void runServer(String key,String host,
+    						  String path, String port,
+    						  String CacheSize,  String replaceStrat) throws IOException, InterruptedException
+    {
+    		String[] args = new String[] { "ssh", "-i", key,
+    									  "-n", host, "nohup",
+    									  "java","-jar",path,port,CacheSize,replaceStrat,"</dev/null &>/dev/null &"};
+
+    		System.out.println("start init server...");
+    		Process proc = new ProcessBuilder(args).start();
+        BufferedReader reader =
+              new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        String line = "";
+        while((line = reader.readLine()) != null) {
+            System.out.print(line + "\n");
+        }
+       int exitcode = proc.waitFor();
+       if (exitcode != 0) {
+           throw new IOException("Server init failed " + exitcode);
+       }
     }
 
     public static void main(String[] args) {
@@ -178,13 +206,25 @@ public class ECSClient implements IECSClient {
     		ZKadmin zkClient = admin.zkClient;
     		zkClient.connect();
     		zkClient.setupServer();
-    		zkClient.setupNodes(3);
-    		try {
-				Thread.sleep(600000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+    		zkClient.updateMetadata(3);
+//    		try {
+//				admin.runServer("id_rsa",
+//						  "nintengao@192.168.2.10",
+//						  "~/ECE419_UT/m2-server.jar",
+//						  "50000","10","FIFO");
+//			} catch (IOException | InterruptedException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+//    		try {
+//				Thread.sleep(600000);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
     		zkClient.disconnect();
     }
 }
+
+
+

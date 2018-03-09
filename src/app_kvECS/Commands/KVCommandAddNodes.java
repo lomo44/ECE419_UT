@@ -3,6 +3,7 @@ package app_kvECS.Commands;
 import common.command.KVCommand;
 import common.command.KVCommandPattern;
 import app_kvECS.ECSClient;
+import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 
 public class KVCommandAddNodes extends KVCommand<ECSClient> {
@@ -10,14 +11,19 @@ public class KVCommandAddNodes extends KVCommand<ECSClient> {
 
     @Override
     public KVJSONMessage execute(ECSClient clientInstance) {
-        // TODO
-        return new KVJSONMessage();
+        KVJSONMessage ret = new KVJSONMessage();
+        clientInstance.addNodes(Integer.parseInt(getNumNodes()),getCacheStrategy(),Integer.parseInt(getCacheSize()));
+        ret.setExtendStatus(eKVExtendStatusType.ADD_NODE_SUCCESS);
+        return ret;
     }
 
     @Override
     public void handleResponse(KVJSONMessage response) {
-        // TODO
-        return;
+        if (response.getExtendStatusType() == eKVExtendStatusType.ADD_NODE_SUCCESS) {
+            kv_out.println_info("Successfully start up specified number of servers with specified cache strategy & cache size.");
+        } else {
+            kv_out.println_error("Failed to start up specified number of new servers.");
+        }
     }
 
     public void setNumNodes(String numNodes) {

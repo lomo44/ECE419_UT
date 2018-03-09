@@ -33,6 +33,12 @@ public enum eKVExtendStatusType {
     REMOVE_NODE_FAIL(28),
     GET_NODE_SUCCESS(29),
     GET_NODE_FAIL(30),
+    SHUTDOWN_SUCCESS(31),
+    SHUTDOWN_FAIL(32),
+    START_SUCCESS(33),
+    START_FAIL(34),
+    STOP_SUCCESS(35),
+    STOP_FAIL(36),
     UNKNOWN_ERROR(0);
     private final int value;
 

@@ -3,6 +3,7 @@ package app_kvECS.Commands;
 import common.command.KVCommand;
 import common.command.KVCommandPattern;
 import app_kvECS.ECSClient;
+import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 
 public class KVCommandStart extends KVCommand<ECSClient> {
@@ -10,13 +11,22 @@ public class KVCommandStart extends KVCommand<ECSClient> {
 
     @Override
     public KVJSONMessage execute(ECSClient clientInstance) {
-        // TODO
-        return new KVJSONMessage();
+        KVJSONMessage ret = new KVJSONMessage();
+        try {
+            clientInstance.start();
+            ret.setExtendStatus(eKVExtendStatusType.START_SUCCESS);
+        } catch (Exception e) {
+            ret.setExtendStatus(eKVExtendStatusType.START_FAIL);
+        }
+        return ret;
     }
 
     @Override
     public void handleResponse(KVJSONMessage response) {
-        // TODO
-        return;
+        if (response.getExtendStatusType() == eKVExtendStatusType.START_SUCCESS) {
+            kv_out.println_info("Successfully started up servers.");
+        } else {
+            kv_out.println_error("Failed to start up servers.");
+        }
     }
 }

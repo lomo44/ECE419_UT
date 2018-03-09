@@ -112,6 +112,30 @@ public class KVJSONMessage implements KVMessage {
         }
 		return this;
 	}
+	
+	
+	public KVMessage MetadatafromBytes(byte[] in_Bytes,int offset, int length) throws IllegalArgumentException {
+        JSONObject keypair;
+        JSONObject newObject;
+        try{
+            newObject = new JSONObject(new String(in_Bytes, offset,length));
+            keypair =  newObject.getJSONObject(KEY_PAIR_NAME);
+        }
+        catch (JSONException e){
+            throw new IllegalArgumentException();
+        }
+		if(keypair == null){
+		    throw new IllegalArgumentException();
+        }
+        else{
+
+		    if(keypair.keys().hasNext()) {
+                key = keypair.keys().next();
+                Value = keypair.getString(key);
+            }
+        }
+		return this;
+	}
 
 	public boolean equal(KVMessage msg) {
         return this.Value.equals(msg.getValue()) &&
