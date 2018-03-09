@@ -7,13 +7,18 @@ import java.util.regex.Matcher;
 
 public class KVStorageNode extends KVNetworkNode{
     private KVRange<BigInteger> hashRange;
-
+    private String serverName ;
     /**
      * Create a network id from hostname and port number
      *
      * @param hostname   String representation of host name
      * @param portNumber Integer representation of port number
      */
+    public KVStorageNode(String hostname, int portNumber, String servername) {
+        super(hostname, portNumber);
+        serverName=servername;
+    }
+    
     public KVStorageNode(String hostname, int portNumber) {
         super(hostname, portNumber);
     }
@@ -24,6 +29,10 @@ public class KVStorageNode extends KVNetworkNode{
 
     public void setHashRange(KVRange<BigInteger> hashRange) {
         this.hashRange = hashRange;
+    }
+    
+    public String getserverName() {
+    		return serverName;
     }
 
     public boolean isResponsible(BigInteger hash){

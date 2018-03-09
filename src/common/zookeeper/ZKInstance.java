@@ -11,8 +11,11 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 import logger.KVOut;
 
 public abstract class ZKInstance implements Watcher {
-	protected static String METADATA = "/metadata";
-	protected static String SERVEROOT = "/servers";
+	protected final static String SERVER_BASE_PATH = "/servers";
+	protected final static String SERVER_POOL_BASE_PATH = "/pool";
+	protected final static String SERVER_CONFIG_NAME = "config";
+	protected final static String SERVER_METADATA_NAME = "metadata";
+	protected final static String SERVER_TASK_QUEUE_NAME = "taskQueue";
 	protected ZooKeeper zk;
 	protected String connectionString;
 	final CountDownLatch connection = new CountDownLatch(1);

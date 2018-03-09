@@ -37,13 +37,14 @@ public class ZKAdminMonitor {
 	        	monitorServers(path);
 	            break;
 	        case OK:
-	        		System.out.println("Server root node " + path + " found, active servers:" + admin.ActiveServer.size());
+	        		admin.ActiveServer= children;
+	        		System.out.println("Server pool " + path + " found, active servers:" + admin.ActiveServer.size());
 	            break;
 	        case NONODE:
-	        		System.out.println("Server root node: " + path + " not found");
+	        		System.out.println("Server poll: " + path + " not found");
 	            break;
 	        default:
-	        		System.out.println("Error while getting servers");
+	        		System.out.println("Error while getting server pool");
 	        }
 		}
 	};
@@ -97,4 +98,7 @@ public class ZKAdminMonitor {
 				ServerMonitorCallback,
 				admin);
 	}
+	
+	
+
 }

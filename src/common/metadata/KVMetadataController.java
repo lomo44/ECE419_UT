@@ -121,7 +121,9 @@ public class KVMetadataController {
     }
 
     public void clearStorageNodes(){
-        metaData.clear();
+        if(metaData!=null)
+    		metaData.clear();
+        if(keys!=null)
         keys.clear();
     }
 

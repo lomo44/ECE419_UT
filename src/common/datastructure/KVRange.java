@@ -41,6 +41,10 @@ public class KVRange<T extends Comparable> {
             String lowerBound, String upperBound, boolean LowerInclusive, boolean UpperInclusive){
         return new KVRange<>(new BigInteger(lowerBound),new BigInteger(upperBound),LowerInclusive,UpperInclusive);
     }
+    
+    public String[] toStringArray() {
+    			return new String[] {lowerBound.toString(),upperBound.toString()};
+    }
 
     @Override
     public boolean equals(Object o) {

@@ -1,5 +1,6 @@
 package app_kvECS;
 
+import common.networknode.KVStorageNode;
 import common.zookeeper.*;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -16,6 +17,8 @@ import java.util.List;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+
+import ecs.ECSNode;
 import ecs.IECSNode;
 import logger.KVOut;
 
@@ -30,11 +33,16 @@ import logger.KVOut;
 public class ECSClient implements IECSClient {
     
     private static KVOut kv_out = new KVOut("ECS");
-    private ZKadmin zkClient;
+    private String zkhost;
+    private int zkport;
+    private ZKadmin zkAdmin;
     private Collection<String> FutureActiveServerSnapShot;
-	public ECSClient(String configFile){
+	public ECSClient(String configFile, String host, int port){
 		try {
-			zkClient= new ZKadmin("localhost:2181",kv_out,importConfig(configFile));
+			zkhost = host;
+			zkport = port;
+			String hostport = zkhost + ":" + Integer.toString(zkport);
+			zkAdmin= new ZKadmin(hostport,kv_out,importConfig(configFile));
 		} catch (IOException e) {
 			System.out.print("Error while importing config");
 			e.printStackTrace();
@@ -66,14 +74,38 @@ public class ECSClient implements IECSClient {
 
     @Override
     public Collection<IECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
-    		
-    		return null;
+    		Collection<IECSNode> nodestoadd = setupNodes(count,cacheStrategy,cacheSize);
+    		for (IECSNode node : nodestoadd) {
+    			String servername = node.getNodeName();
+    			try {
+					runServer("id_rsa", 
+							  "nintengao@192.168.2.10", 
+							   servername, 
+							   zkhost, 
+							   Integer.toString(zkport));
+				} catch (IOException | InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    		}
+    		try {
+				awaitNodes(count,120);
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    		System.out.println("Nodes added");
+    		return nodestoadd;
     }
 
     @Override
     public Collection<IECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
-    		zkClient.updateMetadata(count);
-        return null;
+    		List<String> serverstoAdd = zkAdmin.selectServerToAdd(count);
+    		FutureActiveServerSnapShot = zkAdmin.createFutureSnapShot(serverstoAdd);
+    		List<KVStorageNode> tokvstorageNode = zkAdmin.toKVStorageNodeList(serverstoAdd);
+    		zkAdmin.updateMetadata(tokvstorageNode);
+    		zkAdmin.initZKNodes(serverstoAdd, cacheStrategy, cacheSize);
+    		return ECSNode.fromKVStorageNode(tokvstorageNode);
     }
 
     @Override
@@ -83,8 +115,8 @@ public class ECSClient implements IECSClient {
 	            @Override
 	            public Boolean call() {
 	             	boolean result=false;
-	            		while(FutureActiveServerSnapShot.containsAll(zkClient.getActiveServers())) {
-						List<String> activeServer =new ArrayList<String>(zkClient.getActiveServers());
+	            		while(FutureActiveServerSnapShot.containsAll(zkAdmin.getActiveServers())) {
+						List<String> activeServer =new ArrayList<String>(zkAdmin.getActiveServers());
 						Collections.sort(activeServer);
 						if (FutureActiveServerSnapShot.equals(activeServer)) {
 							result=true;
@@ -140,12 +172,12 @@ public class ECSClient implements IECSClient {
     }
     
     private void runServer(String key,String host, 
-    						  String path, String port, 
-    						  String CacheSize,  String replaceStrat) throws IOException, InterruptedException 
+    						   String name ,String zkhost, String port
+    						  ) throws IOException, InterruptedException 
     {
     		String[] args = new String[] { "ssh", "-i", key, 
     									  "-n", host, "nohup",
-    									  "java","-jar",path,port,CacheSize,replaceStrat,"</dev/null &>/dev/null &"};
+    									  "java","-jar",name,zkhost,port,"</dev/null &>/dev/null &"};
 
     		System.out.println("start init server...");
     		Process proc = new ProcessBuilder(args).start();
@@ -163,11 +195,13 @@ public class ECSClient implements IECSClient {
     
     public static void main(String[] args) {
         kv_out.enableLog("logs/ECS.log", Level.ALL);
-        ECSClient admin = new ECSClient(args[0]);
-    		ZKadmin zkClient = admin.zkClient;
-    		zkClient.connect();
-    		zkClient.setupServer();
-    		zkClient.updateMetadata(3);
+        String zkhost = "localhost";
+        int zkport = 2181;
+        ECSClient admin = new ECSClient(args[0],zkhost,zkport);
+    		ZKadmin zkAdmin = admin.zkAdmin;
+    		zkAdmin.connect();
+    		zkAdmin.setupServer();
+    		admin.addNodes(1, "FIFO", 10);
 //    		try {
 //				admin.runServer("id_rsa",
 //						  "nintengao@192.168.2.10",
@@ -183,7 +217,7 @@ public class ECSClient implements IECSClient {
 //				// TODO Auto-generated catch block
 //				e.printStackTrace();
 //			}
-    		zkClient.disconnect();
+    		zkAdmin.disconnect();
     }
 }
 

@@ -19,6 +19,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooKeeper;
 
+import app_kvServer.KVServerConfig;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadata;
 import common.metadata.KVMetadataController;
@@ -29,6 +30,7 @@ import common.networknode.KVStorageNode;
 public class ZKadmin extends ZKInstance {
 
 	protected List<String> ActiveServer = new ArrayList<String>();
+	protected List<String> PendingServer = new ArrayList<String>();
 	protected Set<String> PendingTask = new HashSet<String>(); 
 	protected Map<String,String[]> config;
 	private   ZKAdminMonitor serverMonitorHandler = new ZKAdminMonitor(this);
@@ -48,65 +50,99 @@ public class ZKadmin extends ZKInstance {
 //		T.start();
 //	}
 
-	public List<KVStorageNode> addNodes(int count,List<String> serverstoAdd) {
-		 serverstoAdd.removeAll(ActiveServer);
-		 Collections.shuffle(serverstoAdd);
-		 serverstoAdd = serverstoAdd.subList(0, count);
-		 serverstoAdd.addAll(ActiveServer);
-		 List<KVStorageNode> finallistOfServers = new ArrayList<KVStorageNode>();
-		 for (String server: serverstoAdd) {
+	
+	//list of sever kvstoragenode to list of server string names
+	public List<KVStorageNode> toKVStorageNodeList(List<String> serverlist){
+		List<KVStorageNode> nodelist = new ArrayList<KVStorageNode>();
+		for (String server: serverlist) {
 			 String[] value= config.get(server);
-			 KVStorageNode node = new KVStorageNode(value[0],Integer.parseInt(value[1]));
-			 finallistOfServers.add(node);
-		 }
-		 return finallistOfServers;
+			 KVStorageNode node = new KVStorageNode(value[0],Integer.parseInt(value[1]),server);
+			 nodelist.add(node);
+		}
+		return nodelist;
 	}
 	
-	private byte[] genMetadata(List<KVStorageNode> nodes) {
-		metadataController.clearStorageNodes();
-		metadataController.addStorageNodes(nodes);
+	//random pick 'count' servers from idle server pool
+	public List<String> selectServerToAdd(int count) {
+		List<String> serverlist = new ArrayList<String>(config.keySet()); 
+		serverlist.removeAll(ActiveServer);
+		Collections.shuffle(serverlist);
+		serverlist = serverlist.subList(0, count);
+		PendingServer = serverlist;
+		return serverlist;
+	}
+	
+	//create a snap shot of list of servers that 
+	//assemble will look like after adding the servers
+	public List<String> createFutureSnapShot(List<String> serverstoAdd){
+		List<String> futureSnapShot = new ArrayList<String>(serverstoAdd);
+		futureSnapShot.addAll(ActiveServer);
+		return futureSnapShot;
+	}
+	
+	
+	public void initZKNodes( List<String> serverstoAdd ,String cacheStrategy, int cacheSize) {
+		
+		
+		byte[] strat = serverConfigtoByte(cacheStrategy,cacheSize);
+		byte[] metadata = metaDataToByte();
+		for (String server : serverstoAdd) {
+			String path = SERVER_BASE_PATH + "/" + server;
+			String metadatapath = path + "/" + SERVER_METADATA_NAME;
+			String configpath = path + "/" + SERVER_CONFIG_NAME;
+			createNodeHandler.createNodeSync(path, "", 0);
+			createNodeHandler.createNodeSync(metadatapath, metadata.toString(), 0);
+			createNodeHandler.createNodeSync(configpath,strat.toString(),0);
+		}
+	}
+	
+	private byte[] serverConfigtoByte(String cacheStrategy, int cacheSize) {
+		KVServerConfig serverconfig = new KVServerConfig();
+		serverconfig.setKeyCacheStratagy(cacheStrategy);
+		serverconfig.setCacheSize(cacheSize);
+		return serverconfig.toKVJSONMessage().toBytes();
+	}
+	
+	private byte[] metaDataToByte() {
 		return metadataController.getMetaData()
 								.toKVJSONMessage().toBytes();
 	}
 	
+	public void updateMetadata(List<KVStorageNode> servertoAdd) {
+		metadataController.clearStorageNodes();
+		metadataController.addStorageNodes(servertoAdd);
+	}
+	
 	public void setupServer() {
 		init();
-		serverMonitorHandler.monitorServers(SERVEROOT);
+		serverMonitorHandler.monitorServers(SERVER_POOL_BASE_PATH);
 	}
 	
 	@Override
 	protected void init() {
 		try {
-			List<String> childServers=zk.getChildren(SERVEROOT,false);
+			List<String> childServers=zk.getChildren(SERVER_POOL_BASE_PATH,false);
 			System.out.println("server root found, active servers #: " + childServers.size());
-			createNodeHandler.createNodeSync(METADATA,"",0);
-			
 		} catch (KeeperException e) {
 			switch (e.code()){
 			case CONNECTIONLOSS:
 				init();
 				break;
 			case NONODE:
-        			System.out.println("No Servers found, creating server root: " + SERVEROOT);
-				createNodeHandler.createNodeSync(SERVEROOT,"",0);
+        			System.out.println("No Servers found, creating server root: " + SERVER_POOL_BASE_PATH);
+				createNodeHandler.createNodeSync(SERVER_POOL_BASE_PATH,"",0);
 				break;
 			default:
-        			System.out.println("Error while init server root " + SERVEROOT);
+        			System.out.println("Error while init server root " + SERVER_POOL_BASE_PATH);
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		createNodeHandler.createNodeSync(SERVER_BASE_PATH,"",0);
 	}
 	
-	public List<KVStorageNode> updateMetadata(int count) {
-		List<KVStorageNode> nodes = addNodes(count,new ArrayList<String>(config.keySet()));
-		byte[] metadata = genMetadata(nodes);
-		DataHandler.setDataSync(METADATA, metadata,-1);
-		byte[] output = DataHandler.getDataSync(METADATA);
-		assert output==metadata;
-		return nodes;
-	}
+
 	
 }
 

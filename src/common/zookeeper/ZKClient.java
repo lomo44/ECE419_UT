@@ -7,11 +7,6 @@ import common.metadata.KVMetadata;
 import org.apache.zookeeper.*;
 
 public class ZKClient extends ZKInstance{
-	private final static String SERVER_BASE_PATH = "/server";
-	private final static String SERVER_POOL_BASE_PATH = "/pool";
-	private final static String SERVER_CONFIG_NAME = "config";
-	private final static String SERVER_METADATA_NAME = "metadata";
-	private final static String SERVER_TASK_QUEUE_NAME = "taskQueue";
 
 	private String serverPath;
 	private String serverConfigPath;
@@ -38,7 +33,7 @@ public class ZKClient extends ZKInstance{
 
 	public ZKClient(String connectionString, String servername, KVServer serverInstance) throws KeeperException, InterruptedException {
 		super(connectionString, serverInstance.getLogger());
-		serverPath = SERVER_BASE_PATH + servername;
+		serverPath = SERVER_BASE_PATH +"/"+servername;
 		serverConfigPath = serverPath+"/"+SERVER_CONFIG_NAME;
 		serverMetadataPath = serverPath+"/"+SERVER_METADATA_NAME;
 		serverTaskQueuePath = serverPath + "/" + SERVER_TASK_QUEUE_NAME;
@@ -66,8 +61,7 @@ public class ZKClient extends ZKInstance{
 	}
 
 	protected void signalInitialization() throws KeeperException, InterruptedException {
-		//createNodeHandler.createNodeSync(serverPoolPath,"I am here",1);
-		zk.create(serverPoolPath,"I Am Here".getBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+		createNodeHandler.createNodeSync(serverPoolPath,"I am here",1);
 	}
 
 	@Override

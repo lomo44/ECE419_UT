@@ -73,7 +73,7 @@ public class KVServer implements IKVServer {
             }
         }
         this.port = serverHandler.getPort();
-        metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort()));
+        metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort(),getServername()));
         serverStatus = eKVServerStatus.STARTED;
     }
     /**
@@ -110,11 +110,15 @@ public class KVServer implements IKVServer {
             }
         }
         this.port = serverHandler.getPort();
-        metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort()));
+        metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort(),getServername()));
         metadataController.update(metadata);
     }
 
 
+	public String getServername() {
+		return uniqueName;
+	}
+	
     /**
      * Return the port that the server is open on
      * @return port number
