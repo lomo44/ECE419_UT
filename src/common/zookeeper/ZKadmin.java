@@ -84,22 +84,24 @@ public class ZKadmin extends ZKInstance {
 	
 	
 	public void initZKNodes( List<String> serverstoAdd ,String cacheStrategy, int cacheSize) {
-		byte[] strat = serverConfigtoByte(cacheStrategy,cacheSize);
 		byte[] metadata = metaDataToByte();
 		for (String server : serverstoAdd) {
 			String path = SERVER_BASE_PATH + "/" + server;
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
 			String configpath = path + "/" + SERVER_CONFIG_NAME;
+			String port = config.get(server)[1];
+			byte[] strat = serverConfigtoByte(port,cacheStrategy,cacheSize);
 			createNodeHandler.createNodeSync(path, "", 0);
 			createNodeHandler.createNodeSync(metadatapath, new String(metadata), 0);
 			createNodeHandler.createNodeSync(configpath,new String(strat),0);
 		}
 	}
 	
-	private byte[] serverConfigtoByte(String cacheStrategy, int cacheSize) {
+	private byte[] serverConfigtoByte(String port,String cacheStrategy, int cacheSize) {
 		KVServerConfig serverconfig = new KVServerConfig();
 		serverconfig.setKeyCacheStratagy(cacheStrategy);
 		serverconfig.setCacheSize(cacheSize);
+		serverconfig.setServerPort(port);
 		return serverconfig.toKVJSONMessage().toBytes();
 	}
 	

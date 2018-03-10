@@ -30,6 +30,7 @@ public class KVServer implements IKVServer {
     private Thread handlerThread;
     private KVServerHandler serverHandler;
 
+    private int zkport;
     private int port;
     private int cacheSize;
 	private KVDatabase database;
@@ -88,7 +89,7 @@ public class KVServer implements IKVServer {
 	 */
 	public KVServer(String name, String zkHostname, int zkPort) {
         this.uniqueName = name;
-        this.port = zkPort;
+        this.zkport = zkPort;
 	    //kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
         try {
             zkClient = new ZKClient(zkHostname+":"+Integer.toString(zkPort),name,this);
@@ -100,7 +101,8 @@ public class KVServer implements IKVServer {
 	}
 
 	public void initializeServer(KVServerConfig config, KVMetadata metadata){
-        database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),this.uniqueName);
+        port = config.getServerPort();
+		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),this.uniqueName);
         serverHandler = createServerHandler();
         setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
         handlerThread = new Thread(serverHandler);

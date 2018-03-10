@@ -9,6 +9,7 @@ public class KVServerConfig extends KVExclusiveMessage {
 
     public final static String KEY_CACHE_STRATAGY = "cache_stratagy";
     public final static String KEY_CACHE_SIZE = "cache_size";
+    public final static String KEY_SERVER_PORT = "server_port";
 
     public KVServerConfig() {
         super(KVCONFIGRATION_KEY, KVCONFIGRATION_PAYLOADID);
@@ -36,4 +37,12 @@ public class KVServerConfig extends KVExclusiveMessage {
     public void setCacheSize(int cacheSize){
         add(KEY_CACHE_SIZE,Integer.toString(cacheSize));
     }
+    
+    public int getServerPort() {
+    		return Integer.valueOf(get(KEY_SERVER_PORT));
+    }
+    public void setServerPort(String port) {
+    		add(KEY_SERVER_PORT,port);
+    }
+    
 }
