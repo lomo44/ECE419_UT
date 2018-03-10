@@ -12,7 +12,7 @@ public class KVCommandAddNodes extends KVCommand<ECSClient> {
     @Override
     public KVJSONMessage execute(ECSClient clientInstance) {
         KVJSONMessage ret = new KVJSONMessage();
-        clientInstance.addNodes(Integer.parseInt(getNumNodes()),getCacheStrategy(),Integer.parseInt(getCacheSize()));
+        clientInstance.addNodes(getNumNodes(),getCacheStrategy(),getCacheSize());
         ret.setExtendStatus(eKVExtendStatusType.ADD_NODE_SUCCESS);
         return ret;
     }
@@ -35,11 +35,11 @@ public class KVCommandAddNodes extends KVCommand<ECSClient> {
     public void setCacheStrategy(String cacheStrategy) {
         set("CacheStrategy",cacheStrategy);
     }
-    public String getNumNodes() {
-        return getValue("NumNodes");
+    public int getNumNodes() {
+        return Integer.parseInt(getValue("NumNodes"));
     }
-    public String getCacheSize() {
-        return getValue("CacheSize");
+    public int getCacheSize() {
+        return Integer.parseInt(getValue("CacheSize"));
     }
     public String getCacheStrategy() {
         return getValue("CacheStrategy");

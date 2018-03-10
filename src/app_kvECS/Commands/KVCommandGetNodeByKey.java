@@ -19,4 +19,7 @@ public class KVCommandGetNodeByKey extends KVCommand<ECSClient> {
         // TODO
         return;
     }
+
+    public void setKey(String key){set("key",key);}
+    public String getKey(){return getValue("key");}
 }

@@ -30,7 +30,7 @@ public class KVCommandRemoveNode extends KVCommand<ECSClient> {
     public void setIndex(String index) {
         set ("Index",index);
     }
-    public String getIndex() {
-        return getValue("Index");
+    public int getIndex() {
+        return Integer.parseInt(getValue("Index"));
     }
 }

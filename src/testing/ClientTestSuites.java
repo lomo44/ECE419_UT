@@ -2,12 +2,12 @@ package testing;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-import testing.ClientTests.KVCommandPatternTest;
+import testing.ClientTests.KVClientCommandPatternTest;
 
 @RunWith(Suite.class)
 
 @Suite.SuiteClasses({
-        KVCommandPatternTest.class,
+        KVClientCommandPatternTest.class,
 })
 
 public class ClientTestSuites {

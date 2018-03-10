@@ -13,13 +13,14 @@ public class KVCommandPatternAddNode extends KVCommandPattern {
         Matcher matcher = commandRegex.matcher(input);
         matcher.find();
         KVCommandAddNode newcommand = new KVCommandAddNode();
-        newcommand.setCacheSize(matcher.group(1));
-        newcommand.setCacheStrategy(matcher.group(2));
+        newcommand.setPortNumber(Integer.valueOf(matcher.group(1)));
+        newcommand.setCacheSize(Integer.valueOf(matcher.group(2)));
+        newcommand.setCacheStrategy(matcher.group(3));
         return newcommand;
     }
 
     @Override
-    public Pattern generateRegex() { return Pattern.compile("^addNode (\\S+) (\\d+)$"); }
+    public Pattern generateRegex() { return Pattern.compile("^addNode (\\d*) (\\d*) (FIFO|LRU|LFU)$"); }
 
     @Override
     public String getHelpMessageString() {

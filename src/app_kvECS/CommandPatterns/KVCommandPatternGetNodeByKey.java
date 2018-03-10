@@ -13,12 +13,13 @@ public class KVCommandPatternGetNodeByKey extends KVCommandPattern {
         Matcher matcher = commandRegex.matcher(input);
         matcher.find();
         KVCommandGetNodeByKey newcommand = new KVCommandGetNodeByKey();
+        newcommand.setKey(matcher.group(1));
         return newcommand;
     }
 
     @Override
     public Pattern generateRegex() {
-        return Pattern.compile("^getNodeByKey (\\S+)$");
+        return Pattern.compile("^getNodeByKey (.+)$");
     }
 
     @Override

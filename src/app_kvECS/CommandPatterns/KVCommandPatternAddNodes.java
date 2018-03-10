@@ -21,7 +21,7 @@ public class KVCommandPatternAddNodes extends KVCommandPattern {
 
     @Override
     public Pattern generateRegex() {
-        return Pattern.compile("^addNodes (\\d+) (\\S+) (\\d+)$");
+        return Pattern.compile("^addNodes (\\d*) (\\d*) (FIFO|LRU|LFU)$");
     }
 
     @Override

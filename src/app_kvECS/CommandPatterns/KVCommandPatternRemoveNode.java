@@ -19,7 +19,7 @@ public class KVCommandPatternRemoveNode extends KVCommandPattern {
 
     @Override
     public Pattern generateRegex() {
-        return Pattern.compile("^removeNode (\\S+)$");
+        return Pattern.compile("^removeNode (\\d*)$");
     }
 
     @Override

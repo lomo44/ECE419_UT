@@ -18,7 +18,7 @@ public class KVCommandPatternGetNodes extends KVCommandPattern {
 
     @Override
     public Pattern generateRegex() {
-        return Pattern.compile("^getNodes(\\s*)$");
+        return Pattern.compile("^getNodes$");
     }
 
     @Override
