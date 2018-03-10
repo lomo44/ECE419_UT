@@ -34,7 +34,7 @@ public class ECSNode implements IECSNode {
     */
     @Override
     public String getNodeName() {
-        return node.toString();
+        return node.getserverName();
     }
 
     /**

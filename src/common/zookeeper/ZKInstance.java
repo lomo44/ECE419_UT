@@ -25,6 +25,7 @@ public abstract class ZKInstance implements Watcher {
 	public ZKInstance(String connectionString, KVOut logger) {
 		this.connectionString =connectionString;
 		this.kv_out=logger;
+		connect();
 	}
 	
 	public void connect() {

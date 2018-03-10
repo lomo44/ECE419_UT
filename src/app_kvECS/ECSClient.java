@@ -66,7 +66,7 @@ public class ECSClient implements IECSClient {
         zkhost = host;
         zkport = port;
         String hostport = zkhost + ":" + Integer.toString(zkport);
-        zkAdmin = new ZKadmin(Integer.toString(hostport.hashCode()), kv_out);
+        zkAdmin = new ZKadmin(hostport, kv_out);
         sleepingServer = getAvailableNodesFromConfig(configFile);
     }
 
@@ -182,7 +182,7 @@ public class ECSClient implements IECSClient {
     public boolean awaitNodes(int count, int timeout) throws Exception {
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis()-startTime <= timeout){
-            if(zkAdmin.getCurrentSetupNodesNames().size() > count){
+            if(zkAdmin.getCurrentSetupNodesNames().size() >= count){
                 return true;
             }
         }
@@ -226,6 +226,7 @@ public class ECSClient implements IECSClient {
                 nameKVStorageNodeMap.put(newNode.getserverName(),newNode);
                 nameECSNodeMap.put(newNode.getserverName(),newNode.toECSNode());
             }
+            configLine = readbuf.readLine();
         }
         readbuf.close();
         return ret;
@@ -247,7 +248,6 @@ public class ECSClient implements IECSClient {
             throw new IOException("Server init failed " + exitcode);
         }
     }
-
 
     private void run(){
         kv_out.println_debug("Client started.");
@@ -325,6 +325,7 @@ public class ECSClient implements IECSClient {
         kv_out.enableLog("logs/ECS.log", Level.ALL);
         String zkhost = "localhost";
         int zkport = 2181;
+
         ECSClient admin = new ECSClient(args[0], zkhost, zkport);
         admin.run();
 //        ZKadmin zkAdmin = admin.zkAdmin;

@@ -40,17 +40,17 @@ public class ZKClient extends ZKInstance{
 		serverPoolPath =  SERVER_POOL_BASE_PATH + "/"+servername;
 		this.serverInstance = serverInstance;
 
-		//init();
-		connect();
-
+		System.out.println("Try to initialize server");
 		// Retain server configuration file
 		KVJSONMessage msg_config = new KVJSONMessage();
 		byte[] config_data = zk.getData(serverConfigPath,false,null);
+		System.out.println(String.format("Loading configuration file from: %s",serverConfigPath));
+		System.out.println(new String(config_data));
 		msg_config.fromBytes(config_data,0,config_data.length);
 		serverConfig =  KVServerConfig.fromKVJSONMessage(msg_config);
-
+		System.out.println("Try to initialize metadata");
 		// Retain server initial metadata file;
-		serverInstance.initializeServer(serverConfig, obtainMetadataFromZK());
+		serverInstance.initializeServer(serverConfig, null);
 		signalInitialization();
 	}
 

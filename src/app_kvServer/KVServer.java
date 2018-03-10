@@ -458,7 +458,4 @@ public class KVServer implements IKVServer {
     public KVOut getLogger() {
         return kv_out;
     }
-
-    private void initializeShutdownDaemon(){
-    }
 }

@@ -27,7 +27,7 @@ public class ZKAdminMonitor {
 	        		for(String node: children){
 						admin.addNodeIndicator(node);
 					}
-	        		System.out.println("Server pool " + path + " found");
+	        		System.out.println("Server pool " + path + " found, Count: "+Integer.toString(admin.getCurrentSetupNodesNames().size()));
 	            break;
 	        case NONODE:
 	        		System.out.println("Server poll: " + path + " not found");

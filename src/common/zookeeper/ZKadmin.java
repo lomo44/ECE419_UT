@@ -25,8 +25,8 @@ public class ZKadmin extends ZKInstance {
 	private ZKAdminMonitor serverMonitorHandler = new ZKAdminMonitor(this);
 
 
-	public ZKadmin(String hostPort,KVOut logger) {
-		super(hostPort,logger);
+	public ZKadmin(String connectionString,KVOut logger) {
+		super(connectionString,logger);
 		//this.sleepingServer = idleServer;
 		init();
 	}
@@ -51,7 +51,7 @@ public class ZKadmin extends ZKInstance {
 			createNodeHandler.createNodeSync(path, "", 0);
 			// We don't need to populate meta data for now since we are not doing migration
 			createNodeHandler.createNodeSync(metadatapath, "", 0);
-			createNodeHandler.createNodeSync(configpath,config.toKVJSONMessage().toString(),1);
+			createNodeHandler.createNodeSync(configpath,new String(config.toKVJSONMessage().toBytes()),1);
 		}
 	}
 
