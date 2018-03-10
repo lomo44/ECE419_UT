@@ -3,13 +3,11 @@ package testing.IntegrationTests;
 
 import app_kvECS.ECSClient;
 import app_kvServer.KVServer;
-import ecs.ECSNode;
 import ecs.IECSNode;
 import junit.framework.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -36,7 +34,7 @@ public class ZookeeperTests{
     }
 
     @Test
-    public void testBasic() throws IOException {
+    public void testBasic_ServerSetup() throws IOException {
         ECSClient ecsClient = new ECSClient(ECS_CONFIG_PATH,ZK_HOST_NAME,ZK_PORT_NUMBER);
         Map<String, KVServer> nodes = new HashMap<>();
         try {
@@ -46,10 +44,11 @@ public class ZookeeperTests{
                 nodes.put(node.getNodeName(), server);
             }
             Assert.assertEquals(true,ecsClient.awaitNodes(2,15*1000));
-
-            ecsClient.start();
-
-            ecsClient.stop();
+            Assert.assertEquals(true,ecsClient.start());
+            Assert.assertEquals(true,ecsClient.stop());
+            for(String node : nodes.keySet()){
+                nodes.get(node).close();
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

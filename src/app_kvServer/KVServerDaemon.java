@@ -15,5 +15,6 @@ public class KVServerDaemon implements Runnable{
             }
         }
         serverInstance.daemonShutdownHandle();
+        System.out.println("Serve exit. Daemon finished");
     }
 }

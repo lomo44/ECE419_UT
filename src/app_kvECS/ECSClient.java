@@ -155,8 +155,8 @@ public class ECSClient implements IECSClient {
             System.out.println("add nodes timed out");
             e.printStackTrace();
         }
-        // Add selected nodes
         runningServer.addAll(selectedNode);
+        // Add selected nodes
         metadataController.addStorageNodes(selectedNode);
         zkAdmin.broadcastMetadata(selectedNode,metadataController.getMetaData());
         return convertToECSNode(selectedNode);
