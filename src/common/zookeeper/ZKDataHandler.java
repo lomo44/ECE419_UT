@@ -8,8 +8,8 @@ import org.apache.zookeeper.data.Stat;
 public class ZKDataHandler {
 	private ZooKeeper zk ;
 
-	public ZKDataHandler(ZooKeeper ZK) {
-		zk=ZK;
+	public ZKDataHandler(ZKInstance instance) {
+		zk=instance.zk;
 	}
 	
 	public void setDataSync(String path, byte[] content, int version) {

@@ -91,10 +91,12 @@ public class ECSClient implements IECSClient {
     		try {
 				awaitNodes(count,120);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
+				System.out.println("add nodes timed out");
 				e.printStackTrace();
 			}
-    		System.out.println("Nodes added");
+    		finally {
+    			System.out.println("nodes successfully added");
+    		}
     		return nodestoadd;
     }
 
@@ -148,6 +150,9 @@ public class ECSClient implements IECSClient {
         return null;
     }
     
+    public ZKadmin getZooKeeperInstance() {
+    		return zkAdmin;
+    }
     
     private Map<String, String[]> importConfig(String file) throws IOException {
     		

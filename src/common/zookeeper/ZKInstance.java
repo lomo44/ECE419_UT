@@ -31,8 +31,8 @@ public abstract class ZKInstance implements Watcher {
 		try {
 			zk = new ZooKeeper(connectionString,15000,this);
 		    connection.await();
-		    createNodeHandler = new ZKcreateNode(this.zk);
-		    DataHandler = new ZKDataHandler(this.zk);
+		    createNodeHandler = new ZKcreateNode(this);
+		    DataHandler = new ZKDataHandler(this);
 		} catch (IOException | InterruptedException e) {
 			System.out.println("Error occurs when connecting to ZK server");
 			e.printStackTrace();

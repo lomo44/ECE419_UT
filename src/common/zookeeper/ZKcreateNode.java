@@ -26,8 +26,8 @@ public class ZKcreateNode implements Runnable{
 	}
 	
 	//normal handler
-	public ZKcreateNode(ZooKeeper ZK) {
-		zk=ZK;
+	public ZKcreateNode(ZKInstance instance) {
+		zk=instance.zk;
 	}
 	
 	private CreateMode flagtoCreateMode(int flag) {

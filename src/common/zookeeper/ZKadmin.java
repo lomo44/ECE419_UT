@@ -2,6 +2,8 @@ package common.zookeeper;
 
 import logger.KVOut;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -82,8 +84,6 @@ public class ZKadmin extends ZKInstance {
 	
 	
 	public void initZKNodes( List<String> serverstoAdd ,String cacheStrategy, int cacheSize) {
-		
-		
 		byte[] strat = serverConfigtoByte(cacheStrategy,cacheSize);
 		byte[] metadata = metaDataToByte();
 		for (String server : serverstoAdd) {
@@ -91,8 +91,8 @@ public class ZKadmin extends ZKInstance {
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
 			String configpath = path + "/" + SERVER_CONFIG_NAME;
 			createNodeHandler.createNodeSync(path, "", 0);
-			createNodeHandler.createNodeSync(metadatapath, metadata.toString(), 0);
-			createNodeHandler.createNodeSync(configpath,strat.toString(),0);
+			createNodeHandler.createNodeSync(metadatapath, new String(metadata), 0);
+			createNodeHandler.createNodeSync(configpath,new String(strat),0);
 		}
 	}
 	
@@ -106,6 +106,10 @@ public class ZKadmin extends ZKInstance {
 	private byte[] metaDataToByte() {
 		return metadataController.getMetaData()
 								.toKVJSONMessage().toBytes();
+	}
+	
+	public KVMetadata getmetaData() {
+		return metadataController.getMetaData();
 	}
 	
 	public void updateMetadata(List<KVStorageNode> servertoAdd) {
