@@ -63,7 +63,7 @@ public class KVNetworkNode {
     @Override
     public boolean equals(Object o) {
         KVNetworkNode rhs = (KVNetworkNode) o;
-        return this.id.x.matches(rhs.id.x ) && this.id.y == rhs.id.y;
+        return this.id.x.matches(rhs.id.x ) && this.id.y.equals(rhs.id.y);
     }
 
     /**

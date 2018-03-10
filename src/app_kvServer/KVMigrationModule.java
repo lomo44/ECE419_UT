@@ -2,6 +2,7 @@ package app_kvServer;
 
 
 import common.communication.KVCommunicationModule;
+import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
 import common.networknode.KVNetworkNode;
@@ -51,7 +52,9 @@ public class KVMigrationModule {
         }
         // Find the communication module initiates the migration
         KVCommunicationModule module = connectionTable.get(outputNode);
-        module.send(msg.toKVJSONMessage());
+        KVJSONMessage outputmsg = msg.toKVJSONMessage();
+        outputmsg.setExtendStatus(eKVExtendStatusType.MIGRATION_DATA);
+        module.send(outputmsg);
         return module.receiveMessage();
     }
 }

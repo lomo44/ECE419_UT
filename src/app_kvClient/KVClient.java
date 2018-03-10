@@ -46,7 +46,7 @@ public class KVClient implements IKVClient,Runnable {
      */
     public KVClient(){
         keyboard = new Scanner(System.in);
-        setLogLevel(eKVLogLevel.DEBUG,eKVLogLevel.DEBUG);
+        setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
     }
     /**
      * Stop the execution of current KVClient instance

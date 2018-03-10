@@ -40,6 +40,8 @@ public class AllTests {
 		clientSuite.addTestSuite(KVTabletTest.class);
 		clientSuite.addTestSuite(KVTabletStorageTest.class);
 		clientSuite.addTestSuite(KVMigrationMessageTest.class);
+		clientSuite.addTestSuite(KVMigrationTest.class);
+		clientSuite.addTestSuite(KVServerConfigTest.class);
 		return clientSuite;
 	}
 	

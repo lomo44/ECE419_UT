@@ -46,35 +46,28 @@ public class KVDatabase implements IKVDatabase {
 	@Override
 	public String getKV(String key) throws Exception {
 		String value= null;
-		lockRead();
 		try {
 			value = cache.getFromCache(key);
 		} catch (Exception e) {
 			try {
 				value=storage.getFromStorage(key);
 				cache.putToCache(key, value);
-				unlockRead();
 				return value;
 			} catch (Exception e1) {
-			    unlockRead();
 				throw e1;
 			}
 		}
-		unlockRead();
 		return value;
 	}
 
 	@Override
 	public void putKV(String key, String value) throws Exception {
-        lockRead();
 	    try {
             cache.putToCache(key, value);
             storage.putToStorage(key, value);
         } catch (Exception e) {
-            unlockRead();
             throw e;
         }
-        unlockRead();
 	}
 
 	public Set<String> getKeys(){
@@ -120,10 +113,10 @@ public class KVDatabase implements IKVDatabase {
 	    this.writeLock.writeLock().unlock();
     }
 
-    private void lockRead(){
+    public void lockRead(){
 	    this.writeLock.readLock().lock();;
     }
-    private void unlockRead(){
+    public void unlockRead(){
         this.writeLock.readLock().unlock();;
     }
 

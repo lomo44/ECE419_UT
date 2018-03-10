@@ -90,6 +90,8 @@ public class KVServerHandler implements Runnable {
         aliveinstancethreads = new Vector<Thread>();
         aliveInstances = new Vector<KVServerInstance>();
         isRunning = false;
+        kv_out.changeLogLevel(eKVLogLevel.OFF);
+        kv_out.changeOutputLevel(eKVLogLevel.OFF);
     }
 
     /**

@@ -1,6 +1,7 @@
 package common.networknode;
 
 import common.datastructure.KVRange;
+import database.storage.KVStorage;
 
 import java.math.BigInteger;
 import java.util.regex.Matcher;
@@ -18,7 +19,22 @@ public class KVStorageNode extends KVNetworkNode{
         super(hostname, portNumber);
         serverName=servername;
     }
-    
+
+    public KVStorageNode(KVNetworkNode node, String serverName){
+        super(node.getHostName(),node.getPortNumber());
+        this.serverName = serverName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
     public KVStorageNode(String hostname, int portNumber) {
         super(hostname, portNumber);
     }
@@ -51,4 +67,5 @@ public class KVStorageNode extends KVNetworkNode{
         }
         return null;
     }
+
 }

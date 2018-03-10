@@ -165,11 +165,6 @@ public class KVMetadataController {
     }
 
     public KVStorageNode getStorageNode(KVNetworkNode node){
-        return getCurrentMetaData().getStorageNodeFromHash(hash(node.toString()));
-    }
-
-
-    public KVMetadata getCurrentMetaData(){
-        return metaData;
+        return getMetaData().getStorageNodeFromHash(hash(node.toString()));
     }
 }
