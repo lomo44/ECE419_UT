@@ -60,15 +60,12 @@ public class ZKClient extends ZKInstance{
 		serverInstance.handleChangeInMetadata(KVMetadata.fromKVJSONMessage(temp));
 	}
 
-	protected void signalInitialization() throws KeeperException, InterruptedException {
+	protected void signalInitialization(){
 		createNodeHandler.createNodeSync(serverPoolPath,"I am here",1);
 	}
 
 	@Override
 	protected void init() {
-		//createNodeHandler.createNodeSync(serverPath, "", 1);
-		//ClientMonitorHandler.MonitorMetaData(METADATA);
-		//ClientMonitorHandler.MonitorTask(serverPath);
 	}
 
 	private KVMetadata obtainMetadataFromZK() throws KeeperException, InterruptedException {

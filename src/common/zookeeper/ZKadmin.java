@@ -1,29 +1,17 @@
 package common.zookeeper;
 
+import common.metadata.KVMetadata;
 import logger.KVOut;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.IOException;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.logging.MemoryHandler;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.Watcher.Event.KeeperState;
-import org.apache.zookeeper.ZooKeeper;
 
 import app_kvServer.KVServerConfig;
-import common.messages.KVJSONMessage;
-import common.metadata.KVMetadata;
 import common.metadata.KVMetadataController;
 import common.networknode.KVStorageNode;
 
@@ -31,99 +19,54 @@ import common.networknode.KVStorageNode;
 
 public class ZKadmin extends ZKInstance {
 
-	protected List<String> ActiveServer = new ArrayList<String>();
-	protected List<String> PendingServer = new ArrayList<String>();
-	protected Set<String> PendingTask = new HashSet<String>(); 
-	protected Map<String,String[]> config;
-	private   ZKAdminMonitor serverMonitorHandler = new ZKAdminMonitor(this);
-	private KVMetadataController metadataController = new KVMetadataController();
+//	private List<KVStorageNode> sleepingServer;
+//	private List<KVStorageNode> runningServer;
 
-	public ZKadmin(String hostPort,KVOut logger, Map<String,String[]> configuration) {
+	private Set<String> currentSetupNodes = new ConcurrentHashMap().newKeySet();
+
+	private ZKAdminMonitor serverMonitorHandler = new ZKAdminMonitor(this);
+
+
+	public ZKadmin(String hostPort,KVOut logger) {
 		super(hostPort,logger);
-		this.config=configuration;
-	}
-	
-	public List<String> getActiveServers(){
-		return ActiveServer;
+		//this.sleepingServer = idleServer;
+		init();
 	}
 
-//	private void executeJob(Runnable R) {
-//		Thread T = new Thread(R);
-//		T.start();
-//	}
+	public void addNodeIndicator(String nodeName){
+		this.currentSetupNodes.add(nodeName);
+	}
 
-	
-	//list of sever kvstoragenode to list of server string names
-	public List<KVStorageNode> toKVStorageNodeList(List<String> serverlist){
-		List<KVStorageNode> nodelist = new ArrayList<KVStorageNode>();
-		for (String server: serverlist) {
-			 String[] value= config.get(server);
-			 KVStorageNode node = new KVStorageNode(value[0],Integer.parseInt(value[1]),server);
-			 nodelist.add(node);
-		}
-		return nodelist;
+	public Set<String> getCurrentSetupNodesNames() {
+		return currentSetupNodes;
 	}
-	
-	//random pick 'count' servers from idle server pool
-	public List<String> selectServerToAdd(int count) {
-		List<String> serverlist = new ArrayList<String>(config.keySet()); 
-		serverlist.removeAll(ActiveServer);
-		Collections.shuffle(serverlist);
-		serverlist = serverlist.subList(0, count);
-		PendingServer = serverlist;
-		return serverlist;
-	}
-	
-	//create a snap shot of list of servers that 
-	//assemble will look like after adding the servers
-	public List<String> createFutureSnapShot(List<String> serverstoAdd){
-		List<String> futureSnapShot = new ArrayList<String>(serverstoAdd);
-		futureSnapShot.addAll(ActiveServer);
-		return futureSnapShot;
-	}
-	
-	
-	public void initZKNodes( List<String> serverstoAdd ,String cacheStrategy, int cacheSize) {
-		byte[] metadata = metaDataToByte();
-		for (String server : serverstoAdd) {
-			String path = SERVER_BASE_PATH + "/" + server;
+
+	public void setupNodes(List<KVStorageNode> nodes, String cacheStrategy, int cacheSize) {
+		for (KVStorageNode server : nodes) {
+			KVServerConfig config = new KVServerConfig();
+			config.setCacheSize(cacheSize);
+			config.setKeyCacheStratagy(cacheStrategy);
+			config.setServerPort(Integer.toString(server.getPortNumber()));
+			String path = SERVER_BASE_PATH + "/" + server.getserverName();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
 			String configpath = path + "/" + SERVER_CONFIG_NAME;
-			String port = config.get(server)[1];
-			byte[] strat = serverConfigtoByte(port,cacheStrategy,cacheSize);
 			createNodeHandler.createNodeSync(path, "", 0);
-			createNodeHandler.createNodeSync(metadatapath, new String(metadata), 0);
-			createNodeHandler.createNodeSync(configpath,new String(strat),0);
+			// We don't need to populate meta data for now since we are not doing migration
+			createNodeHandler.createNodeSync(metadatapath, "", 0);
+			createNodeHandler.createNodeSync(configpath,config.toKVJSONMessage().toString(),0);
 		}
 	}
-	
-	private byte[] serverConfigtoByte(String port,String cacheStrategy, int cacheSize) {
-		KVServerConfig serverconfig = new KVServerConfig();
-		serverconfig.setKeyCacheStratagy(cacheStrategy);
-		serverconfig.setCacheSize(cacheSize);
-		serverconfig.setServerPort(port);
-		return serverconfig.toKVJSONMessage().toBytes();
+
+
+	public void broadcastMetadata(List<KVStorageNode> nodes, KVMetadata metadata){
+		for (KVStorageNode node: nodes
+				) {
+			String path = SERVER_BASE_PATH + "/" + node.getserverName();
+			String metadatapath = path + "/" + SERVER_METADATA_NAME;
+			DataHandler.setDataSync(metadatapath,metadata.toKVJSONMessage().toBytes(),0);
+		}
 	}
-	
-	private byte[] metaDataToByte() {
-		return metadataController.getMetaData()
-								.toKVJSONMessage().toBytes();
-	}
-	
-	public KVMetadata getmetaData() {
-		return metadataController.getMetaData();
-	}
-	
-	public void updateMetadata(List<KVStorageNode> servertoAdd) {
-		metadataController.clearStorageNodes();
-		metadataController.addStorageNodes(servertoAdd);
-	}
-	
-	public void setupServer() {
-		init();
-		serverMonitorHandler.monitorServers(SERVER_POOL_BASE_PATH);
-	}
-	
+
 	@Override
 	protected void init() {
 		try {
@@ -146,10 +89,8 @@ public class ZKadmin extends ZKInstance {
 			e.printStackTrace();
 		}
 		createNodeHandler.createNodeSync(SERVER_BASE_PATH,"",0);
+		serverMonitorHandler.monitorServers(SERVER_POOL_BASE_PATH);
 	}
-	
-
-	
 }
 
 

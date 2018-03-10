@@ -71,6 +71,10 @@ public class KVMetadataController {
         return null;
     }
 
+    public KVStorageNode getResponsibleStorageNode(String key){
+        return getResponsibleStorageNode(hash(key));
+    }
+
     /**
      * Initialize digest algorithm
      * @return MessageDigest object

@@ -2,6 +2,8 @@ package common.networknode;
 
 import common.datastructure.KVRange;
 import database.storage.KVStorage;
+import ecs.ECSNode;
+import ecs.IECSNode;
 
 import java.math.BigInteger;
 import java.util.regex.Matcher;
@@ -68,4 +70,7 @@ public class KVStorageNode extends KVNetworkNode{
         return null;
     }
 
+    public ECSNode toECSNode(){
+        return new ECSNode(this);
+    }
 }
