@@ -40,10 +40,12 @@ public class KVMigrationTest extends TestCase{
         serverB = new KVServer(0,100,"FIFO","temp2");
         clientA = new KVClient();
         clientB = new KVClient();
+
         mainController.addStorageNode(new KVStorageNode(serverA.getNetworkNode(),serverA.getServername()));
         mainController.addStorageNode(new KVStorageNode(serverB.getNetworkNode(),serverB.getServername()));
         clientA.newConnection("localhost",serverA.getPort());
         clientB.newConnection("localhost",serverB.getPort());
+
         assertEquals(true,clientA.isConnected());
         assertEquals(true,clientB.isConnected());
         initializeData(clientA,generatorA);
@@ -63,6 +65,8 @@ public class KVMigrationTest extends TestCase{
 
     @Test
     public void testHandleMetadataChange() throws Exception {
+        clientA.getStore().setServerReconnectEnable(false);
+        clientB.getStore().setServerReconnectEnable(false);
         // filtered out migrated data and persisted data
         HashMap<String,String> map = generatorA.getDataContent();
         Set<String> migratedSet = new HashSet<>();

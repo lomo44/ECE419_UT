@@ -5,11 +5,11 @@ import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
 import database.storage.KVStorage;
 
+
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
@@ -55,10 +55,7 @@ public class KVMetadataController {
     public KVMetadata getMetaData() {
     		return metaData;
     }
-    
-    public void putMetaData(KVMetadata newData) {
-    		metaData = newData;
-    }
+
     /**
      * Given a hash, return its responsible NetworkNode
      * @param hash input hash
@@ -100,6 +97,19 @@ public class KVMetadataController {
         if(!metaData.hasStorageNodeByHash(hash)){
             this.metaData.addStorageNodeHashPair(hash,node);
             this.keys.add(hash);
+            generateHashRange();
+        }
+    }
+
+    public void removeStorageNode(KVStorageNode node){
+        String idString = node.toString();
+        BigInteger hash = hash(idString);
+        if(this.metaData==null){
+            update(new KVMetadata());
+        }
+        if(metaData.hasStorageNodeByHash(hash)){
+            this.metaData.removeStorageNodeHashPair(hash);
+            this.keys.remove(hash);
             generateHashRange();
         }
     }

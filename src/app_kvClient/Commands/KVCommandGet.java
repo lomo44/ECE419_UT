@@ -49,6 +49,14 @@ public class KVCommandGet extends KVCommand<KVClient> {
                 kv_out.println_error("Key " + key + " does not exist.");
                 break;
             }
+            case SERVER_WRITE_LOCK:{
+                System.out.println(value);
+                break;
+            }
+            case SERVER_STOPPED:{
+                kv_out.println_error("Server stopped.");
+                break;
+            }
             case UNKNOWN_ERROR:{
                 kv_out.println_error("Unknown error.");
                 break;

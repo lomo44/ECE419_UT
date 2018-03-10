@@ -13,7 +13,7 @@ public class KVJSONMessage implements KVMessage {
 	private long sendTime = -1;
 	private StatusType status = StatusType.GET_SUCCESS;
 	private eKVExtendStatusType extendStatusType = eKVExtendStatusType.UNKNOWN_ERROR;
-
+    private IECSNode ecsNode;
 	private static String KEY_PAIR_NAME = "key_pair";
 	private static String STATUS_NAME = "status_type";
 	private static String SEND_TIME = "send_time";
@@ -44,9 +44,13 @@ public class KVJSONMessage implements KVMessage {
 		return status;
 	}
 
+	/**
+	 * Return server responsible
+	 * @return ECSNode
+	 */
 	@Override
 	public IECSNode getResponsibleServer() {
-		return null;
+		return ecsNode;
 	}
 
 	public eKVExtendStatusType getExtendStatusType(){

@@ -110,6 +110,14 @@ public class KVRange<T extends Comparable> {
         return lowerBound.compareTo(upperBound) > 0;
     }
 
+    public String[] getHashRangeString() {
+        if (this.lowerInclusive) {
+            return new String[] {upperBound.toString(),lowerBound.toString()};
+        } else {
+            return new String[] {lowerBound.toString(),upperBound.toString()};
+        }
+    }
+
     /**
      * Assume b is an extension of the current range, get the extended range
      * @param b

@@ -79,6 +79,10 @@ public class KVMetadata {
         storageNodes.put(hash,id);
     }
 
+
+    public void removeStorageNodeHashPair(BigInteger hash){
+        storageNodes.remove(hash);
+    }
     /**
      * Fetch network ID based on a hash value
      * @param hash hash value

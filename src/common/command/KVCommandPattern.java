@@ -13,7 +13,15 @@ public abstract class KVCommandPattern {
         HELP,
         QUIT,
         ECHO,
-        UNKNOWN
+        UNKNOWN,
+        ADD_NODE,
+        ADD_NODES,
+        GET_NODES,
+        GET_NODE_BY_KEY,
+        REMOVE_NODE,
+        SHUT_DOWN,
+        START,
+        STOP
     }
     protected KVCommandType commandType;
     protected Pattern commandRegex;

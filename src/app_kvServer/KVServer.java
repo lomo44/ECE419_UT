@@ -438,9 +438,9 @@ public class KVServer implements IKVServer {
     }
 
 	public boolean isKeyResponsible(String key){
-//	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRange().getUpperBound().toString()));
+//	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getUpperBound().toString()));
 //	    System.out.println(String.format("Key  : %s",metadataController.hash(key)));
-//        System.out.println(String.format("Lower: %s",metadataController.getStorageNode(getNetworkNode()).getHashRange().getLowerBound().toString()));
+//        System.out.println(String.format("Lower: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getLowerBound().toString()));
         boolean ret = metadataController.getStorageNode(getHostAddress(),getPort()).isResponsible(metadataController.hash(key));
 //        System.out.println(String.format("In range: %b",ret));
 //        System.out.println("-------------------------------------------------");

@@ -1,52 +1,63 @@
 package ecs;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import common.datastructure.KVRange;
 import common.networknode.KVStorageNode;
 
-public class ECSNode implements IECSNode{
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-	private String serverName;
-	private String host;
-	private int port;
-	private String[] hashRange;
-	
-	public ECSNode(KVStorageNode node) {
-		host = node.getHostName();
-		port = node.getPortNumber();
-		serverName = node.getserverName();
-		hashRange = node.getHashRange().toStringArray();
-	}
-	
-	@Override
-	public String getNodeName() {
-		return serverName;
-	}
+public class ECSNode implements IECSNode {
+    protected static final Pattern re_pattern = Pattern.compile("(.*) (\\d*)");
+    private KVStorageNode node;
 
-	@Override
-	public String getNodeHost() {
-		return host;
-	}
+    public ECSNode(KVStorageNode node) {
+        this.node = node;
+    }
 
-	@Override
-	public int getNodePort() {
-		return port;
-	}
+    public static ECSNode fromString(String str) {
+        Matcher match = re_pattern.matcher(str);
+        if (match.matches()) {
+            return new ECSNode(new KVStorageNode(match.group(1),Integer.parseInt(match.group(2))));
+        }
+        return null;
+    }
 
-	@Override
-	public String[] getNodeHashRange() {
-		return hashRange;
-	}
-	
-	public static Collection<IECSNode> fromKVStorageNode (List<KVStorageNode> nodelist){
-		Collection<IECSNode> output = new ArrayList<IECSNode>();
-		for (KVStorageNode node : nodelist) {
-			output.add(new ECSNode(node));
-		}
-		return output;
-	}
+    /**
+     * Convert ID into string representation
+     * @return
+     */
+    public String toString(){
+        return node.toString();
+    }
 
+    /**
+    * @return  the name of the node (ie "Server 8.8.8.8")
+    */
+    @Override
+    public String getNodeName() {
+        return node.toString();
+    }
+
+    /**
+     * @return  the hostname of the node (ie "8.8.8.8")
+     */
+    @Override
+    public String getNodeHost() {
+        return node.getHostName();
+    }
+
+    /**
+     * @return  the port number of the node (ie 8080)
+     */
+    @Override
+    public int getNodePort() {
+        return node.getPortNumber();
+    }
+
+    /**
+     * @return  array of two strings representing the low and high range of the hashes that the given node is responsible for
+     */
+    @Override
+    public String[] getNodeHashRange() {
+        return node.getHashRange().getHashRangeString();
+    }
 }
