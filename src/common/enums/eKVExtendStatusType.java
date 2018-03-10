@@ -39,6 +39,9 @@ public enum eKVExtendStatusType {
     START_FAIL(34),
     STOP_SUCCESS(35),
     STOP_FAIL(36),
+    SERVER_START(37),
+    SERVER_STOP(38),
+    SERVER_SHUTDOWN(39),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -88,6 +91,15 @@ public enum eKVExtendStatusType {
             case 20: return MIGRATION_COMPLETE;
             case 21: return MIGRATION_DATA;
             case 22: return MIGRATION_INCOMPLETE;
+            case 31: return SHUTDOWN_SUCCESS;
+            case 32: return SHUTDOWN_FAIL;
+            case 33: return START_SUCCESS;
+            case 34: return START_FAIL;
+            case 35: return STOP_SUCCESS;
+            case 36: return STOP_FAIL;
+            case 37: return SERVER_START;
+            case 38: return SERVER_STOP;
+            case 39: return SERVER_SHUTDOWN;
         }
         return null;
     }

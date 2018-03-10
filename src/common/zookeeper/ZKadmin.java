@@ -53,10 +53,24 @@ public class ZKadmin extends ZKInstance {
 			createNodeHandler.createNodeSync(path, "", 0);
 			// We don't need to populate meta data for now since we are not doing migration
 			createNodeHandler.createNodeSync(metadatapath, "", 0);
-			createNodeHandler.createNodeSync(configpath,config.toKVJSONMessage().toString(),0);
+			createNodeHandler.createNodeSync(configpath,config.toKVJSONMessage().toString(),1);
 		}
 	}
 
+
+	public void removeNodes(List<KVStorageNode> nodes) throws KeeperException, InterruptedException {
+		for (KVStorageNode server : nodes) {
+			removeNodes(server);
+		}
+	}
+
+
+	public void removeNodes(KVStorageNode nodes) throws KeeperException, InterruptedException {
+		String path = SERVER_BASE_PATH + "/" + nodes.getserverName();
+		String metadatapath = path + "/" + SERVER_METADATA_NAME;
+		String configpath = path + "/" + SERVER_CONFIG_NAME;
+		zk.delete(path,-1);
+	}
 
 	public void broadcastMetadata(List<KVStorageNode> nodes, KVMetadata metadata){
 		for (KVStorageNode node: nodes
@@ -90,6 +104,11 @@ public class ZKadmin extends ZKInstance {
 		}
 		createNodeHandler.createNodeSync(SERVER_BASE_PATH,"",0);
 		serverMonitorHandler.monitorServers(SERVER_POOL_BASE_PATH);
+	}
+
+	public void close() throws KeeperException, InterruptedException {
+		zk.delete(SERVER_BASE_PATH,-1);
+		zk.delete(SERVER_POOL_BASE_PATH,-1);
 	}
 }
 

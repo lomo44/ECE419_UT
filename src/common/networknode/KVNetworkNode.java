@@ -1,5 +1,6 @@
 package common.networknode;
 
+import common.communication.KVCommunicationModule;
 import common.datastructure.Pair;
 
 import java.io.IOException;
@@ -82,5 +83,9 @@ public class KVNetworkNode {
      */
     public Socket createSocket() throws IOException {
         return new Socket(this.getHostName(),this.getPortNumber());
+    }
+
+    public KVCommunicationModule createCommunicationModule() throws IOException {
+        return new KVCommunicationModule(createSocket(),toString());
     }
 }

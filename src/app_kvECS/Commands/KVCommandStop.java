@@ -13,8 +13,12 @@ public class KVCommandStop extends KVCommand<ECSClient> {
     public KVJSONMessage execute(ECSClient clientInstance) {
         KVJSONMessage ret = new KVJSONMessage();
         try {
-            clientInstance.stop();
-            ret.setExtendStatus(eKVExtendStatusType.STOP_SUCCESS);
+            if(clientInstance.shutdown()){
+                ret.setExtendStatus(eKVExtendStatusType.STOP_SUCCESS);
+            }
+            else{
+                ret.setExtendStatus(eKVExtendStatusType.STOP_FAIL);
+            }
         } catch (Exception e) {
             ret.setExtendStatus(eKVExtendStatusType.STOP_FAIL);
         }

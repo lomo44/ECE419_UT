@@ -5,16 +5,40 @@ import common.command.KVCommandPattern;
 import app_kvECS.ECSClient;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
+import ecs.IECSNode;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class KVCommandRemoveNode extends KVCommand<ECSClient> {
     public KVCommandRemoveNode() { super(KVCommandPattern.KVCommandType.REMOVE_NODE); }
 
     public KVJSONMessage execute(ECSClient clientInstance) {
         KVJSONMessage ret = new KVJSONMessage();
-        //clientInstance.removeNode(Integer.parseInt(getIndex()));
-        ret.setExtendStatus(eKVExtendStatusType.REMOVE_NODE_SUCCESS);
+        Map<String, IECSNode> nodemap = clientInstance.getNameECSNodeMap();
+        int index = getIndex();
+        if(index < 0 || index >= nodemap.size()){
+            ret.setExtendStatus(eKVExtendStatusType.REMOVE_NODE_FAIL);
+        }
+        else{
+            for(String name : nodemap.keySet()){
+                if(index==0){
+                    try {
+                        clientInstance.removeNode(name);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    finally {
+                        break;
+                    }
+                }
+                else{
+                    index--;
+                }
+            }
+        }
         return ret;
     }
 

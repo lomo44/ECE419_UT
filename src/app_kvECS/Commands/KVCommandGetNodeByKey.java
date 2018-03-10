@@ -11,6 +11,7 @@ public class KVCommandGetNodeByKey extends KVCommand<ECSClient> {
     @Override
     public KVJSONMessage execute(ECSClient clientInstance) {
         // TODO
+        System.out.println(clientInstance.getNodeByKey(getKey()).getNodeName());
         return new KVJSONMessage();
     }
 

@@ -13,8 +13,12 @@ public class KVCommandShutdown extends KVCommand<ECSClient> {
     public KVJSONMessage execute(ECSClient clientInstance) {
         KVJSONMessage ret = new KVJSONMessage();
         try {
-            clientInstance.shutdown();
-            ret.setExtendStatus(eKVExtendStatusType.SHUTDOWN_SUCCESS);
+            if(clientInstance.shutdown()){
+                ret.setExtendStatus(eKVExtendStatusType.SHUTDOWN_SUCCESS);
+            }
+            else{
+                ret.setExtendStatus(eKVExtendStatusType.SHUTDOWN_FAIL);
+            }
         } catch (Exception e) {
             ret.setExtendStatus(eKVExtendStatusType.SHUTDOWN_FAIL);
         }

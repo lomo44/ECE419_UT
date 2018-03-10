@@ -1,8 +1,9 @@
 package app_kvECS;
 
 import common.command.KVCommand;
+import common.communication.KVCommunicationModule;
+import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
-import common.metadata.KVMetadata;
 import common.metadata.KVMetadataController;
 import common.networknode.KVStorageNode;
 import common.zookeeper.*;
@@ -19,6 +20,7 @@ import java.util.regex.Pattern;
 import ecs.ECSNode;
 import ecs.IECSNode;
 import logger.KVOut;
+import org.apache.zookeeper.KeeperException;
 
 /*
  * mode				0:PERSISTENT
@@ -39,6 +41,9 @@ public class ECSClient implements IECSClient {
 
     private List<KVStorageNode> sleepingServer;
     private List<KVStorageNode> runningServer = new ArrayList<>();
+    private HashMap<KVStorageNode, KVCommunicationModule> controlChannelMap = new HashMap<>();
+    private Map<String, KVStorageNode> nameKVStorageNodeMap = new HashMap<>();
+    private TreeMap<String, IECSNode> nameECSNodeMap = new TreeMap<>();
 
 
     private static KVOut kv_out = new KVOut("ECS");
@@ -66,21 +71,68 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public boolean start() {
-        // TODO
-        return false;
+    public boolean start() throws IOException {
+        for (KVStorageNode node: runningServer
+                ) {
+            if(!startNode(node)){
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
-    public boolean stop() {
-        // TODO
-        return false;
+    public boolean stop() throws IOException {
+        for (KVStorageNode node: runningServer
+                ) {
+            if(!stopNode(node)){
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
-    public boolean shutdown() {
-        // TODO
-        return false;
+    public boolean shutdown() throws IOException, KeeperException, InterruptedException {
+        for (KVStorageNode node: runningServer
+             ) {
+            if(!shutdownNode(node)){
+                return false;
+            }
+        }
+        zkAdmin.close();
+        isRunning = false;
+        return true;
+    }
+
+
+    @Override
+    public boolean removeNodes(Collection<String> nodeNames) {
+        for(String name: nodeNames){
+            try {
+                removeNode(name);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
+    public boolean removeNode(String nodeNames) throws IOException {
+        KVStorageNode node = this.nameKVStorageNodeMap.get(nodeNames);
+        if(!shutdownNode(node)){
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public Map<String, IECSNode> getNodes() {
+        return nameECSNodeMap;
+    }
+
+    public TreeMap<String, IECSNode> getNameECSNodeMap() {
+        return nameECSNodeMap;
     }
 
     @Override
@@ -148,17 +200,6 @@ public class ECSClient implements IECSClient {
         return serverToAdd;
     }
 
-    @Override
-    public boolean removeNodes(Collection<String> nodeNames) {
-        // TODO
-        return false;
-    }
-
-    @Override
-    public Map<String, IECSNode> getNodes() {
-        // TODO
-        return null;
-    }
 
     @Override
     public IECSNode getNodeByKey(String Key) {
@@ -182,6 +223,8 @@ public class ECSClient implements IECSClient {
                 // hostname portnumber servername
                 KVStorageNode newNode = new KVStorageNode(match.group(2),Integer.parseInt(match.group(3)),match.group(1));
                 ret.add(newNode);
+                nameKVStorageNodeMap.put(newNode.getserverName(),newNode);
+                nameECSNodeMap.put(newNode.getserverName(),newNode.toECSNode());
             }
         }
         readbuf.close();
@@ -206,7 +249,7 @@ public class ECSClient implements IECSClient {
     }
 
 
-    public void run(){
+    private void run(){
         kv_out.println_debug("Client started.");
         isRunning = true;
         while (isRunning) {
@@ -222,8 +265,60 @@ public class ECSClient implements IECSClient {
         kv_out.println_debug("Client stopped.");
     }
 
-    public KVJSONMessage executeCommand(KVCommand cmdInstance){
+    private KVJSONMessage executeCommand(KVCommand cmdInstance){
         return cmdInstance.execute(this);
+    }
+
+    private boolean startNode(KVStorageNode node) throws IOException {
+        if(!controlChannelMap.containsKey(node)){
+            controlChannelMap.put(node,node.createCommunicationModule());
+        }
+        KVCommunicationModule communicationModule = controlChannelMap.get(node);
+        KVJSONMessage msg = new KVJSONMessage();
+        msg.setExtendStatus(eKVExtendStatusType.SERVER_START);
+        communicationModule.send(msg);
+        KVJSONMessage response = communicationModule.receiveMessage();
+        if(response.getExtendStatusType() == eKVExtendStatusType.START_SUCCESS) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private boolean stopNode(KVStorageNode node) throws IOException {
+        if(!controlChannelMap.containsKey(node)){
+            controlChannelMap.put(node,node.createCommunicationModule());
+        }
+        KVCommunicationModule communicationModule = controlChannelMap.get(node);
+        KVJSONMessage msg = new KVJSONMessage();
+        msg.setExtendStatus(eKVExtendStatusType.SERVER_STOP);
+        communicationModule.send(msg);
+        KVJSONMessage response = communicationModule.receiveMessage();
+        if(response.getExtendStatusType() == eKVExtendStatusType.STOP_SUCCESS) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    private boolean shutdownNode(KVStorageNode node) throws IOException{
+        if(!controlChannelMap.containsKey(node)){
+            controlChannelMap.put(node,node.createCommunicationModule());
+        }
+        KVCommunicationModule communicationModule = controlChannelMap.get(node);
+        KVJSONMessage msg = new KVJSONMessage();
+        msg.setExtendStatus(eKVExtendStatusType.SERVER_SHUTDOWN);
+        communicationModule.send(msg);
+        KVJSONMessage response = communicationModule.receiveMessage();
+        if(response.getExtendStatusType() == eKVExtendStatusType.SHUTDOWN_SUCCESS) {
+            return true;
+        }
+        else {
+            return false;
+        }
+
     }
 
     public static void main(String[] args) throws IOException {
@@ -231,6 +326,7 @@ public class ECSClient implements IECSClient {
         String zkhost = "localhost";
         int zkport = 2181;
         ECSClient admin = new ECSClient(args[0], zkhost, zkport);
+        admin.run();
 //        ZKadmin zkAdmin = admin.zkAdmin;
 //        zkAdmin.connect();
 //        zkAdmin.setupServer();
