@@ -99,6 +99,18 @@ public class KVServerInstance implements Runnable {
                     serverinstance.unlockWrite();
                     break;
                 }
+                case SERVER_STOP:{
+                    retMessage = handleStop(in_message);
+                    break;
+                }
+                case SERVER_START:{
+                    retMessage = handleStart(in_message);
+                    break;
+                }
+                case SERVER_SHUTDOWN:{
+                    retMessage = handleShutdown(in_message);
+                    break;
+                }
                 default:{
                     retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
                     break;
@@ -219,7 +231,24 @@ public class KVServerInstance implements Runnable {
         //System.out.println("Migration ends.");
         return ret;
     }
-
+    private KVJSONMessage handleStop(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        serverinstance.stop();
+        ret.setExtendStatus(eKVExtendStatusType.STOP_SUCCESS);
+        return ret;
+    }
+    private KVJSONMessage handleStart(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        serverinstance.start();
+        ret.setExtendStatus(eKVExtendStatusType.START_SUCCESS);
+        return ret;
+    }
+    private KVJSONMessage handleShutdown(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        serverinstance.close();
+        ret.setExtendStatus(eKVExtendStatusType.STOP_SUCCESS);
+        return ret;
+    }
     private KVJSONMessage handleServerStopped(KVJSONMessage msg){
         KVJSONMessage ret = communicationModule.getEmptyMessage();
         ret.setStatus(SERVER_STOPPED);

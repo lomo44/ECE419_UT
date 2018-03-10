@@ -1,7 +1,5 @@
 package testing.CommunicationTests;
 
-import static org.junit.Assert.*;
-
 import junit.framework.TestCase;
 import org.junit.Test;
 
@@ -13,7 +11,7 @@ public class KVServerConfigTest extends TestCase {
 	@Test
 	public void testKVServerConfig_Serialization() {
 		KVServerConfig serverconfigin = new KVServerConfig();
-		serverconfigin.setKeyCacheStratagy("FIFO");
+		serverconfigin.setCacheStratagy("FIFO");
 		serverconfigin.setCacheSize(5);
 		byte[] deserialized = serverconfigin.toKVJSONMessage().toBytes();
 		KVJSONMessage serialized = new KVJSONMessage();

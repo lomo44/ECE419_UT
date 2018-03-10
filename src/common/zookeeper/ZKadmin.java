@@ -7,12 +7,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
 
 import org.apache.zookeeper.KeeperException;
 
 import app_kvServer.KVServerConfig;
-import common.metadata.KVMetadataController;
 import common.networknode.KVStorageNode;
 
 
@@ -45,8 +43,8 @@ public class ZKadmin extends ZKInstance {
 		for (KVStorageNode server : nodes) {
 			KVServerConfig config = new KVServerConfig();
 			config.setCacheSize(cacheSize);
-			config.setKeyCacheStratagy(cacheStrategy);
-			config.setServerPort(Integer.toString(server.getPortNumber()));
+			config.setCacheStratagy(cacheStrategy);
+			config.setServerPort(server.getPortNumber());
 			String path = SERVER_BASE_PATH + "/" + server.getserverName();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
 			String configpath = path + "/" + SERVER_CONFIG_NAME;

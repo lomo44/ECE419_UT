@@ -15,7 +15,6 @@ import common.zookeeper.ZKClient;
 import database.KVDatabase;
 import org.apache.log4j.Level;
 import logger.KVOut;
-import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -29,12 +28,10 @@ public class KVServer implements IKVServer {
     private static KVOut kv_out = new KVOut("server");
     private Thread handlerThread;
     private KVServerHandler serverHandler;
-
-    private int zkport;
-    private int port;
-    private int cacheSize;
+    private KVServerDaemon serverDaemon;
+    private Thread serverDaemonThread;
 	private KVDatabase database;
-    private eKVExtendCacheType cacheStrategy;
+	private KVServerConfig config;
     private eKVServerStatus serverStatus = eKVServerStatus.STOPPED;
 	private KVMetadataController metadataController = new KVMetadataController();
 	private KVMigrationModule migrationModule = new KVMigrationModule();
@@ -55,26 +52,12 @@ public class KVServer implements IKVServer {
 
         kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
         uniqueName = serverName;
-        this.port = port;
-        serverHandler = createServerHandler();
-
+        KVServerConfig config = new KVServerConfig();
+        config.setCacheSize(cacheSize);
+        config.setServerPort(port);
+        config.setCacheStratagy(strategy);
+        initializeServer(config,null);
         setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
-        handlerThread = new Thread(serverHandler);
-        handlerThread.start();
-
-        this.cacheSize = cacheSize;
-        cacheStrategy = eKVExtendCacheType.fromString(strategy);
-        database = new KVDatabase(cacheSize,50000000,strategy,"./"+serverName);
-        // Pull the handler and check if the handler is running
-        while(!serverHandler.isRunning()){
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        this.port = serverHandler.getPort();
-        metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort(),getServername()));
         serverStatus = eKVServerStatus.STARTED;
     }
 
@@ -89,7 +72,6 @@ public class KVServer implements IKVServer {
 	 */
 	public KVServer(String name, String zkHostname, int zkPort) {
         this.uniqueName = name;
-        this.zkport = zkPort;
 	    //kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
         try {
             zkClient = new ZKClient(zkHostname+":"+Integer.toString(zkPort),name,this);
@@ -101,7 +83,7 @@ public class KVServer implements IKVServer {
 	}
 
 	public void initializeServer(KVServerConfig config, KVMetadata metadata){
-        port = config.getServerPort();
+	    this.config = config;
 		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),this.uniqueName);
         serverHandler = createServerHandler();
         setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
@@ -115,9 +97,14 @@ public class KVServer implements IKVServer {
                 e.printStackTrace();
             }
         }
-        this.port = serverHandler.getPort();
+        this.config.setServerPort(serverHandler.getPort());
         metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort(),getServername()));
-        metadataController.update(metadata);
+        if(metadata!=null){
+            metadataController.update(metadata);
+        }
+        this.serverDaemon = new KVServerDaemon(this);
+        this.serverDaemonThread = new Thread(this.serverDaemon);
+        this.serverDaemonThread.start();
     }
 
 
@@ -131,7 +118,7 @@ public class KVServer implements IKVServer {
      */
 	@Override
 	public int getPort(){
-	    return port;
+	    return this.config.getServerPort();
 	}
 
     /**
@@ -151,7 +138,7 @@ public class KVServer implements IKVServer {
      */
 	@Override
     public CacheStrategy getCacheStrategy(){
-	    return this.cacheStrategy.toCacheStrategy();
+	    return eKVExtendCacheType.fromString(config.getCacheStratagy()).toCacheStrategy();
 	}
 
     /**
@@ -160,7 +147,7 @@ public class KVServer implements IKVServer {
      */
 	@Override
     public int getCacheSize(){
-        return cacheSize;
+        return this.config.getCacheSize();
 	}
 
     /**
@@ -241,6 +228,28 @@ public class KVServer implements IKVServer {
      */
     @Override
     public void kill(){
+        this.serverDaemonThread.interrupt();
+        try {
+            this.serverDaemonThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Gracefully close a server
+     */
+	@Override
+    public void close() {
+        this.serverDaemonThread.interrupt();
+        try {
+            this.serverDaemonThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void daemonShutdownHandle(){
         kv_out.println_debug("Try to kill server.");
         try {
             serverHandler.stop();
@@ -252,15 +261,6 @@ public class KVServer implements IKVServer {
             e.printStackTrace();
         }
         kv_out.println_debug("Server Killed.");
-
-    }
-
-    /**
-     * Gracefully close a server
-     */
-	@Override
-    public void close() {
-        kill();
     }
 
     /**
@@ -276,7 +276,7 @@ public class KVServer implements IKVServer {
 	 * @return a server handler instances
 	 */
     public KVServerHandler createServerHandler(){
-    	return new KVServerHandler(this.port, this);
+    	return new KVServerHandler(this.config.getServerPort(), this);
 	}
 
     /**
@@ -301,9 +301,7 @@ public class KVServer implements IKVServer {
             e.printStackTrace();
             return;
         }
-        while(true){
 
-        }
 	}
 
     /**
@@ -459,5 +457,8 @@ public class KVServer implements IKVServer {
 
     public KVOut getLogger() {
         return kv_out;
+    }
+
+    private void initializeShutdownDaemon(){
     }
 }

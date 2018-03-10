@@ -26,12 +26,12 @@ public class KVServerConfig extends KVExclusiveMessage {
     public String getCacheStratagy(){
         return get(KEY_CACHE_STRATAGY);
     }
-    public void setKeyCacheStratagy(String stratagy){
+    public void setCacheStratagy(String stratagy){
         add(KEY_CACHE_STRATAGY,stratagy);
     }
 
     public int getCacheSize(){
-        return Integer.valueOf(get(KEY_CACHE_SIZE));
+        return Integer.parseInt(get(KEY_CACHE_SIZE));
     }
 
     public void setCacheSize(int cacheSize){
@@ -41,8 +41,8 @@ public class KVServerConfig extends KVExclusiveMessage {
     public int getServerPort() {
     		return Integer.valueOf(get(KEY_SERVER_PORT));
     }
-    public void setServerPort(String port) {
-    		add(KEY_SERVER_PORT,port);
+    public void setServerPort(int port) {
+    		add(KEY_SERVER_PORT,Integer.toString(port));
     }
     
 }
