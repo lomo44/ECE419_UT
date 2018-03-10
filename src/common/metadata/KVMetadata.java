@@ -124,7 +124,9 @@ public class KVMetadata {
      */
     public boolean merge(KVMetadata data){
         boolean isequal = this.storageNodes.equals(data.getStorageNodeMap());
-        this.storageNodes.putAll(data.getStorageNodeMap());
+        if(!isequal){
+            this.storageNodes.putAll(data.getStorageNodeMap());
+        }
         return !isequal;
     }
 

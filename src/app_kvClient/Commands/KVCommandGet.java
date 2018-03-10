@@ -20,18 +20,18 @@ public class KVCommandGet extends KVCommand<KVClient> {
         if (clientInstance.getStore() == null) {
             kv_out.println_error("Client not connected to a server.");
             ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
-            return ret;
         }
         try {
             ret = (KVJSONMessage) clientInstance.getStore().get(getKey());
+            //System.out.println(String.format("ret: %s",ret.getValue()));
         }
         catch (SocketException e) {
             ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
             clientInstance.disconnect();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        finally {
-            return ret;
-        }
+        return ret;
     }
 
 

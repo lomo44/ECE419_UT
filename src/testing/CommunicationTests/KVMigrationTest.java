@@ -64,7 +64,7 @@ public class KVMigrationTest extends TestCase{
     }
 
     @Test
-    public void testHandleMetadataChange() throws Exception {
+    public void testHandleMetadataChange_NoReconnect() throws Exception {
         clientA.getStore().setServerReconnectEnable(false);
         clientB.getStore().setServerReconnectEnable(false);
         // filtered out migrated data and persisted data
@@ -112,6 +112,27 @@ public class KVMigrationTest extends TestCase{
 
             KVJSONMessage responseFromB = clientB.executeCommand(getCommand);
             assertEquals(KVJSONMessage.StatusType.SERVER_NOT_RESPONSIBLE, responseFromB.getStatus());
+        }
+    }
+
+    @Test
+    public void testHandleChangeInMetadata_Reconnect() throws Exception {
+        clientA.getStore().setServerReconnectEnable(true);
+        clientB.getStore().setServerReconnectEnable(true);
+        // filtered out migrated data and persisted data
+        HashMap<String,String> map = generatorA.getDataContent();
+        serverA.handleChangeInMetadata(mainController.getMetaData());
+        serverB.handleChangeInMetadata(mainController.getMetaData());
+
+        KVCommandGet getCommand = new KVCommandGet();
+        for(String key : map.keySet()){
+            getCommand.setKey(key);
+            KVJSONMessage responseFromB = clientB.executeCommand(getCommand);
+            assertEquals(KVJSONMessage.StatusType.GET_SUCCESS, responseFromB.getStatus());
+            assertEquals(map.get(key),responseFromB.getValue());
+            KVJSONMessage responseFromA = clientA.executeCommand(getCommand);
+            assertEquals(KVJSONMessage.StatusType.GET_SUCCESS, responseFromA.getStatus());
+            assertEquals(map.get(key),responseFromA.getValue());
         }
     }
 }
