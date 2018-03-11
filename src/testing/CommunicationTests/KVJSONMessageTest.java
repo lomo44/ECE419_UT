@@ -1,10 +1,10 @@
 package testing.CommunicationTests;
 
 
-import common.messages.KVMessage;
 import org.junit.Test;
 
 import junit.framework.TestCase;
+import common.KVMessage;
 import common.messages.KVJSONMessage;
 
 

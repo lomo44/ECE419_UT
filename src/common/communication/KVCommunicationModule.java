@@ -8,9 +8,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
+import common.KVMessage;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 import logger.KVOut;
 
 import static java.lang.Math.min;

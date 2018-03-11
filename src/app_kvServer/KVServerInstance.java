@@ -1,19 +1,19 @@
 package app_kvServer;
 
+import common.KVMessage;
 import common.communication.KVCommunicationModule;
 import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 import common.messages.KVMigrationMessage;
 import logger.KVOut;
+
+import static common.KVMessage.StatusType.*;
 
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.regex.Pattern;
-
-import static common.messages.KVMessage.StatusType.*;
 
 public class KVServerInstance implements Runnable {
 

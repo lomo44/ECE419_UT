@@ -1,8 +1,8 @@
 package app_kvClient.testClient;
 
 
+import common.KVMessage;
 import common.communication.KVCommunicationModule;
-import common.messages.KVMessage;
 
 import java.io.IOException;
 import java.net.Socket;

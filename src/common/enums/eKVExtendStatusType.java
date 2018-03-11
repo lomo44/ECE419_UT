@@ -1,6 +1,6 @@
 package common.enums;
 
-import common.messages.KVMessage;
+import common.KVMessage;
 
 public enum eKVExtendStatusType {
     GET(1), 			/* Get - request */
