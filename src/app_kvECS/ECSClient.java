@@ -164,10 +164,10 @@ public class ECSClient implements IECSClient {
         }
         runningServer.addAll(selectedNode);
         // Add selected nodes
-        metadataController.addStorageNodes(selectedNode);
-        zkAdmin.broadcastMetadata(selectedNode,metadataController.getMetaData());
         try {
             if(awaitNodes(count,15*1000)){
+                metadataController.addStorageNodes(selectedNode);
+                zkAdmin.broadcastMetadata(selectedNode,metadataController.getMetaData());
                 return convertToECSNode(selectedNode);
             }
         } catch (Exception e) {

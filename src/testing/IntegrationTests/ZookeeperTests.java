@@ -31,7 +31,7 @@ public class ZookeeperTests extends TestCase{
     @Override
     public void tearDown() throws Exception {
         Runtime.getRuntime().exec("./zookeeper-3.4.11/bin/zkServer.sh stop");
-        Runtime.getRuntime().exec("rm -rf "+ZK_DATA_DIR);
+        //Runtime.getRuntime().exec("rm -rf "+ZK_DATA_DIR);
     }
 
     @Test
@@ -54,6 +54,6 @@ public class ZookeeperTests extends TestCase{
         ecsClient.addNodes(2,"LFU",5);
         Assert.assertEquals(true,ecsClient.start());
         Assert.assertEquals(true,ecsClient.shutdown());
-        Thread.sleep(3000);
+        Thread.sleep(10000);
     }
 }

@@ -23,6 +23,7 @@ public class ZKClient extends ZKInstance{
 		public void process(WatchedEvent event) {
 			if(event.getType() == Event.EventType.NodeDataChanged){
 				try {
+					System.out.println("Handle Metadata Change");
 					serverInstance.handleChangeInMetadata(obtainMetadataFromZK());
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -49,6 +50,7 @@ public class ZKClient extends ZKInstance{
 		serverConfig =  KVServerConfig.fromKVJSONMessage(msg_config);
 		System.out.println("Try to initialize metadata");
 		// Retain server initial metadata file;
+		obtainMetadataFromZK();
 		serverInstance.initializeServer(serverConfig, null);
 		signalInitialization();
 	}
@@ -69,8 +71,14 @@ public class ZKClient extends ZKInstance{
 
 	private KVMetadata obtainMetadataFromZK() throws KeeperException, InterruptedException {
 		KVJSONMessage msg_metadata = new KVJSONMessage();
+		System.out.println(String.format("Try to get metadata from: %s",serverMetadataPath));
 		byte[] metadata_data = zk.getData(serverMetadataPath, metadataWatcher,null);
-		msg_metadata.fromBytes(metadata_data ,0,metadata_data .length);
+		try {
+			msg_metadata.fromBytes(metadata_data ,0,metadata_data .length);
+		}
+		catch (IllegalArgumentException e){
+			return null;
+		}
 		return KVMetadata.fromKVJSONMessage(msg_metadata);
 	}
 }
