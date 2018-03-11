@@ -14,7 +14,7 @@ import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
 
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
+import common.KVMessage;
 import common.communication.KVCommunicationModule;
 import common.metadata.KVMetadataController;
 import common.metadata.KVMetadata;

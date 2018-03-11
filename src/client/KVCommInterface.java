@@ -1,7 +1,8 @@
 package client;
 
-import common.messages.KVMessage;
 import java.net.SocketException;
+
+import common.KVMessage;
 
 public interface KVCommInterface {
 

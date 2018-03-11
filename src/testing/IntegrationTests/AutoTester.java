@@ -2,7 +2,7 @@ package testing.IntegrationTests;
 
 import app_kvClient.KVClient;
 import app_kvServer.KVServer;
-import common.messages.KVMessage;
+import common.KVMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
 

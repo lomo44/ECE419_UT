@@ -4,9 +4,9 @@ import app_kvServer.KVServer;
 import org.junit.Test;
 
 import client.KVStore;
+import common.KVMessage;
+import common.KVMessage.StatusType;
 import junit.framework.TestCase;
-import common.messages.KVMessage;
-import common.messages.KVMessage.StatusType;
 import testing.KVTestPortManager;
 
 import java.io.IOException;
