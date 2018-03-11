@@ -105,8 +105,21 @@ public class ZKadmin extends ZKInstance {
 	}
 
 	public void close() throws KeeperException, InterruptedException {
-		zk.delete(SERVER_BASE_PATH,-1);
-		zk.delete(SERVER_POOL_BASE_PATH,-1);
+		deleteAll(SERVER_BASE_PATH);
+		deleteAll(SERVER_POOL_BASE_PATH);
+	}
+
+	private void deleteAll(String path) throws KeeperException, InterruptedException {
+		List<String> children = zk.getChildren(path,false,null);
+		if(children.size()==0){
+			zk.delete(path,-1);
+		}
+		else{
+			for (String child: children
+					) {
+				deleteAll(path+"/"+child);
+			}
+		}
 	}
 }
 

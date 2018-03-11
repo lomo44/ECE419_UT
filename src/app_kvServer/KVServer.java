@@ -86,7 +86,6 @@ public class KVServer implements IKVServer {
 	    this.config = config;
 		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),this.uniqueName);
         serverHandler = createServerHandler();
-        setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
         handlerThread = new Thread(serverHandler);
         handlerThread.start();
         // Pull the handler and check if the handler is running
@@ -105,6 +104,7 @@ public class KVServer implements IKVServer {
         this.serverDaemon = new KVServerDaemon(this);
         this.serverDaemonThread = new Thread(this.serverDaemon);
         this.serverDaemonThread.start();
+        setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
     }
 
 
@@ -290,18 +290,10 @@ public class KVServer implements IKVServer {
     public static void main(String[] args) {
         kv_out.enableLog("logs/server.log", Level.ALL);
         System.out.println("Run server from main");
-        int port = Integer.parseInt(args[0]);
-        int cachesize = Integer.parseInt(args[1]);
-        try {
-            KVServer new_server = new KVServer(port,cachesize,args[2],"local");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return;
+        for(String str :args){
+            System.out.println(str);
         }
-
+        KVServer new_server = new KVServer(args[0],args[1],Integer.parseInt(args[2]));
 	}
 
     /**

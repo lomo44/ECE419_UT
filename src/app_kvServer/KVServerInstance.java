@@ -70,54 +70,63 @@ public class KVServerInstance implements Runnable {
         String out = String.format("Received inbound message, key: %s, value: %s,Operator: %d",
                 in_message.getKey(),in_message.getValue(),in_message.getExtendStatusType().getValue());
         kv_out.println_debug(out);
-        if(serverinstance.isStopped()){
-            return handleServerStopped(in_message);
-        }
-        else{
-            eKVExtendStatusType statusType = in_message.getExtendStatusType();
-            KVJSONMessage retMessage = communicationModule.getEmptyMessage();
-            switch (statusType){
-                case GET:{
+        eKVExtendStatusType statusType = in_message.getExtendStatusType();
+        KVJSONMessage retMessage = communicationModule.getEmptyMessage();
+        switch (statusType){
+            case GET:{
+                if(serverinstance.isStopped()){
+                    retMessage = handleServerStopped(in_message);
+                }
+                else{
                     serverinstance.lockRead();
                     retMessage = handleGet(in_message);
                     serverinstance.unlockRead();
-                    break;
                 }
-                case PUT:{
+                break;
+            }
+            case PUT:{
+                if(serverinstance.isStopped()){
+                    retMessage = handleServerStopped(in_message);
+                }
+                else{
                     serverinstance.lockRead();
                     retMessage = handlePut(in_message);
                     serverinstance.unlockRead();
-                    break;
                 }
-                case ECHO:{
-                    retMessage = in_message;
-                    break;
-                }
-                case MIGRATION_DATA:{
-                    serverinstance.lockWrite();
-                    retMessage = handleMigration(in_message);
-                    serverinstance.unlockWrite();
-                    break;
-                }
-                case SERVER_STOP:{
-                    retMessage = handleStop(in_message);
-                    break;
-                }
-                case SERVER_START:{
-                    retMessage = handleStart(in_message);
-                    break;
-                }
-                case SERVER_SHUTDOWN:{
-                    retMessage = handleShutdown(in_message);
-                    break;
-                }
-                default:{
-                    retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
-                    break;
-                }
+                break;
             }
-            return retMessage;
+            case ECHO:{
+                retMessage = in_message;
+                break;
+            }
+            case MIGRATION_DATA:{
+                serverinstance.lockWrite();
+                retMessage = handleMigration(in_message);
+                serverinstance.unlockWrite();
+                break;
+            }
+            case SERVER_STOP:{
+                System.out.println("Handle stop");
+                retMessage = handleStop(in_message);
+                break;
+            }
+            case SERVER_START:{
+                System.out.println("Handle start");
+                retMessage = handleStart(in_message);
+                break;
+            }
+            case SERVER_SHUTDOWN:{
+                System.out.println("Handle shutdown");
+                retMessage = handleShutdown(in_message);
+                break;
+            }
+            default:{
+                System.out.println("Handle unknown");
+                retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
+                break;
+            }
         }
+        return retMessage;
     }
 
     /**

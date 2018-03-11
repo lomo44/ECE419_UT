@@ -5,6 +5,7 @@ import common.communication.KVCommunicationModule;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadataController;
+import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
 import common.zookeeper.*;
 
@@ -41,7 +42,7 @@ public class ECSClient implements IECSClient {
 
     private List<KVStorageNode> sleepingServer;
     private List<KVStorageNode> runningServer = new ArrayList<>();
-    private HashMap<KVStorageNode, KVCommunicationModule> controlChannelMap = new HashMap<>();
+    private HashMap<KVNetworkNode, KVCommunicationModule> controlChannelMap = new HashMap<>();
     private Map<String, KVStorageNode> nameKVStorageNodeMap = new HashMap<>();
     private TreeMap<String, IECSNode> nameECSNodeMap = new TreeMap<>();
 
@@ -159,7 +160,16 @@ public class ECSClient implements IECSClient {
         // Add selected nodes
         metadataController.addStorageNodes(selectedNode);
         zkAdmin.broadcastMetadata(selectedNode,metadataController.getMetaData());
-        return convertToECSNode(selectedNode);
+        try {
+            if(awaitNodes(count,15*100)){
+                return convertToECSNode(selectedNode);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            return null;
+        }
     }
 
     @Override
@@ -236,17 +246,10 @@ public class ECSClient implements IECSClient {
         String[] args = new String[]{"ssh", "-n", LOCAL_HOST_IP, "nohup",
                 "java", "-jar",DEPLOYED_EXECUTABLE_PATH, name, zkhost, Integer.toString(zkport), "</dev/null &>/dev/null &"};
         System.out.println("start init server...");
-        Process proc = new ProcessBuilder(args).start();
-        BufferedReader reader =
-                new BufferedReader(new InputStreamReader(proc.getInputStream()));
-        String line = "";
-        while ((line = reader.readLine()) != null) {
-            System.out.print(line + "\n");
-        }
-        int exitcode = proc.waitFor();
-        if (exitcode != 0) {
-            throw new IOException("Server init failed " + exitcode);
-        }
+        ProcessBuilder builder = new ProcessBuilder(args);
+        builder.redirectInput();
+        Process pb =  builder.start();
+        pb.waitFor();
     }
 
     private void run(){
@@ -269,7 +272,7 @@ public class ECSClient implements IECSClient {
         return cmdInstance.execute(this);
     }
 
-    private boolean startNode(KVStorageNode node) throws IOException {
+    public boolean startNode(KVStorageNode node) throws IOException {
         if(!controlChannelMap.containsKey(node)){
             controlChannelMap.put(node,node.createCommunicationModule());
         }
@@ -286,7 +289,7 @@ public class ECSClient implements IECSClient {
         }
     }
 
-    private boolean stopNode(KVStorageNode node) throws IOException {
+    public boolean stopNode(KVStorageNode node) throws IOException {
         if(!controlChannelMap.containsKey(node)){
             controlChannelMap.put(node,node.createCommunicationModule());
         }
@@ -303,7 +306,7 @@ public class ECSClient implements IECSClient {
         }
     }
 
-    private boolean shutdownNode(KVStorageNode node) throws IOException{
+    public boolean shutdownNode(KVNetworkNode node) throws IOException{
         if(!controlChannelMap.containsKey(node)){
             controlChannelMap.put(node,node.createCommunicationModule());
         }
@@ -311,14 +314,7 @@ public class ECSClient implements IECSClient {
         KVJSONMessage msg = new KVJSONMessage();
         msg.setExtendStatus(eKVExtendStatusType.SERVER_SHUTDOWN);
         communicationModule.send(msg);
-        KVJSONMessage response = communicationModule.receiveMessage();
-        if(response.getExtendStatusType() == eKVExtendStatusType.SHUTDOWN_SUCCESS) {
-            return true;
-        }
-        else {
-            return false;
-        }
-
+        return true;
     }
 
     public static void main(String[] args) throws IOException {
