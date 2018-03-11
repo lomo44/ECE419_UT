@@ -52,6 +52,7 @@ public class ZKadmin extends ZKInstance {
 			config.setCacheSize(cacheSize);
 			config.setCacheStratagy(cacheStrategy);
 			config.setServerPort(server.getPortNumber());
+			config.setServerHost(server.getHostName());
 			String path = SERVER_BASE_PATH + "/" + server.getserverName();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
 			String configpath = path + "/" + SERVER_CONFIG_NAME;
