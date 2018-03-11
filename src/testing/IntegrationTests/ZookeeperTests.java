@@ -45,17 +45,15 @@ public class ZookeeperTests extends TestCase{
         }
         Assert.assertEquals(true,ecsClient.awaitNodes(2,15*1000));
         Assert.assertEquals(true,ecsClient.start());
-        for(String name: nodes.keySet()){
-            ecsClient.shutdownNode(nodes.get(name).getNetworkNode());
-        }
+        Assert.assertEquals(true,ecsClient.shutdown());
     }
 
     @Test
     public void testBasic_ServerSetup_SSH() throws Exception {
         ECSClient ecsClient = new ECSClient(ECS_CONFIG_PATH,ZK_HOST_NAME,ZK_PORT_NUMBER);
         ecsClient.addNodes(2,"LFU",5);
-        Assert.assertEquals(true,ecsClient.awaitNodes(2,15*1000));
         Assert.assertEquals(true,ecsClient.start());
         Assert.assertEquals(true,ecsClient.shutdown());
+        Thread.sleep(3000);
     }
 }

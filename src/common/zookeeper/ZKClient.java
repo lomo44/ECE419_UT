@@ -45,7 +45,6 @@ public class ZKClient extends ZKInstance{
 		KVJSONMessage msg_config = new KVJSONMessage();
 		byte[] config_data = zk.getData(serverConfigPath,false,null);
 		System.out.println(String.format("Loading configuration file from: %s",serverConfigPath));
-		System.out.println(new String(config_data));
 		msg_config.fromBytes(config_data,0,config_data.length);
 		serverConfig =  KVServerConfig.fromKVJSONMessage(msg_config);
 		System.out.println("Try to initialize metadata");

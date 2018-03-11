@@ -7,6 +7,7 @@ public class KVServerDaemon implements Runnable{
     }
     @Override
     public void run() {
+        System.out.println("Server Daemon started");
         while(true){
             try {
                 Thread.sleep(Long.MAX_VALUE);
@@ -15,6 +16,6 @@ public class KVServerDaemon implements Runnable{
             }
         }
         serverInstance.daemonShutdownHandle();
-        System.out.println("Serve exit. Daemon finished");
+        System.out.println("Server exit. Daemon finished");
     }
 }

@@ -56,7 +56,11 @@ public class KVServer implements IKVServer {
         config.setCacheSize(cacheSize);
         config.setServerPort(port);
         config.setCacheStratagy(strategy);
-        initializeServer(config,null);
+        try {
+            initializeServer(config,null);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
         serverStatus = eKVServerStatus.STARTED;
     }
@@ -82,12 +86,17 @@ public class KVServer implements IKVServer {
         //KVServerConfig config = zkClient.getCurrentServerConfig();
 	}
 
-	public void initializeServer(KVServerConfig config, KVMetadata metadata){
+	public void initializeServer(KVServerConfig config, KVMetadata metadata) throws InterruptedException {
 	    this.config = config;
 		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),this.uniqueName);
-        serverHandler = createServerHandler();
+        this.serverDaemon = new KVServerDaemon(this);
+        this.serverDaemonThread = new Thread(this.serverDaemon);
+        this.serverDaemonThread.start();
+        Thread.sleep(1000);
+		serverHandler = createServerHandler();
         handlerThread = new Thread(serverHandler);
         handlerThread.start();
+
         // Pull the handler and check if the handler is running
         while(!serverHandler.isRunning()){
             try {
@@ -101,9 +110,7 @@ public class KVServer implements IKVServer {
         if(metadata!=null){
             metadataController.update(metadata);
         }
-        this.serverDaemon = new KVServerDaemon(this);
-        this.serverDaemonThread = new Thread(this.serverDaemon);
-        this.serverDaemonThread.start();
+
         setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
     }
 
@@ -229,11 +236,6 @@ public class KVServer implements IKVServer {
     @Override
     public void kill(){
         this.serverDaemonThread.interrupt();
-        try {
-            this.serverDaemonThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -242,11 +244,6 @@ public class KVServer implements IKVServer {
 	@Override
     public void close() {
         this.serverDaemonThread.interrupt();
-        try {
-            this.serverDaemonThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     public void daemonShutdownHandle(){

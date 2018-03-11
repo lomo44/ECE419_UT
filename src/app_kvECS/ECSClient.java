@@ -45,6 +45,7 @@ public class ECSClient implements IECSClient {
     private HashMap<KVNetworkNode, KVCommunicationModule> controlChannelMap = new HashMap<>();
     private Map<String, KVStorageNode> nameKVStorageNodeMap = new HashMap<>();
     private TreeMap<String, IECSNode> nameECSNodeMap = new TreeMap<>();
+    private List<Process> createdProcess = new ArrayList<>();
 
 
     private static KVOut kv_out = new KVOut("ECS");
@@ -102,7 +103,12 @@ public class ECSClient implements IECSClient {
             }
         }
         zkAdmin.close();
+        for (Process process: createdProcess
+             ) {
+            process.destroyForcibly();
+        }
         isRunning = false;
+
         return true;
     }
 
@@ -161,7 +167,7 @@ public class ECSClient implements IECSClient {
         metadataController.addStorageNodes(selectedNode);
         zkAdmin.broadcastMetadata(selectedNode,metadataController.getMetaData());
         try {
-            if(awaitNodes(count,15*100)){
+            if(awaitNodes(count,15*1000)){
                 return convertToECSNode(selectedNode);
             }
         } catch (Exception e) {
@@ -244,12 +250,11 @@ public class ECSClient implements IECSClient {
 
     private void runServerViaSSH(String name, String zkhost, int zkport) throws IOException, InterruptedException {
         String[] args = new String[]{"ssh", "-n", LOCAL_HOST_IP, "nohup",
-                "java", "-jar",DEPLOYED_EXECUTABLE_PATH, name, zkhost, Integer.toString(zkport), "</dev/null &>/dev/null &"};
+                "java", "-jar",DEPLOYED_EXECUTABLE_PATH, name, zkhost, Integer.toString(zkport)};
         System.out.println("start init server...");
-        ProcessBuilder builder = new ProcessBuilder(args);
-        builder.redirectInput();
-        Process pb =  builder.start();
-        pb.waitFor();
+        Process builder = new ProcessBuilder().inheritIO().command(args).start();
+        createdProcess.add(builder);
+        //pb.waitFor();
     }
 
     private void run(){
