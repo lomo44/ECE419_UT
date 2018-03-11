@@ -6,7 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ECSNode implements IECSNode {
-    protected static final Pattern re_pattern = Pattern.compile("(.*) (\\d*)");
+    protected static final Pattern re_pattern = Pattern.compile("(.*) (\\d*) (.*)");
     private KVStorageNode node;
 
     public ECSNode(KVStorageNode node) {
@@ -16,7 +16,7 @@ public class ECSNode implements IECSNode {
     public static ECSNode fromString(String str) {
         Matcher match = re_pattern.matcher(str);
         if (match.matches()) {
-            return new ECSNode(new KVStorageNode(match.group(1),Integer.parseInt(match.group(2))));
+            return new ECSNode(new KVStorageNode(match.group(1),Integer.parseInt(match.group(2)), match.group(3)));
         }
         return null;
     }

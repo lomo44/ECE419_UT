@@ -51,6 +51,8 @@ public class KVTabletStorage implements KVStorage {
             KVTablet tablet = KVTablet.load(tabletStoragePath,id);
             tablet.clear();
         }
+        this.writableTabletQueue.clear();
+        this.tabletKeyMap.clear();
     }
     @Override
     public synchronized String getFromStorage(String key) throws Exception {

@@ -93,7 +93,7 @@ public class KVCommunicationModule {
      * Retrieve the socket of the communication module
      * @return
      */
-	private Socket getSocket() {
+	public Socket getSocket() {
 	    return privateSocket;
     }
 

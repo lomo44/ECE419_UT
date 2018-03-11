@@ -57,8 +57,6 @@ public class KVMigrationTest extends TestCase{
         super.tearDown();
         clientA.stop();
         clientB.stop();
-        serverA.clearStorage();
-        serverB.clearStorage();
         serverA.close();
         serverB.close();
     }

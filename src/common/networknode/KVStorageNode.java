@@ -48,7 +48,7 @@ public class KVStorageNode extends KVNetworkNode{
     public void setHashRange(KVRange<BigInteger> hashRange) {
         this.hashRange = hashRange;
     }
-    
+
     public String getserverName() {
     		return serverName;
     }

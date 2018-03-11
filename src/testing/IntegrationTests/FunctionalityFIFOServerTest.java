@@ -34,6 +34,7 @@ public class FunctionalityFIFOServerTest extends TestCase {
         client.disconnect();
         server.clearStorage();
         server.close();
+        //Thread.sleep(1000);
         server = null;
         client = null;
     }

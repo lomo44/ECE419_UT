@@ -174,7 +174,9 @@ public class KVServerHandler implements Runnable {
         return serverSocket.getLocalPort();
     }
 
-    public String getHostName() {return serverSocket.getInetAddress().getHostName();}
+    public String getHostName() {
+        return serverSocket.getInetAddress().getHostName();
+    }
 
     public String getHostAddress() {return serverSocket.getInetAddress().getHostAddress();}
 
@@ -190,9 +192,5 @@ public class KVServerHandler implements Runnable {
              ) {
             instance.changeLogLevel(outputlevel,logLevel);
         }
-    }
-
-    public KVNetworkNode getNetworkNode(){
-        return new KVNetworkNode(getHostName(),getPort());
     }
 }

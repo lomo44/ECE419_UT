@@ -39,6 +39,13 @@ public class ZKadmin extends ZKInstance {
 		return currentSetupNodes;
 	}
 
+
+	public synchronized void updateCurrentSetupNodesName(List<String> names){
+		currentSetupNodes.clear();
+		currentSetupNodes.addAll(names);
+		System.out.println(String.format("Current Setup Nodes: %d",names.size()));
+	}
+
 	public void setupNodes(List<KVStorageNode> nodes, String cacheStrategy, int cacheSize) {
 		for (KVStorageNode server : nodes) {
 			KVServerConfig config = new KVServerConfig();

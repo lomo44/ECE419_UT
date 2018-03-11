@@ -42,6 +42,9 @@ public enum eKVExtendStatusType {
     SERVER_START(37),
     SERVER_STOP(38),
     SERVER_SHUTDOWN(39),
+    CLEAR_STORAGE(40),
+    CLEAR_SUCCESS(41),
+    CLEAR_FAILED(42),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -100,6 +103,9 @@ public enum eKVExtendStatusType {
             case 37: return SERVER_START;
             case 38: return SERVER_STOP;
             case 39: return SERVER_SHUTDOWN;
+            case 40: return CLEAR_STORAGE;
+            case 41: return CLEAR_SUCCESS;
+            case 42: return CLEAR_FAILED;
         }
         return null;
     }

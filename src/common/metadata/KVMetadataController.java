@@ -75,6 +75,11 @@ public class KVMetadataController {
         return getResponsibleStorageNode(hash(key));
     }
 
+    public List<KVStorageNode> getStorageNodes(){
+        return metaData.getStorageNodes();
+    }
+
+
     /**
      * Initialize digest algorithm
      * @return MessageDigest object
@@ -105,7 +110,7 @@ public class KVMetadataController {
         }
     }
 
-    public void removeStorageNode(KVStorageNode node){
+    public void removeStorageNode(KVNetworkNode node){
         String idString = node.toString();
         BigInteger hash = hash(idString);
         if(this.metaData==null){

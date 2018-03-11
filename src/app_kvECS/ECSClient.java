@@ -113,6 +113,16 @@ public class ECSClient implements IECSClient {
     }
 
 
+    public boolean clearAllStorage() throws IOException {
+        for (KVStorageNode node: runningServer
+                ) {
+            if(!clearStorage(node)){
+                return false;
+            }
+        }
+        return true;
+    }
+
     @Override
     public boolean removeNodes(Collection<String> nodeNames) {
         for(String name: nodeNames){
@@ -157,7 +167,6 @@ public class ECSClient implements IECSClient {
             // Try to start server via ssh
             startServers(selectedNode);
             // Wait for nodes to come in
-            awaitNodes(count, 120);
         } catch (Exception e) {
             System.out.println("add nodes timed out");
             e.printStackTrace();
@@ -173,9 +182,7 @@ public class ECSClient implements IECSClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        finally {
-            return null;
-        }
+        return null;
     }
 
     @Override
@@ -304,6 +311,23 @@ public class ECSClient implements IECSClient {
         communicationModule.send(msg);
         KVJSONMessage response = communicationModule.receiveMessage();
         if(response.getExtendStatusType() == eKVExtendStatusType.STOP_SUCCESS) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public boolean clearStorage(KVNetworkNode node) throws IOException{
+        if(!controlChannelMap.containsKey(node)){
+            controlChannelMap.put(node,node.createCommunicationModule());
+        }
+        KVCommunicationModule communicationModule = controlChannelMap.get(node);
+        KVJSONMessage msg = new KVJSONMessage();
+        msg.setExtendStatus(eKVExtendStatusType.CLEAR_STORAGE);
+        communicationModule.send(msg);
+        KVJSONMessage response = communicationModule.receiveMessage();
+        if(response.getExtendStatusType() == eKVExtendStatusType.CLEAR_SUCCESS) {
             return true;
         }
         else {

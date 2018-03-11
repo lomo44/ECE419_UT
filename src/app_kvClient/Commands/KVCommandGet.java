@@ -28,8 +28,6 @@ public class KVCommandGet extends KVCommand<KVClient> {
         catch (SocketException e) {
             ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
             clientInstance.disconnect();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
         return ret;
     }

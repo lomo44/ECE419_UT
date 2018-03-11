@@ -53,6 +53,12 @@ public class KVMetadata {
         return data;
     }
 
+    public List<KVStorageNode> getStorageNodes(){
+        List<KVStorageNode> ret = new ArrayList<>();
+        ret.addAll(storageNodes.values());
+        return ret;
+    }
+
     /**
      * Convert metadata to KVJSONMessage
      * @return KVJSONMessage instance
