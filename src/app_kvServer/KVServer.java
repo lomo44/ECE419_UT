@@ -108,12 +108,13 @@ public class KVServer implements IKVServer {
         }
         this.serverDaemonThread.start();
         this.config.setServerPort(serverHandler.getPort());
-        metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort(),getServername()));
+        //metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort(),getServername()));
         if(metadata!=null){
             metadataController.update(metadata);
         }
-
-
+        else{
+            metadataController.update(new KVMetadata());
+        }
     }
 
 
@@ -331,7 +332,6 @@ public class KVServer implements IKVServer {
     @Override
 	public void start() {
 		serverStatus = eKVServerStatus.STARTED;
-
 	}
 
     @Override
@@ -439,23 +439,10 @@ public class KVServer implements IKVServer {
     public void handleChangeInMetadata(KVMetadata newMetadata) throws Exception {
 	    if(!newMetadata.equals(metadataController.getMetaData())){
 	        // meta data change, new node added
-            KVRange<BigInteger> oldRange = metadataController.getStorageNode(getHostAddress(),getPort()).getHashRange();
-            metadataController.update(newMetadata);
-            KVRange<BigInteger> newRange = metadataController.getStorageNode(getHostAddress(),getPort()).getHashRange();
-            if(!oldRange.equals(newRange)){
-                // Hash range update, need to do migration
-                if(!newRange.isInclusive(oldRange)){
-                    // range reduce or moved. for now we only consider reduction
-                    KVRange<BigInteger> reducedRange = oldRange.getExtension(newRange);
-                    if(reducedRange!=null){
-                        lockWrite();
-                        migrateData();
-                        unlockWrite();
-                    }
-                    else{
-                        kv_out.println_fatal("Hash Range Error. ");
-                    }
-                }
+            if(metadataController.update(newMetadata)){
+                lockWrite();
+                migrateData();
+                unlockWrite();
             }
         }
     }
@@ -470,10 +457,15 @@ public class KVServer implements IKVServer {
 //	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getUpperBound().toString()));
 //	    System.out.println(String.format("Key  : %s",metadataController.hash(key)));
 //        System.out.println(String.format("Lower: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getLowerBound().toString()));
-        boolean ret = metadataController.getStorageNode(getHostAddress(),getPort()).isResponsible(metadataController.hash(key));
+         KVStorageNode node= metadataController.getStorageNode(getHostAddress(),getPort());
+         if(node!=null){
+             return node.isResponsible(metadataController.hash(key));
+         }
+         else{
+             return true;
+         }
 //        System.out.println(String.format("In range: %b",ret));
 //        System.out.println("-------------------------------------------------");
-        return ret;
     }
 
     public KVMetadata getCurrentMetadata(){
