@@ -8,13 +8,10 @@ import common.command.KVCommand;
 import common.command.KVCommandPattern;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
+import common.KVMessage;
 import ecs.IECSNode;
 import junit.framework.Assert;
 import junit.framework.TestCase;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import utility.KVPutGetGenerator;
 
