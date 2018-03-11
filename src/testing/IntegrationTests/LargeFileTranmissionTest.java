@@ -2,11 +2,11 @@ package testing.IntegrationTests;
 
 import app_kvClient.KVClient;
 import app_kvServer.KVServer;
+import common.KVMessage;
 import common.command.KVCommand;
 import common.command.KVCommandPattern;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
 import utility.KVPutGetGenerator;

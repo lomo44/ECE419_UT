@@ -79,6 +79,9 @@ public class KVPutGetGenerator extends IKVTrafficGenerator {
         return ret;
     }
 
+    public HashMap<String, String> getDataContent() {
+        return dataContent;
+    }
 
     @Override
     public KVCommand getNextCommand() {

@@ -10,6 +10,7 @@ import common.command.KVCommandParser;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 import logger.KVOut;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
@@ -45,7 +46,7 @@ public class KVClient implements IKVClient,Runnable {
      */
     public KVClient(){
         keyboard = new Scanner(System.in);
-        setLogLevel(eKVLogLevel.DEBUG,eKVLogLevel.DEBUG);
+        setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
     }
     /**
      * Stop the execution of current KVClient instance

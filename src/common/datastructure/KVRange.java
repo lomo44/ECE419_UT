@@ -41,6 +41,10 @@ public class KVRange<T extends Comparable> {
             String lowerBound, String upperBound, boolean LowerInclusive, boolean UpperInclusive){
         return new KVRange<>(new BigInteger(lowerBound),new BigInteger(upperBound),LowerInclusive,UpperInclusive);
     }
+    
+    public String[] toStringArray() {
+    			return new String[] {lowerBound.toString(),upperBound.toString()};
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -71,20 +75,47 @@ public class KVRange<T extends Comparable> {
 
     public boolean isInclusive(KVRange<T> b){
         boolean lower,upper;
-        if(this.lowerInclusive){
-            lower = this.lowerBound.compareTo(b.lowerBound) <= 0;
-        }
-        else{
-            lower = this.lowerBound.compareTo(b.lowerBound) < 0;
-        }
+        if(!this.isWrapped() && !b.isWrapped()){
+            if(this.lowerInclusive){
+                lower = this.lowerBound.compareTo(b.lowerBound) <= 0;
+            }
+            else{
+                lower = this.lowerBound.compareTo(b.lowerBound) < 0;
+            }
 
-        if(this.upperInclusive){
-            upper = this.upperBound.compareTo(b.upperBound) >= 0;
+            if(this.upperInclusive){
+                upper = this.upperBound.compareTo(b.upperBound) >= 0;
+            }
+            else{
+                upper = this.upperBound.compareTo(b.upperBound) > 0;
+            }
+            return lower&&upper;
+        }
+        else if(this.isWrapped() && b.isWrapped()){
+            return b.getCompliment().isInclusive(this.getCompliment());
+        }
+        else if(this.isWrapped() && !b.isWrapped()){
+            return !this.getCompliment().isIntersect(b);
         }
         else{
-            upper = this.upperBound.compareTo(b.upperBound) > 0;
+            return false;
         }
-        return lower&&upper;
+    }
+
+    public KVRange<T> getCompliment(){
+        return new KVRange<>(upperBound,lowerBound,!upperInclusive,!lowerInclusive);
+    }
+
+    public boolean isWrapped(){
+        return lowerBound.compareTo(upperBound) > 0;
+    }
+
+    public String[] getHashRangeString() {
+        if (this.lowerInclusive) {
+            return new String[] {upperBound.toString(),lowerBound.toString()};
+        } else {
+            return new String[] {lowerBound.toString(),upperBound.toString()};
+        }
     }
 
     /**
@@ -132,4 +163,7 @@ public class KVRange<T extends Comparable> {
         }
         return null;
     }
+
+    public T getLowerBound(){return lowerBound;}
+    public T getUpperBound(){return upperBound;}
 }

@@ -53,7 +53,7 @@ fi
 
 if [ "x${ZOO_LOG_DIR}" = "x" ]
 then
-    ZOO_LOG_DIR="."
+    ZOO_LOG_DIR="../../logs"
 fi
 
 if [ "x${ZOO_LOG4J_PROP}" = "x" ]

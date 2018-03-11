@@ -2,14 +2,23 @@ package client;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
+import java.util.*;
 import java.net.SocketException;
 import java.lang.System;
+import java.math.BigInteger;
 
+import common.networknode.*;
+
+import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
-import common.messages.KVJSONMessage;
 
-import common.messages.KVMessage;
+import common.messages.KVJSONMessage;
+import common.KVMessage;
 import common.communication.KVCommunicationModule;
+import common.metadata.KVMetadataController;
+import common.metadata.KVMetadata;
+import database.storage.KVStorage;
 import logger.KVOut;
 
 public class KVStore implements KVCommInterface {
@@ -18,10 +27,11 @@ public class KVStore implements KVCommInterface {
     private boolean running;
     private String serverAddress;
     private int serverPort;
-    private Socket clientSocket;
     private eKVLogLevel outputlevel = eKVLogLevel.DEBUG;
     private eKVLogLevel logLevel = eKVLogLevel.DEBUG;
-    private KVCommunicationModule communicationModule;
+    private KVMetadataController metadataController;
+    private HashMap<KVNetworkNode, KVCommunicationModule> connectionMap = new HashMap<>();
+    private boolean serverReconnectEnable = true;
 
     /**
      * Initialize KVStore with address and port of KVServer
@@ -29,6 +39,7 @@ public class KVStore implements KVCommInterface {
      * @param port the port of the KVServer
      */
     public KVStore(String address, int port) {
+        metadataController = new KVMetadataController();
         serverAddress = address;
         serverPort = port;
     }
@@ -40,13 +51,14 @@ public class KVStore implements KVCommInterface {
     @Override
     public void connect() throws Exception {
         kv_out.println_debug("KV Store connect");
-        clientSocket = new Socket(serverAddress, serverPort);
-        communicationModule = new KVCommunicationModule(clientSocket,"client");
-        communicationModule.setLogLevel(outputlevel,logLevel);
+        KVNetworkNode newNetworkNode = new KVNetworkNode(serverAddress,serverPort);
+        KVCommunicationModule newModule = newNetworkNode.createCommunicationModule();
+        newModule.setLogLevel(outputlevel,logLevel);
         setRunning(true);
         setLogLevel(outputlevel,logLevel);
         kv_out.println_info("Connection established.");
-
+        connectionMap.put(newNetworkNode,newModule);
+        metadataController.update(new KVMetadata());
     }
 
     /**
@@ -71,20 +83,20 @@ public class KVStore implements KVCommInterface {
     @Override
     public void disconnect(){
         setRunning(false);
-        if (clientSocket != null) {
+        for (KVNetworkNode node: connectionMap.keySet()
+             ) {
             try {
-                clientSocket.close();
+                connectionMap.get(node).close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            communicationModule = null;
-            clientSocket = null;
         }
+        connectionMap.clear();
     }
 
     @Override
     public boolean isConnected() {
-        return communicationModule.isConnected();
+        return isRunning();
     }
 
     /**
@@ -96,14 +108,66 @@ public class KVStore implements KVCommInterface {
      */
     @Override
     public KVMessage put(String key, String value) throws SocketException, InterruptedException {
+        if(!isRunning()){
+            throw new SocketException();
+        }
         KVJSONMessage newmessage = createEmptyMessage();
         newmessage.setValue(value);
         newmessage.setKey(key);
         newmessage.setStatus(KVMessage.StatusType.PUT);
-        communicationModule.send(newmessage);
-        KVJSONMessage response = communicationModule.receiveMessage();
+        KVCommunicationModule module = getResponsibleCommunicationModule(key);
+        module.send(newmessage);
+        KVJSONMessage response = module.receiveMessage();
+        while(response.getExtendStatusType()==eKVExtendStatusType.SERVER_NOT_RESPONSIBLE && serverReconnectEnable){
+            updateMetadata(response);
+            module = getResponsibleCommunicationModule(key);
+            if(module!=null){
+                module.send(newmessage);
+                response = module.receiveMessage();
+            }
+            else{
+                response.setValue("");
+                response.setStatus(KVMessage.StatusType.PUT_ERROR);
+                return response;
+            }
+        }
         kv_out.println_debug("PUT RTT: " + (System.currentTimeMillis()-response.getSendTime()) + "ms.");
         return response;
+    }
+
+    /**
+     * Updates metadata with version provided by server
+     * @param msg response from server containing metadata
+     */
+    public void updateMetadata(KVJSONMessage msg) {
+        KVMetadata metadata = KVMetadata.fromKVJSONMessage(msg);
+        metadataController.update(metadata);
+    }
+
+    /**
+     * Returns server responsible for hashed key
+     * @parm hashedKey the key that identifies the server
+     * @return KVStorageNode server
+     */
+    public KVCommunicationModule getResponsibleCommunicationModule(String key){
+        KVNetworkNode node = metadataController.getResponsibleStorageNode(metadataController.hash(key));
+        if(node==null){
+            for (KVNetworkNode remainNode: connectionMap.keySet()
+                 ) {
+                return connectionMap.get(remainNode);
+            }
+        }
+        else{
+            if(!connectionMap.containsKey(node)){
+                try {
+                    connectionMap.put(node,node.createCommunicationModule());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return connectionMap.get(node);
+        }
+        return null;
     }
 
     /**
@@ -113,27 +177,31 @@ public class KVStore implements KVCommInterface {
      * @throws SocketException thrown when socket is closed
      */
     @Override
-    public KVMessage get(String key) throws SocketException, InterruptedException {
+    public KVMessage get(String key) throws SocketException {
+        if(!isRunning()){
+            throw new SocketException();
+        }
         KVJSONMessage newmessage = createEmptyMessage();
         newmessage.setKey(key);
         newmessage.setValue("");
         newmessage.setStatus(KVMessage.StatusType.GET);
+        KVCommunicationModule communicationModule =  getResponsibleCommunicationModule(key);
         communicationModule.send(newmessage);
         KVJSONMessage response = communicationModule.receiveMessage();
+        while (response.getExtendStatusType() == eKVExtendStatusType.SERVER_NOT_RESPONSIBLE && serverReconnectEnable){
+            updateMetadata(response);
+            communicationModule = getResponsibleCommunicationModule(key);
+            if(communicationModule!=null){
+                communicationModule.send(newmessage);
+                response = communicationModule.receiveMessage();
+            }
+            else{
+                response.setValue("");
+                response.setStatus(KVMessage.StatusType.GET_ERROR);
+                return response;
+            }
+        }
         kv_out.println_debug("GET RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");
-        return response;
-    }
-
-    /**
-     * Generic message for sending and receive message
-     * @param outboundmsg outbound message that need to send
-     * @return respond from server
-     * @throws SocketException thrown if socket is closed
-     */
-    public KVMessage send(KVMessage outboundmsg) throws SocketException, InterruptedException {
-        communicationModule.send(outboundmsg);
-        KVJSONMessage response = communicationModule.receiveMessage();
-        kv_out.println_debug("ECHO RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");
         return response;
     }
 
@@ -153,11 +221,13 @@ public class KVStore implements KVCommInterface {
     public void setLogLevel(eKVLogLevel outputlevel, eKVLogLevel logLevel){
         kv_out.changeOutputLevel(outputlevel);
         kv_out.changeLogLevel(logLevel);
-        if(communicationModule!=null)
-            communicationModule.setLogLevel(outputlevel,logLevel);
-        else {
-            this.outputlevel = outputlevel;
-            this.logLevel = logLevel;
+        for (KVNetworkNode node: connectionMap.keySet()
+             ) {
+            connectionMap.get(node).setLogLevel(outputlevel,logLevel);
         }
+    }
+
+    public void setServerReconnectEnable(boolean serverReconnectEnable) {
+        this.serverReconnectEnable = serverReconnectEnable;
     }
 }

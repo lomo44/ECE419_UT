@@ -3,13 +3,15 @@ package common.metadata;
 import common.datastructure.KVRange;
 import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
+import database.storage.KVStorage;
+
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -49,6 +51,10 @@ public class KVMetadataController {
         }
         return changed;
     }
+    
+    public KVMetadata getMetaData() {
+    		return metaData;
+    }
 
     /**
      * Given a hash, return its responsible NetworkNode
@@ -64,6 +70,15 @@ public class KVMetadataController {
         }
         return null;
     }
+
+    public KVStorageNode getResponsibleStorageNode(String key){
+        return getResponsibleStorageNode(hash(key));
+    }
+
+    public List<KVStorageNode> getStorageNodes(){
+        return metaData.getStorageNodes();
+    }
+
 
     /**
      * Initialize digest algorithm
@@ -93,6 +108,42 @@ public class KVMetadataController {
             this.keys.add(hash);
             generateHashRange();
         }
+    }
+
+    public void removeStorageNode(KVNetworkNode node){
+        String idString = node.toString();
+        BigInteger hash = hash(idString);
+        if(this.metaData==null){
+            update(new KVMetadata());
+        }
+        if(metaData.hasStorageNodeByHash(hash)){
+            this.metaData.removeStorageNodeHashPair(hash);
+            this.keys.remove(hash);
+            generateHashRange();
+        }
+    }
+
+    public void addStorageNodes(List<KVStorageNode> nodes){
+        if(this.metaData == null){
+            update(new KVMetadata());
+        }
+        for (KVStorageNode node: nodes
+             ) {
+            String idString = node.toString();
+            BigInteger hash = hash(idString);
+            if(!metaData.hasStorageNodeByHash(hash)){
+                this.metaData.addStorageNodeHashPair(hash,node);
+                this.keys.add(hash);
+            }
+        }
+        generateHashRange();
+    }
+
+    public void clearStorageNodes(){
+        if(metaData!=null)
+    		metaData.clear();
+        if(keys!=null)
+        keys.clear();
     }
 
     /**
@@ -133,11 +184,6 @@ public class KVMetadataController {
     }
 
     public KVStorageNode getStorageNode(KVNetworkNode node){
-        return getCurrentMetaData().getStorageNodeFromHash(hash(node.toString()));
-    }
-
-
-    public KVMetadata getCurrentMetaData(){
-        return metaData;
+        return getMetaData().getStorageNodeFromHash(hash(node.toString()));
     }
 }

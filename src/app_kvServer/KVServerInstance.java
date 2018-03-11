@@ -1,19 +1,19 @@
 package app_kvServer;
 
+import common.KVMessage;
 import common.communication.KVCommunicationModule;
 import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 import common.messages.KVMigrationMessage;
 import logger.KVOut;
+
+import static common.KVMessage.StatusType.*;
 
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.HashMap;
 import java.util.regex.Pattern;
-
-import static common.messages.KVMessage.StatusType.*;
 
 public class KVServerInstance implements Runnable {
 
@@ -74,19 +74,58 @@ public class KVServerInstance implements Runnable {
         KVJSONMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
             case GET:{
-                return handleGet(in_message);
+                if(serverinstance.isStopped()){
+                    retMessage = handleServerStopped(in_message);
+                }
+                else{
+                    serverinstance.lockRead();
+                    retMessage = handleGet(in_message);
+                    serverinstance.unlockRead();
+                }
+                break;
             }
             case PUT:{
-                return handlePut(in_message);
+                if(serverinstance.isStopped()){
+                    retMessage = handleServerStopped(in_message);
+                }
+                else{
+                    serverinstance.lockRead();
+                    retMessage = handlePut(in_message);
+                    serverinstance.unlockRead();
+                }
+                break;
             }
             case ECHO:{
-                return in_message;
+                retMessage = in_message;
+                break;
             }
             case MIGRATION_DATA:{
-                return handleMigration(in_message);
+                serverinstance.lockWrite();
+                retMessage = handleMigration(in_message);
+                serverinstance.unlockWrite();
+                break;
+            }
+            case SERVER_STOP:{
+                retMessage = handleStop(in_message);
+                break;
+            }
+            case SERVER_START:{
+                retMessage = handleStart(in_message);
+                break;
+            }
+            case SERVER_SHUTDOWN:{
+                retMessage = handleShutdown(in_message);
+                break;
+            }
+            case CLEAR_STORAGE:{
+                serverinstance.lockWrite();
+                retMessage = handleClearStorage(in_message);
+                serverinstance.unlockWrite();
+                break;
             }
             default:{
                 retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
+                break;
             }
         }
         return retMessage;
@@ -103,7 +142,7 @@ public class KVServerInstance implements Runnable {
         communicationModule.setLogLevel(outputlevel,logLevel);
     }
 
-    private KVMessage handleDelete(KVJSONMessage msg){
+    private KVJSONMessage handleDelete(KVJSONMessage msg){
         KVJSONMessage emptyMessage = communicationModule.getEmptyMessage();
         if(isKeyValid(msg.getKey())){
             if(isKeyResponsible(msg.getKey())){
@@ -129,7 +168,7 @@ public class KVServerInstance implements Runnable {
         }
         return emptyMessage;
     }
-    private KVMessage handlePut(KVJSONMessage msg){
+    private KVJSONMessage handlePut(KVJSONMessage msg){
         if(isValidDeleteIdentifier(msg.getValue())){
             return handleDelete(msg);
         }
@@ -163,7 +202,7 @@ public class KVServerInstance implements Runnable {
             return response;
         }
     }
-    private KVMessage handleGet(KVJSONMessage msg){
+    private KVJSONMessage handleGet(KVJSONMessage msg){
         KVJSONMessage response = communicationModule.getEmptyMessage();
         if(isKeyValid(msg.getKey())){
             if(isKeyResponsible(msg.getKey())){
@@ -185,22 +224,56 @@ public class KVServerInstance implements Runnable {
         }
         return response;
     }
-    private KVMessage handleMigration(KVJSONMessage msg){
+    private KVJSONMessage handleMigration(KVJSONMessage msg){
+        //System.out.println("Migration Received, processing start.");
         KVJSONMessage ret = communicationModule.getEmptyMessage();
-        ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
-        serverinstance.lockWrite();
-        // Migration process started
-        KVMigrationMessage migrationMessage = KVMigrationMessage.fromKVJSONMessage(msg);
-        HashMap<String, String> entries = migrationMessage.getEntries();
-        for(String key: entries.keySet()){
-            try {
-                serverinstance.putKV(key,entries.get(key));
-            } catch (Exception e) {
-                kv_out.println_fatal("Incorrect migration data. Key is not in range");
-                ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+        if(serverinstance.isStopped()){
+            ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+        }
+        else{
+            ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
+            // Migration process started
+            KVMigrationMessage migrationMessage = KVMigrationMessage.fromKVJSONMessage(msg);
+            HashMap<String, String> entries = migrationMessage.getEntries();
+            for(String key: entries.keySet()){
+                try {
+                    serverinstance.putKV(key,entries.get(key));
+                } catch (Exception e) {
+                    kv_out.println_fatal("Incorrect migration data. Key is not in range");
+                    ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+                }
             }
         }
-        serverinstance.unlockWrite();
+        //System.out.println("Migration ends.");
+        return ret;
+    }
+    private KVJSONMessage handleStop(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        serverinstance.stop();
+        ret.setExtendStatus(eKVExtendStatusType.STOP_SUCCESS);
+        return ret;
+    }
+    private KVJSONMessage handleStart(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        serverinstance.start();
+        ret.setExtendStatus(eKVExtendStatusType.START_SUCCESS);
+        return ret;
+    }
+    private KVJSONMessage handleShutdown(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        serverinstance.closeASync();
+        ret.setExtendStatus(eKVExtendStatusType.STOP_SUCCESS);
+        return ret;
+    }
+    private KVJSONMessage handleClearStorage(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        serverinstance.clearStorage();
+        ret.setExtendStatus(eKVExtendStatusType.CLEAR_SUCCESS);
+        return ret;
+    }
+    private KVJSONMessage handleServerStopped(KVJSONMessage msg){
+        KVJSONMessage ret = communicationModule.getEmptyMessage();
+        ret.setStatus(SERVER_STOPPED);
         return ret;
     }
     private KVJSONMessage handleIrresponsibleRequest(){

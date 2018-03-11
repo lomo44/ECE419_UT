@@ -4,8 +4,8 @@ package testing.ServerTests;
 import app_kvClient.KVClient;
 import app_kvClient.testClient.KVTestClient;
 import app_kvServer.KVServer;
-//import app_kvServer.echoServer.KVServerEcho;
-import common.messages.KVMessage;
+import common.KVMessage;
+
 import org.junit.Test;
 
 import junit.framework.TestCase;

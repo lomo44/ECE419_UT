@@ -1,6 +1,6 @@
 package common.enums;
 
-import common.messages.KVMessage;
+import common.KVMessage;
 
 public enum eKVExtendStatusType {
     GET(1), 			/* Get - request */
@@ -25,6 +25,26 @@ public enum eKVExtendStatusType {
     MIGRATION_COMPLETE(20),
     MIGRATION_DATA(21),
     MIGRATION_INCOMPLETE(22),
+    ADD_NODE_SUCCESS(23),
+    ADD_NODE_FAIL(24),
+    SETUP_NODE_SUCCESS(25),
+    SETUP_NODE_FAIL(26),
+    REMOVE_NODE_SUCCESS(27),
+    REMOVE_NODE_FAIL(28),
+    GET_NODE_SUCCESS(29),
+    GET_NODE_FAIL(30),
+    SHUTDOWN_SUCCESS(31),
+    SHUTDOWN_FAIL(32),
+    START_SUCCESS(33),
+    START_FAIL(34),
+    STOP_SUCCESS(35),
+    STOP_FAIL(36),
+    SERVER_START(37),
+    SERVER_STOP(38),
+    SERVER_SHUTDOWN(39),
+    CLEAR_STORAGE(40),
+    CLEAR_SUCCESS(41),
+    CLEAR_FAILED(42),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -74,6 +94,18 @@ public enum eKVExtendStatusType {
             case 20: return MIGRATION_COMPLETE;
             case 21: return MIGRATION_DATA;
             case 22: return MIGRATION_INCOMPLETE;
+            case 31: return SHUTDOWN_SUCCESS;
+            case 32: return SHUTDOWN_FAIL;
+            case 33: return START_SUCCESS;
+            case 34: return START_FAIL;
+            case 35: return STOP_SUCCESS;
+            case 36: return STOP_FAIL;
+            case 37: return SERVER_START;
+            case 38: return SERVER_STOP;
+            case 39: return SERVER_SHUTDOWN;
+            case 40: return CLEAR_STORAGE;
+            case 41: return CLEAR_SUCCESS;
+            case 42: return CLEAR_FAILED;
         }
         return null;
     }

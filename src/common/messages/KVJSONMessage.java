@@ -1,4 +1,5 @@
 package common.messages;
+import common.KVMessage;
 import common.enums.eKVExtendStatusType;
 import ecs.IECSNode;
 import org.json.*;
@@ -11,9 +12,9 @@ public class KVJSONMessage implements KVMessage {
 	private String key = "";
 	private String Value = "";
 	private long sendTime = -1;
-	private StatusType status;
-	private eKVExtendStatusType extendStatusType;
-
+	private StatusType status = StatusType.GET_SUCCESS;
+	private eKVExtendStatusType extendStatusType = eKVExtendStatusType.UNKNOWN_ERROR;
+    private IECSNode ecsNode;
 	private static String KEY_PAIR_NAME = "key_pair";
 	private static String STATUS_NAME = "status_type";
 	private static String SEND_TIME = "send_time";
@@ -44,9 +45,13 @@ public class KVJSONMessage implements KVMessage {
 		return status;
 	}
 
+	/**
+	 * Return server responsible
+	 * @return ECSNode
+	 */
 	@Override
 	public IECSNode getResponsibleServer() {
-		return null;
+		return ecsNode;
 	}
 
 	public eKVExtendStatusType getExtendStatusType(){
@@ -72,7 +77,7 @@ public class KVJSONMessage implements KVMessage {
      * @return base class KVMessage
      * @throws IllegalArgumentException If the incoming byte array is not valid
      */
-	public KVMessage fromBytes(byte[] in_Bytes,int offset, int length) throws IllegalArgumentException {
+	public KVJSONMessage fromBytes(byte[] in_Bytes,int offset, int length) throws IllegalArgumentException {
         JSONObject keypair;
         JSONObject newObject;
         try{
@@ -95,6 +100,30 @@ public class KVJSONMessage implements KVMessage {
             }
             setExtendStatus(eKVExtendStatusType.fromInt(new_status));
 
+        }
+		return this;
+	}
+	
+	
+	public KVMessage MetadatafromBytes(byte[] in_Bytes,int offset, int length) throws IllegalArgumentException {
+        JSONObject keypair;
+        JSONObject newObject;
+        try{
+            newObject = new JSONObject(new String(in_Bytes, offset,length));
+            keypair =  newObject.getJSONObject(KEY_PAIR_NAME);
+        }
+        catch (JSONException e){
+            throw new IllegalArgumentException();
+        }
+		if(keypair == null){
+		    throw new IllegalArgumentException();
+        }
+        else{
+
+		    if(keypair.keys().hasNext()) {
+                key = keypair.keys().next();
+                Value = keypair.getString(key);
+            }
         }
 		return this;
 	}

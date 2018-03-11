@@ -8,9 +8,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
+import common.KVMessage;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 import logger.KVOut;
 
 import static java.lang.Math.min;
@@ -42,7 +42,6 @@ public class KVCommunicationModule {
      */
     public void send(KVMessage in_Message) throws SocketException{
         if(!privateSocket.isClosed()){
-            OutputStream outputStream;
             try {
                 ((KVJSONMessage)in_Message).setSendTime();
                 byte[] out = ((KVJSONMessage)in_Message).toBytes();
@@ -66,7 +65,7 @@ public class KVCommunicationModule {
     public KVJSONMessage receiveMessage() throws SocketException{
         if(!privateSocket.isClosed()){
             try {
-                KVJSONMessage ret = getEmptyMessage();
+                KVJSONMessage ret = new KVJSONMessage();
                 ret.fromBytes(internalBuffer,0,bufferedRead());
                 kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
                 return ret;
@@ -94,7 +93,7 @@ public class KVCommunicationModule {
      * Retrieve the socket of the communication module
      * @return
      */
-	private Socket getSocket() {
+	public Socket getSocket() {
 	    return privateSocket;
     }
 

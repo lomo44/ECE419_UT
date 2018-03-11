@@ -4,9 +4,10 @@ package testing.IntegrationTests;
 import app_kvClient.KVClient;
 import app_kvClient.Commands.*;
 import app_kvServer.KVServer;
+import common.KVMessage;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
+
 import org.junit.Test;
 
 import junit.framework.TestCase;

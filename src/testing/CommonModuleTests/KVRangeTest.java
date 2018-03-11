@@ -113,6 +113,14 @@ public class KVRangeTest extends TestCase {
     }
 
     @Test
+    public void testKVRangeTest_ExtendRange_Wrapped(){
+        KVRange<Integer> rangeA = new KVRange<>(9,6,true,true);
+        KVRange<Integer> rangeB = new KVRange<>(9,8,true,true);
+        KVRange<Integer> rangeC = rangeA.getExtension(rangeB);
+        assertEquals(rangeC,new KVRange<>(6,8,false,true));
+    }
+
+    @Test
     public void testKVRangeTest_Inclusive_Inclusive(){
         KVRange<Integer> rangeA = new KVRange<>(0,5,false,true);
         KVRange<Integer> rangeB = new KVRange<>(2,3, true,true);
@@ -124,6 +132,20 @@ public class KVRangeTest extends TestCase {
         KVRange<Integer> rangeA = new KVRange<>(0,5,false,true);
         KVRange<Integer> rangeB = new KVRange<>(0,1, true,true);
         assertEquals(false,rangeA.isInclusive(rangeB));
+    }
+
+    @Test
+    public void testKVRangeTest_Inclusive_Wrap_sub(){
+        KVRange<Integer> rangeA = new KVRange<>(5,0,true,true);
+        KVRange<Integer> rangeB = new KVRange<>(1,4,true,true);
+        assertEquals(false,rangeA.isInclusive(rangeB));
+    }
+
+    @Test
+    public void testKVRangeTest_Inclusive_Wrap_intersect(){
+        KVRange<Integer> rangeA = new KVRange<>(5,0,true,true);
+        KVRange<Integer> rangeB = new KVRange<>(6,9,true,true);
+        assertEquals(true,rangeA.isInclusive(rangeB));
     }
 
     @Test

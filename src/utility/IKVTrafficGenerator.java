@@ -17,7 +17,7 @@ public abstract class IKVTrafficGenerator {
         // Clean previous build string
         StringBuilder stringBuilder = new StringBuilder();
         while(stringBuilder.length() < length){
-            stringBuilder.append(alphabet.charAt(stringBuilder.length()%alphabet.length()));
+            stringBuilder.append(alphabet.charAt(ThreadLocalRandom.current().nextInt(0,alphabet.length())));
         }
         return  stringBuilder.toString();
     }

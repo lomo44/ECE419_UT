@@ -13,6 +13,6 @@ public class KVClientCommandLineParser extends KVCommandParser {
         commandPatterns.add(new KVCommandPatternLogLevel());
         commandPatterns.add(new KVCommandPatternPut());
         commandPatterns.add(new KVCommandPatternQuit());
-        commandPatterns.add(new KVCommandPatternEcho());
+        //commandPatterns.add(new KVCommandPatternEcho());
     }
 }

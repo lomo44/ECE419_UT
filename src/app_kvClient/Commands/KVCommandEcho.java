@@ -21,7 +21,7 @@ public class KVCommandEcho extends KVCommand<KVClient> {
             return newmsg;
         }
         try {
-            newmsg = (KVJSONMessage)clientInstance.getStore().send(newmsg);
+            //newmsg = (KVJSONMessage)clientInstance.getStore().send(newmsg);
         } catch (Exception e) {
         }
         finally{

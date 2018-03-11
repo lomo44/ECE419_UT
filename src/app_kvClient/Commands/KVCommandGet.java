@@ -20,18 +20,16 @@ public class KVCommandGet extends KVCommand<KVClient> {
         if (clientInstance.getStore() == null) {
             kv_out.println_error("Client not connected to a server.");
             ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
-            return ret;
         }
         try {
             ret = (KVJSONMessage) clientInstance.getStore().get(getKey());
+            //System.out.println(String.format("ret: %s",ret.getValue()));
         }
         catch (SocketException e) {
             ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
             clientInstance.disconnect();
         }
-        finally {
-            return ret;
-        }
+        return ret;
     }
 
 
@@ -47,6 +45,14 @@ public class KVCommandGet extends KVCommand<KVClient> {
             }
             case GET_ERROR:{
                 kv_out.println_error("Key " + key + " does not exist.");
+                break;
+            }
+            case SERVER_WRITE_LOCK:{
+                System.out.println(value);
+                break;
+            }
+            case SERVER_STOPPED:{
+                kv_out.println_error("Server stopped.");
                 break;
             }
             case UNKNOWN_ERROR:{

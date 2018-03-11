@@ -1,5 +1,6 @@
 package common.networknode;
 
+import common.communication.KVCommunicationModule;
 import common.datastructure.Pair;
 
 import java.io.IOException;
@@ -63,7 +64,7 @@ public class KVNetworkNode {
     @Override
     public boolean equals(Object o) {
         KVNetworkNode rhs = (KVNetworkNode) o;
-        return this.id.x.matches(rhs.id.x ) && this.id.y == rhs.id.y;
+        return this.id.x.matches(rhs.id.x ) && this.id.y.equals(rhs.id.y);
     }
 
     /**
@@ -82,5 +83,9 @@ public class KVNetworkNode {
      */
     public Socket createSocket() throws IOException {
         return new Socket(this.getHostName(),this.getPortNumber());
+    }
+
+    public KVCommunicationModule createCommunicationModule() throws IOException {
+        return new KVCommunicationModule(createSocket(),toString());
     }
 }

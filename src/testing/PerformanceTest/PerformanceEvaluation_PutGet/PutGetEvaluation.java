@@ -1,6 +1,7 @@
 package testing.PerformanceTest.PerformanceEvaluation_PutGet;
 
 import common.command.KVCommandPattern;
+import common.KVMessage;
 import common.command.KVCommand;
 import app_kvClient.Commands.KVCommandGet;
 import app_kvClient.Commands.KVCommandPut;
@@ -8,7 +9,6 @@ import app_kvClient.KVClient;
 import app_kvServer.KVServer;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
-import common.messages.KVMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
 import utility.KVPutGetGenerator;
