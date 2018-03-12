@@ -307,10 +307,6 @@ public class KVServer implements IKVServer {
 
     public static void main(String[] args) {
         kv_out.enableLog("logs/server.log", Level.ALL);
-        System.out.println("Run server from main");
-        for(String str :args){
-            System.out.println(str);
-        }
         KVServer new_server = new KVServer(args[0],args[1],Integer.parseInt(args[2]));
 	}
 
@@ -437,13 +433,11 @@ public class KVServer implements IKVServer {
     }
 
     public void handleChangeInMetadata(KVMetadata newMetadata) throws Exception {
-	    if(!newMetadata.equals(metadataController.getMetaData())){
-	        // meta data change, new node added
-            if(metadataController.update(newMetadata)){
-                lockWrite();
-                migrateData();
-                unlockWrite();
-            }
+        if(metadataController.update(newMetadata)){
+            lockWrite();
+            metadataController.getMetaData().print();
+            migrateData();
+            unlockWrite();
         }
     }
 
@@ -457,11 +451,12 @@ public class KVServer implements IKVServer {
 //	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getUpperBound().toString()));
 //	    System.out.println(String.format("Key  : %s",metadataController.hash(key)));
 //        System.out.println(String.format("Lower: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getLowerBound().toString()));
-         KVStorageNode node= metadataController.getStorageNode(getHostAddress(),getPort());
+         KVStorageNode node= metadataController.getStorageNode(config.getServerHost(),getPort());
          if(node!=null){
              return node.isResponsible(metadataController.hash(key));
          }
          else{
+             System.out.println(String.format("Node is null, take whatever I can, expect: %s: %d",config.getServerHost(),getPort()));
              return true;
          }
 //        System.out.println(String.format("In range: %b",ret));

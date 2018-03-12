@@ -154,4 +154,11 @@ public class KVMetadata {
     public void clear(){
         this.storageNodes.clear();
     }
+
+    public void print(){
+        for (BigInteger hash: storageNodes.keySet()
+             ) {
+            System.out.println(String.format("Hash: %s, Node: %s",hash,storageNodes.get(hash).toString()));
+        }
+    }
 }

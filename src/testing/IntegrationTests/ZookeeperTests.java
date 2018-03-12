@@ -63,7 +63,7 @@ public class ZookeeperTests extends TestCase{
         Assert.assertEquals(true,ecsClient.start());
     }
 
-    public void testBasic_Communication_SingleClient() throws Exception{
+    public void testBasic_Communication_SingleClientSingleServer() throws Exception{
         Collection<IECSNode> nodes = ecsClient.addNodes(1,"LFU",5);
         Assert.assertEquals(true,ecsClient.start());
 
@@ -74,6 +74,28 @@ public class ZookeeperTests extends TestCase{
         assertEquals(true, client.isConnected());
 
         for(int i = 0; i < 10; i++){
+            KVCommand cmd = generator.getNextCommand();
+            if(cmd.getCommandType()== KVCommandPattern.KVCommandType.GET){
+                KVJSONMessage keyPair = client.executeCommand(cmd);
+                assertEquals(true,generator.verify(keyPair.getKey(),keyPair.getValue()));
+            }
+            if(cmd.getCommandType() == KVCommandPattern.KVCommandType.PUT){
+                KVJSONMessage response = client.executeCommand(cmd);
+                assertEquals(KVMessage.StatusType.PUT_SUCCESS,response.getStatus());
+            }
+        }
+    }
+    public void testBasic_Communication_SingleClientMultiServer() throws Exception{
+        Collection<IECSNode> nodes = ecsClient.addNodes(4,"LFU",5);
+        Assert.assertEquals(true,ecsClient.start());
+
+        KVClient client = new KVClient();
+        IECSNode firstNode = nodes.iterator().next();
+        client.newConnection(firstNode.getNodeHost(),firstNode.getNodePort());
+        client.setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
+        assertEquals(true, client.isConnected());
+
+        for(int i = 0; i < 100; i++){
             KVCommand cmd = generator.getNextCommand();
             if(cmd.getCommandType()== KVCommandPattern.KVCommandType.GET){
                 KVJSONMessage keyPair = client.executeCommand(cmd);
