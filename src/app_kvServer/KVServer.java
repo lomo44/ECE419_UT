@@ -33,6 +33,7 @@ public class KVServer implements IKVServer {
     private Thread serverDaemonThread;
 	private KVDatabase database;
 	private KVServerConfig config;
+	private KVStorageNode node;
     private eKVServerStatus serverStatus = eKVServerStatus.STOPPED;
 	private KVMetadataController metadataController = new KVMetadataController();
 	private KVMigrationModule migrationModule = new KVMigrationModule();
@@ -57,6 +58,7 @@ public class KVServer implements IKVServer {
         config.setCacheSize(cacheSize);
         config.setServerPort(port);
         config.setCacheStratagy(strategy);
+        config.setServerHostName(serverName);
         try {
             initializeServer(config,null);
         } catch (InterruptedException e) {
@@ -118,7 +120,7 @@ public class KVServer implements IKVServer {
     }
 
 
-	public String getServername() {
+	public String getUID() {
 		return UID;
 	}
 	
@@ -263,7 +265,7 @@ public class KVServer implements IKVServer {
         kv_out.println_debug("Try to kill server.");
         lockWrite();
         stop();
-        metadataController.removeStorageNode(this.getNetworkNode());
+        metadataController.removeStorageNode(this.getUID());
         migrateData();
         unlockWrite();
         try {
@@ -321,9 +323,6 @@ public class KVServer implements IKVServer {
         serverHandler.setLogLevel(outputlevel,logLevel);
     }
 
-    public KVNetworkNode getNetworkNode(){
-	    return new KVNetworkNode(serverHandler.getHostName(),serverHandler.getPort());
-    }
 
     @Override
 	public void start() {
@@ -388,7 +387,7 @@ public class KVServer implements IKVServer {
             for (String key: keys
                     ) {
                 KVStorageNode node = metadataController.getResponsibleStorageNode(metadataController.hash(key));
-                String k =this.getNetworkNode().toString();
+                String k =this.getNode().toString();
                 if(node!=null && !node.toString().matches(k)){
                     if(!msgtable.containsKey(node))
                         msgtable.put(node,new HashSet<String>());
@@ -421,7 +420,11 @@ public class KVServer implements IKVServer {
                                 if(ret.getExtendStatusType() == eKVExtendStatusType.MIGRATION_COMPLETE){
                                     return;
                                 }
+                                else{
+                                    System.out.println("asdasdasdasdas");
+                                }
                             } catch (IOException e) {
+                                e.printStackTrace();
                             }
                         }
                         System.out.println("Migration Incomplete, possible data lost");
@@ -451,7 +454,7 @@ public class KVServer implements IKVServer {
 //	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getUpperBound().toString()));
 //	    System.out.println(String.format("Key  : %s",metadataController.hash(key)));
 //        System.out.println(String.format("Lower: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getLowerBound().toString()));
-         KVStorageNode node= metadataController.getStorageNode(config.getServerHost(),getPort());
+         KVStorageNode node= metadataController.getStorageNode(this.getUID());
          if(node!=null){
              return node.isResponsible(metadataController.hash(key));
          }
@@ -473,5 +476,22 @@ public class KVServer implements IKVServer {
 
     public KVOut getLogger() {
         return kv_out;
+    }
+
+    public void printResponsibleKeyValuePair() throws Exception {
+	    Set<String> keys = database.getKeys();
+	    for(String key: keys){
+	        if(isKeyResponsible(key)){
+	            System.out.printf("%s,%s\n",key, database.getKV(key));
+            }
+        }
+    }
+
+    public void setNode(KVStorageNode node) {
+        this.node = node;
+    }
+
+    public KVStorageNode getNode() {
+        return node;
     }
 }

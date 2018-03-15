@@ -231,7 +231,7 @@ public class ECSClient implements IECSClient {
 
     private void startServers(List<KVStorageNode> nodes) throws IOException, InterruptedException {
         for(KVStorageNode node : nodes){
-            runServerViaSSH(node.getserverName(),ZOOKEEPER_SERVER_HOSTNAME,zkport);
+            runServerViaSSH(node.getUID(),ZOOKEEPER_SERVER_HOSTNAME,zkport);
         }
     }
 
@@ -246,8 +246,8 @@ public class ECSClient implements IECSClient {
                 // hostname portnumber servername
                 KVStorageNode newNode = new KVStorageNode(match.group(2),Integer.parseInt(match.group(3)),match.group(1));
                 ret.add(newNode);
-                nameKVStorageNodeMap.put(newNode.getserverName(),newNode);
-                nameECSNodeMap.put(newNode.getserverName(),newNode.toECSNode());
+                nameKVStorageNodeMap.put(newNode.getUID(),newNode);
+                nameECSNodeMap.put(newNode.getUID(),newNode.toECSNode());
             }
             configLine = readbuf.readLine();
         }

@@ -4,6 +4,7 @@ package app_kvServer;
 import common.communication.KVCommunicationModule;
 import common.enums.eKVLogLevel;
 import common.networknode.KVNetworkNode;
+import common.networknode.KVStorageNode;
 import logger.KVOut;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class KVServerHandler implements Runnable {
             serverSocket = new ServerSocket(port);
             kv_out.println_info("Server listening on port "+port);
             kv_out.println_debug("Server IP:"+serverSocket.getLocalSocketAddress());
+            master.setNode(new KVStorageNode(serverSocket.getInetAddress().getHostAddress(),serverSocket.getLocalPort(),master.getUID()));
 
         }
         catch (SocketException e){

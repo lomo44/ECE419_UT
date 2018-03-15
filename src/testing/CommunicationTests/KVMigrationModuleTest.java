@@ -63,15 +63,15 @@ public class KVMigrationModuleTest extends TestCase {
         String tag = "AddressInfo";
         for (KVServer server: serverList){
             KVMigrationMessage msg = new KVMigrationMessage();
-            msg.add(tag,server.getNetworkNode().toString());
-            KVJSONMessage ret = migrationModule.migrate(server.getNetworkNode(),msg);
+            msg.add(tag,server.getNode().toString());
+            KVJSONMessage ret = migrationModule.migrate(server.getNode(),msg);
             assertEquals(MIGRATION_COMPLETE,ret.getExtendStatusType());
         }
         KVCommandGet getCommand = new KVCommandGet();
         getCommand.setKey(tag);
         for(int i = 0; i < clientList.size();i++){
             KVMessage getResponse = clientList.elementAt(i).executeCommand(getCommand);
-            assertEquals(serverList.elementAt(i).getNetworkNode().toString(),getResponse.getValue());
+            assertEquals(serverList.elementAt(i).getNode().toString(),getResponse.getValue());
         }
     }
     @Test
@@ -82,10 +82,10 @@ public class KVMigrationModuleTest extends TestCase {
                 @Override
                 public void run() {
                     KVMigrationMessage msg = new KVMigrationMessage();
-                    msg.add(tag,server.getNetworkNode().toString());
+                    msg.add(tag,server.getNode().toString());
                     KVJSONMessage ret = null;
                     try {
-                        ret = migrationModule.migrate(server.getNetworkNode(),msg);
+                        ret = migrationModule.migrate(server.getNode(),msg);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -98,7 +98,7 @@ public class KVMigrationModuleTest extends TestCase {
         getCommand.setKey(tag);
         for(int i = 0; i < clientList.size();i++){
             KVMessage getResponse = clientList.elementAt(i).executeCommand(getCommand);
-            assertEquals(serverList.elementAt(i).getNetworkNode().toString(),getResponse.getValue());
+            assertEquals(serverList.elementAt(i).getNode().toString(),getResponse.getValue());
         }
     }
 }

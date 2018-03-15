@@ -18,13 +18,11 @@ public class KVStorageNode extends KVNetworkNode{
      * @param portNumber Integer representation of port number
      */
     public KVStorageNode(String hostname, int portNumber, String servername) {
-        super(hostname, portNumber);
-        serverName=servername;
+        super(hostname, portNumber,servername);
     }
 
-    public KVStorageNode(KVNetworkNode node, String serverName){
-        super(node.getHostName(),node.getPortNumber());
-        this.serverName = serverName;
+    public KVStorageNode(KVNetworkNode node){
+        super(node.getHostName(),node.getPortNumber(),node.UID);
     }
 
     @Override
@@ -37,9 +35,6 @@ public class KVStorageNode extends KVNetworkNode{
         return super.hashCode();
     }
 
-    public KVStorageNode(String hostname, int portNumber) {
-        super(hostname, portNumber);
-    }
 
     public KVRange<BigInteger> getHashRange() {
         return hashRange;
@@ -49,9 +44,6 @@ public class KVStorageNode extends KVNetworkNode{
         this.hashRange = hashRange;
     }
 
-    public String getserverName() {
-    		return serverName;
-    }
 
     public boolean isResponsible(BigInteger hash){
         if(hashRange!=null){
@@ -65,7 +57,7 @@ public class KVStorageNode extends KVNetworkNode{
     public static KVStorageNode fromString(String str){
         Matcher match = re_pattern.matcher(str);
         if(match.matches()){
-            return new KVStorageNode(match.group(1),Integer.parseInt(match.group(2)));
+            return new KVStorageNode(match.group(1),Integer.parseInt(match.group(2)), match.group(3));
         }
         return null;
     }

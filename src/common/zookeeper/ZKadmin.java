@@ -52,8 +52,8 @@ public class ZKadmin extends ZKInstance {
 			config.setCacheSize(cacheSize);
 			config.setCacheStratagy(cacheStrategy);
 			config.setServerPort(server.getPortNumber());
-			config.setServerHost(server.getHostName());
-			String path = SERVER_BASE_PATH + "/" + server.getserverName();
+			config.setServerHostName(server.getHostName());
+			String path = SERVER_BASE_PATH + "/" + server.getUID();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
 			String configpath = path + "/" + SERVER_CONFIG_NAME;
 			createNodeHandler.createNodeSync(path, "", 0);
@@ -72,7 +72,7 @@ public class ZKadmin extends ZKInstance {
 
 
 	public void removeNodes(KVStorageNode nodes) throws KeeperException, InterruptedException {
-		String path = SERVER_BASE_PATH + "/" + nodes.getserverName();
+		String path = SERVER_BASE_PATH + "/" + nodes.getUID();
 		String metadatapath = path + "/" + SERVER_METADATA_NAME;
 		String configpath = path + "/" + SERVER_CONFIG_NAME;
 		zk.delete(path,-1);
@@ -81,7 +81,7 @@ public class ZKadmin extends ZKInstance {
 	public void broadcastMetadata(List<KVStorageNode> nodes, KVMetadata metadata){
 		for (KVStorageNode node: nodes
 				) {
-			String path = SERVER_BASE_PATH + "/" + node.getserverName();
+			String path = SERVER_BASE_PATH + "/" + node.getUID();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
 			DataHandler.setDataSync(metadatapath,metadata.toKVJSONMessage().toBytes(),0);
 		}

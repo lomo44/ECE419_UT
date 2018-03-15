@@ -51,7 +51,7 @@ public class KVStore implements KVCommInterface {
     @Override
     public void connect() throws Exception {
         kv_out.println_debug("KV Store connect");
-        KVNetworkNode newNetworkNode = new KVNetworkNode(serverAddress,serverPort);
+        KVNetworkNode newNetworkNode = new KVNetworkNode(serverAddress,serverPort,"default");
         KVCommunicationModule newModule = newNetworkNode.createCommunicationModule();
         newModule.setLogLevel(outputlevel,logLevel);
         setRunning(true);
@@ -141,6 +141,7 @@ public class KVStore implements KVCommInterface {
      */
     public void updateMetadata(KVJSONMessage msg) {
         KVMetadata metadata = KVMetadata.fromKVJSONMessage(msg);
+        metadataController.clearStorageNodes();
         metadataController.update(metadata);
     }
 

@@ -98,8 +98,7 @@ public class KVMetadataController {
      * @param node new KVNetworkNode;
      */
     public void addStorageNode(KVStorageNode node) {
-        String idString = node.toString();
-        BigInteger hash = hash(idString);
+        BigInteger hash = hash(node.getUID());
         if(this.metaData==null){
             update(new KVMetadata());
         }
@@ -110,9 +109,8 @@ public class KVMetadataController {
         }
     }
 
-    public void removeStorageNode(KVNetworkNode node){
-        String idString = node.toString();
-        BigInteger hash = hash(idString);
+    public void removeStorageNode(String UID){
+        BigInteger hash = hash(UID);
         if(this.metaData==null){
             update(new KVMetadata());
         }
@@ -175,15 +173,7 @@ public class KVMetadataController {
         }
     }
 
-    public KVStorageNode getStorageNode(String hostname, int portNumber){
-        return getStorageNode(new KVNetworkNode(hostname,portNumber));
-    }
-
-    public KVStorageNode getStorageNode(String targetName){
-        return getStorageNode(KVNetworkNode.fromString(targetName));
-    }
-
-    public KVStorageNode getStorageNode(KVNetworkNode node){
-        return getMetaData().getStorageNodeFromHash(hash(node.toString()));
+    public KVStorageNode getStorageNode(String UID){
+        return this.metaData.getStorageNodeFromHash(this.hash(UID));
     }
 }

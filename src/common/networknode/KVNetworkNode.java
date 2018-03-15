@@ -10,16 +10,19 @@ import java.util.regex.Pattern;
 
 public class KVNetworkNode {
     private Pair<String, Integer> id = new Pair<>("",0);
-    protected static final Pattern re_pattern = Pattern.compile("(.*) (\\d*)");
+    protected static final Pattern re_pattern = Pattern.compile("(.*) (\\d*) (.*)");
 
     /**
      * Create a network id from hostname and port number
      * @param hostname String representation of host name
      * @param portNumber Integer representation of port number
      */
-    public KVNetworkNode(String hostname, int portNumber){
+
+    String UID;
+    public KVNetworkNode(String hostname, int portNumber, String UID){
         id.x = hostname;
         id.y = portNumber;
+        this.UID = UID;
     }
 
     /**
@@ -28,7 +31,7 @@ public class KVNetworkNode {
      */
     @Override
     public String toString(){
-        return id.x +' '+ Integer.toString(id.y);
+        return String.format("%s %d %s",id.x,id.y,this.UID);
     }
 
     /**
@@ -39,7 +42,7 @@ public class KVNetworkNode {
     public static KVNetworkNode fromString(String str){
         Matcher match = re_pattern.matcher(str);
         if(match.matches()){
-            return new KVNetworkNode(match.group(1),Integer.parseInt(match.group(2)));
+            return new KVNetworkNode(match.group(1),Integer.parseInt(match.group(2)), match.group(3));
         }
         return null;
     }
@@ -55,6 +58,10 @@ public class KVNetworkNode {
      * @return
      */
     public int getPortNumber(){return id.y;}
+
+    public String getUID() {
+        return UID;
+    }
 
     /**
      * Check if input KVNetworkNode is the same as the current one

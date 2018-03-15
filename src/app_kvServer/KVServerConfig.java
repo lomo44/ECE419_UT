@@ -46,7 +46,7 @@ public class KVServerConfig extends KVExclusiveMessage {
     		add(KEY_SERVER_PORT,Integer.toString(port));
     }
 
-    public void setServerHost(String host){
+    public void setServerHostName(String host){
         add(KEY_SERVER_HOST,host);
     }
     public String getServerHost(){
