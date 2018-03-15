@@ -35,7 +35,8 @@ public class ECSClient implements IECSClient {
 
     private final static String ZOOKEEPER_SERVER_HOSTNAME = "localhost";
     private final static String LOCAL_HOST_IP = "127.0.0.1";
-    private final static String DEPLOYED_EXECUTABLE_PATH = "~/code/ECE419_UT/m2-server.jar";
+    private final static String DEPLOYED_EXECUTABLE_PATH = "~/ECE419_UT/m2-server.jar";
+    private final static String CONFIG_PATH = "~/ECE419_UT/ecs.config";
     private final static String PROMPT = "ECSClient: ";
     private final static Pattern config_parser = Pattern.compile("(.*) (.*) (\\d*)");
 
@@ -58,6 +59,10 @@ public class ECSClient implements IECSClient {
 
     private KVMetadataController metadataController = new KVMetadataController();
 
+    public ECSClient(String host, int port) throws IOException{
+    		this(CONFIG_PATH,host,port);
+    }
+    
     public ECSClient(String configFile, String host, int port) throws IOException {
         this(configFile,host,port,System.in);
 
