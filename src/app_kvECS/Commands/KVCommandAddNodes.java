@@ -5,6 +5,9 @@ import common.command.KVCommandPattern;
 import app_kvECS.ECSClient;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
+import ecs.IECSNode;
+
+import java.util.Collection;
 
 public class KVCommandAddNodes extends KVCommand<ECSClient> {
     public KVCommandAddNodes() { super(KVCommandPattern.KVCommandType.ADD_NODES); }
@@ -12,8 +15,13 @@ public class KVCommandAddNodes extends KVCommand<ECSClient> {
     @Override
     public KVJSONMessage execute(ECSClient clientInstance) {
         KVJSONMessage ret = new KVJSONMessage();
-        clientInstance.addNodes(getNumNodes(),getCacheStrategy(),getCacheSize());
-        ret.setExtendStatus(eKVExtendStatusType.ADD_NODE_SUCCESS);
+        Collection<IECSNode> nodes = clientInstance.addNodes(getNumNodes(),getCacheStrategy(),getCacheSize());
+        if(nodes ==null || nodes.size()!=getNumNodes()){
+            ret.setExtendStatus(eKVExtendStatusType.ADD_NODE_FAIL);
+        }
+        else{
+            ret.setExtendStatus(eKVExtendStatusType.ADD_NODE_SUCCESS);
+        }
         return ret;
     }
 

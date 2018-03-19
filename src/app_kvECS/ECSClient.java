@@ -35,12 +35,12 @@ public class ECSClient implements IECSClient {
 
     private final static String ZOOKEEPER_SERVER_HOSTNAME = "localhost";
     private final static String LOCAL_HOST_IP = "127.0.0.1";
-    private final static String DEPLOYED_EXECUTABLE_PATH = "~/ECE419_UT/m2-server.jar";
+
     private final static String CONFIG_PATH = "~/ECE419_UT/ecs.config";
     private final static String PROMPT = "ECSClient: ";
     private final static Pattern config_parser = Pattern.compile("(.*) (.*) (\\d*)");
 
-
+    private String deployedServerJarPath = "~/ECE419_UT/m2-server.jar";
     private List<KVStorageNode> sleepingServer;
     private List<KVStorageNode> runningServer = new ArrayList<>();
     private HashMap<KVNetworkNode, KVCommunicationModule> controlChannelMap = new HashMap<>();
@@ -75,6 +75,11 @@ public class ECSClient implements IECSClient {
         String hostport = zkhost + ":" + Integer.toString(zkport);
         zkAdmin = new ZKadmin(hostport, kv_out);
         sleepingServer = getAvailableNodesFromConfig(configFile);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -100,21 +105,30 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public boolean shutdown() throws IOException, KeeperException, InterruptedException {
+    public boolean shutdown(){
+        boolean ret = true;
         for (KVStorageNode node: runningServer
              ) {
-            if(!shutdownNode(node)){
-                return false;
+            try {
+                if(!shutdownNode(node)){
+                    ret = false;
+                }
+            } catch (IOException e) {
+                ret = false;
             }
         }
-        zkAdmin.close();
+        try {
+            zkAdmin.close();
+        } catch (Exception e) {
+           ret = false;
+        }
         for (Process process: createdProcess
              ) {
             process.destroyForcibly();
         }
         isRunning = false;
 
-        return true;
+        return ret;
     }
 
 
@@ -262,7 +276,7 @@ public class ECSClient implements IECSClient {
 
     private void runServerViaSSH(String name, String zkhost, int zkport) throws IOException, InterruptedException {
         String[] args = new String[]{"ssh", "-n", LOCAL_HOST_IP, "nohup",
-                "java", "-jar",DEPLOYED_EXECUTABLE_PATH, name, zkhost, Integer.toString(zkport)};
+                "java", "-jar", deployedServerJarPath, name, zkhost, Integer.toString(zkport)};
         System.out.println("start init server...");
         Process builder = new ProcessBuilder().inheritIO().command(args).start();
         createdProcess.add(builder);
@@ -351,13 +365,21 @@ public class ECSClient implements IECSClient {
         return true;
     }
 
+    public void setDeployedServerJarPath(String deployedServerJarPath) {
+        this.deployedServerJarPath = deployedServerJarPath;
+    }
+
     public static void main(String[] args) throws IOException {
         kv_out.enableLog("logs/ECS.log", Level.ALL);
         String zkhost = "localhost";
         int zkport = 2181;
-
-        ECSClient admin = new ECSClient(args[0], zkhost, zkport);
-        admin.run();
+        if(args.length!=1){
+            System.out.printf("Missing path to ECS.config, exiting...\n");
+        }
+        else{
+            ECSClient admin = new ECSClient(args[0], zkhost, zkport);
+            admin.run();
+        }
 //        ZKadmin zkAdmin = admin.zkAdmin;
 //        zkAdmin.connect();
 //        zkAdmin.setupServer();

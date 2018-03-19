@@ -21,7 +21,8 @@ public abstract class KVCommandPattern {
         REMOVE_NODE,
         SHUT_DOWN,
         START,
-        STOP
+        STOP,
+        SET_SERVER_JAR_PATH
     }
     protected KVCommandType commandType;
     protected Pattern commandRegex;
