@@ -1,6 +1,5 @@
 package testing.ECSClientTests;
 
-import app_kvClient.CommandPatterns.KVCommandPatternGet;
 import app_kvECS.CommandPatterns.*;
 import common.command.KVCommand;
 import common.command.KVCommandPattern;
@@ -81,13 +80,13 @@ public class KVCommandPatternTest extends TestCase {
     }
     @Test
     public void testCommandPattern_RemoveNode_Match() {
-        KVCommandPatternRemoveNode removeNode = new KVCommandPatternRemoveNode();
+        KVCommandPatternRemoveNodeByIndex removeNode = new KVCommandPatternRemoveNodeByIndex();
         assertTrue(removeNode.isMatched("removeNode abc"));
     }
     @Test
     public void testCommandPattern_RemoveNode_Invalid_Key() {
         String inputString = "removeNode ";
-        KVCommandPatternRemoveNode removeNode = new KVCommandPatternRemoveNode();
+        KVCommandPatternRemoveNodeByIndex removeNode = new KVCommandPatternRemoveNodeByIndex();
         assertFalse(removeNode.isMatched(inputString));
     }
     @Test

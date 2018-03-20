@@ -1,18 +1,18 @@
 package app_kvECS.CommandPatterns;
 
 import common.command.KVCommand;
-import app_kvECS.Commands.KVCommandRemoveNode;
+import app_kvECS.Commands.KVCommandRemoveNodeByIndex;
 import common.command.KVCommandPattern;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class KVCommandPatternRemoveNode extends KVCommandPattern {
+public class KVCommandPatternRemoveNodeByIndex extends KVCommandPattern {
     @Override
     public KVCommand generateCommand(String input) {
         Matcher matcher = commandRegex.matcher(input);
         matcher.find();
-        KVCommandRemoveNode newcommand = new KVCommandRemoveNode();
+        KVCommandRemoveNodeByIndex newcommand = new KVCommandRemoveNodeByIndex();
         newcommand.setIndex(matcher.group(1));
         return newcommand;
     }

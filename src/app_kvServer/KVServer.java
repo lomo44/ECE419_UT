@@ -270,7 +270,9 @@ public class KVServer implements IKVServer {
             migrateData();
             unlockWrite();
             database.close();
-            zkClient.close();
+            if(zkClient!=null){
+                zkClient.close();
+            }
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -342,9 +344,12 @@ public class KVServer implements IKVServer {
         this.database.unlockWrite();
 	}
 
-	public void lockRead() { this.database.lockRead();}
+	public void lockRead() {
+	    this.database.lockRead();}
 
-	public void unlockRead(){this.database.unlockRead();}
+	public void unlockRead(){
+	    this.database.unlockRead();
+	}
 
     @Override
     public boolean moveData(String[] hashRange, String targetName) throws Exception {
@@ -454,7 +459,7 @@ public class KVServer implements IKVServer {
              return node.isResponsible(metadataController.hash(key));
          }
          else{
-             System.out.println(String.format("Node is null, take whatever I can, expect: %s: %d",config.getServerHostAddress(),getPort()));
+             //System.out.println(String.format("Node is null, take whatever I can, expect: %s: %d",config.getServerHostAddress(),getPort()));
              return true;
          }
 //        System.out.println(String.format("In range: %b",ret));

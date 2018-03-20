@@ -33,21 +33,6 @@ public class KVMetadataTest extends TestCase {
         assertEquals(true,dataA.merge(dataB));
         assertEquals(idB,dataA.getStorageNodeFromHash(hashB));
     }
-    @Test
-    public void testNetworkID_Merge_Same(){
-        BigInteger hashA = BigInteger.valueOf(123);
-        KVStorageNode idA = new KVStorageNode("123",1,"temp3");
-        KVMetadata dataA = new KVMetadata();
-        dataA.addStorageNodeHashPair(hashA,idA);
-
-        BigInteger hashB = BigInteger.valueOf(123);
-        KVStorageNode idB = new KVStorageNode("123",1,"temp4");
-        KVMetadata dataB = new KVMetadata();
-        dataB.addStorageNodeHashPair(hashB,idB);
-
-        assertEquals(false,dataA.merge(dataB));
-        assertEquals(idA,dataA.getStorageNodeFromHash(hashB));
-    }
 
     @Test
     public void testNetworkID_toKVJSONMessage(){

@@ -1,16 +1,19 @@
 package common.networknode;
 
 import common.datastructure.KVRange;
+import common.enums.eKVNetworkNodeType;
 import database.storage.KVStorage;
 import ecs.ECSNode;
 import ecs.IECSNode;
+import org.json.JSONObject;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.regex.Matcher;
 
 public class KVStorageNode extends KVNetworkNode{
-    private KVRange<BigInteger> hashRange;
-    private String serverName ;
+    private static final String JSON_HASHRANGE_KEY = "hash_range";
+    private KVRange<BigInteger> hashRange = new KVRange<>(BigInteger.valueOf(0),BigInteger.valueOf(0),false,false);
     /**
      * Create a network id from hostname and port number
      *
@@ -19,22 +22,51 @@ public class KVStorageNode extends KVNetworkNode{
      */
     public KVStorageNode(String hostname, int portNumber, String servername) {
         super(hostname, portNumber,servername);
+        this.nodeType = eKVNetworkNodeType.STORAGE_NODE;
     }
 
     public KVStorageNode(KVNetworkNode node){
-        super(node.getHostName(),node.getPortNumber(),node.UID);
+        this(node.getHostName(),node.getPortNumber(),node.UID);
     }
 
     @Override
     public boolean equals(Object o) {
-        return super.equals(o);
+        boolean ret = true;
+        KVStorageNode rhs = (KVStorageNode)(o);
+        if(this.hashRange!=null && rhs!=null){
+            ret &= this.hashRange.equals(rhs.hashRange);
+        }
+        else if(this.hashRange == null && rhs.hashRange ==null){
+            ret &= true;
+        }
+        else{
+            return false;
+        }
+        return super.equals(o) && ret;
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return Objects.hash(getUID());
     }
 
+    @Override
+    public JSONObject toJSONObject() {
+        JSONObject object = super.toJSONObject();
+        object.put(JSON_HASHRANGE_KEY,hashRange.toJSONObject());
+        return object;
+    }
+
+    public static KVStorageNode fromJSONObject(JSONObject obj){
+        if(obj.has(JSON_NODETYPE_KEY)){
+            KVNetworkNode  network_node = KVNetworkNode.fromJSONObject(obj);
+            KVStorageNode node = new KVStorageNode(network_node);
+            JSONObject hashRangeObject = obj.getJSONObject(JSON_HASHRANGE_KEY);
+            node.setHashRange(KVRange.fromJSONObject(hashRangeObject));
+            return node;
+        }
+        return null;
+    }
 
     public KVRange<BigInteger> getHashRange() {
         return hashRange;

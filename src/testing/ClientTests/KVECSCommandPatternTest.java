@@ -1,11 +1,9 @@
 package testing.ClientTests;
 
-import app_kvClient.Commands.KVCommandGet;
-import app_kvECS.CommandPatterns.KVCommandPatternAddNode;
 import app_kvECS.Commands.KVCommandAddNode;
 import app_kvECS.Commands.KVCommandAddNodes;
 import app_kvECS.Commands.KVCommandGetNodeByKey;
-import app_kvECS.Commands.KVCommandRemoveNode;
+import app_kvECS.Commands.KVCommandRemoveNodeByIndex;
 import app_kvECS.ECSClientCommandLineParser;
 import common.command.KVCommand;
 import junit.framework.TestCase;
@@ -70,7 +68,7 @@ public class KVECSCommandPatternTest extends TestCase{
     public void testKVCommandPatternRemoveNode_Valid(){
         KVCommand command = parser.getParsedCommand("removeNode 1");
         assertNotNull(command);
-        KVCommandRemoveNode removeNode = (KVCommandRemoveNode) command;
+        KVCommandRemoveNodeByIndex removeNode = (KVCommandRemoveNodeByIndex) command;
         assertEquals(1,removeNode.getIndex());
     }
 

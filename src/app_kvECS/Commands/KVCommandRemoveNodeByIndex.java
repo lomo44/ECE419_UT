@@ -12,8 +12,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class KVCommandRemoveNode extends KVCommand<ECSClient> {
-    public KVCommandRemoveNode() { super(KVCommandPattern.KVCommandType.REMOVE_NODE); }
+public class KVCommandRemoveNodeByIndex extends KVCommand<ECSClient> {
+    public KVCommandRemoveNodeByIndex() { super(KVCommandPattern.KVCommandType.REMOVE_NODE); }
 
     public KVJSONMessage execute(ECSClient clientInstance) {
         KVJSONMessage ret = new KVJSONMessage();

@@ -40,7 +40,8 @@ public class KVMetadataController {
             metaData = new KVMetadata();
         }
         else {
-            metaData = newData;
+            metaData.clear();
+            metaData.addAll(newData);
         }
         this.keys = new TreeSet<>(this.metaData.getStorageNodeHashes());
         generateHashRange();

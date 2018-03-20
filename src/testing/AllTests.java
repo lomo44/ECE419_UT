@@ -1,10 +1,16 @@
 package testing;
 
+import common.networknode.KVNetworkNode;
+import common.networknode.KVStorageCluster;
+import common.networknode.KVStorageNode;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import testing.ClientTests.KVClientCommandPatternTest;
 import testing.ClientTests.KVECSCommandPatternTest;
+import testing.CommonModuleTests.KVNetworkNodeTest;
 import testing.CommonModuleTests.KVRangeTest;
+import testing.CommonModuleTests.KVStorageClusterTest;
+import testing.CommonModuleTests.KVStorageNodeTest;
 import testing.CommunicationTests.*;
 import testing.DatabaseTests.*;
 import testing.IntegrationTests.*;
@@ -38,6 +44,9 @@ public class AllTests {
 		clientSuite.addTestSuite(KVMigrationTest.class);
 		clientSuite.addTestSuite(KVServerConfigTest.class);
 		clientSuite.addTestSuite(KVECSCommandPatternTest.class);
+		clientSuite.addTestSuite(KVNetworkNodeTest.class);
+		clientSuite.addTestSuite(KVStorageNodeTest.class);
+		clientSuite.addTestSuite(KVStorageClusterTest.class);
 		return clientSuite;
 	}
 	
