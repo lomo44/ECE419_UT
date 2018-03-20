@@ -107,31 +107,51 @@ public class KVStore implements KVCommInterface {
      * @throws SocketException thrown when socket is closed
      */
     @Override
-    public KVMessage put(String key, String value) throws SocketException, InterruptedException {
-        if(!isRunning()){
-            throw new SocketException();
-        }
-        KVJSONMessage newmessage = createEmptyMessage();
-        newmessage.setValue(value);
-        newmessage.setKey(key);
-        newmessage.setStatus(KVMessage.StatusType.PUT);
-        KVCommunicationModule module = getResponsibleCommunicationModule(key);
-        module.send(newmessage);
-        KVJSONMessage response = module.receiveMessage();
-        while(response.getExtendStatusType()==eKVExtendStatusType.SERVER_NOT_RESPONSIBLE && serverReconnectEnable){
-            updateMetadata(response);
-            module = getResponsibleCommunicationModule(key);
-            if(module!=null){
-                module.send(newmessage);
-                response = module.receiveMessage();
+    public KVMessage put(String key, String value){
+        KVJSONMessage response = new KVJSONMessage();
+        if(isRunning()){
+            KVJSONMessage newmessage = createEmptyMessage();
+            newmessage.setValue(value);
+            newmessage.setKey(key);
+            newmessage.setStatus(KVMessage.StatusType.PUT);
+            boolean sendSuccess = false;
+            while(sendSuccess!=true){
+                KVCommunicationModule module = getResponsibleCommunicationModule(key);
+                try{
+                    module.send(newmessage);
+                    response = module.receiveMessage();
+                } catch (SocketException e) {
+                    connectionMap.values().remove(module);
+                    if(connectionMap.size()==0){
+                        running = false;
+                        break;
+                    }
+                }
+                if(response.getExtendStatusType()!=eKVExtendStatusType.SERVER_NOT_RESPONSIBLE){
+                    sendSuccess = true;
+                    kv_out.println_debug("PUT RTT: " + (System.currentTimeMillis()-response.getSendTime()) + "ms.");
+                }
+                else{
+                    if(!this.serverReconnectEnable){
+                        sendSuccess = true;
+                    }
+                    else{
+                        updateMetadata(response);
+                    }
+                }
             }
-            else{
+            if(sendSuccess == false){
                 response.setValue("");
                 response.setStatus(KVMessage.StatusType.PUT_ERROR);
-                return response;
+                kv_out.println_error("Message send failed, no available server");
+                running = false;
             }
         }
-        kv_out.println_debug("PUT RTT: " + (System.currentTimeMillis()-response.getSendTime()) + "ms.");
+        else{
+            response.setValue("");
+            response.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
+            kv_out.println_error("Message send failed, KVStore not running");
+        }
         return response;
     }
 
@@ -178,31 +198,53 @@ public class KVStore implements KVCommInterface {
      * @throws SocketException thrown when socket is closed
      */
     @Override
-    public KVMessage get(String key) throws SocketException {
-        if(!isRunning()){
-            throw new SocketException();
-        }
-        KVJSONMessage newmessage = createEmptyMessage();
-        newmessage.setKey(key);
-        newmessage.setValue("");
-        newmessage.setStatus(KVMessage.StatusType.GET);
-        KVCommunicationModule communicationModule =  getResponsibleCommunicationModule(key);
-        communicationModule.send(newmessage);
-        KVJSONMessage response = communicationModule.receiveMessage();
-        while (response.getExtendStatusType() == eKVExtendStatusType.SERVER_NOT_RESPONSIBLE && serverReconnectEnable){
-            updateMetadata(response);
-            communicationModule = getResponsibleCommunicationModule(key);
-            if(communicationModule!=null){
-                communicationModule.send(newmessage);
-                response = communicationModule.receiveMessage();
+    public KVMessage get(String key){
+        KVJSONMessage response = new KVJSONMessage();
+        if(isRunning()){
+            KVJSONMessage newmessage = createEmptyMessage();
+            newmessage.setKey(key);
+            newmessage.setValue("");
+            newmessage.setStatus(KVMessage.StatusType.GET);
+            boolean getSuccess = false;
+            while(getSuccess!=true){
+                KVCommunicationModule module = getResponsibleCommunicationModule(key);
+                try{
+                    module.send(newmessage);
+                    response = module.receiveMessage();
+                }
+                catch (SocketException e){
+                    connectionMap.values().remove(module);
+                    if(connectionMap.size()==0){
+                        running = false;
+                        break;
+                    }
+                }
+                if(response.getExtendStatusType()!=eKVExtendStatusType.SERVER_NOT_RESPONSIBLE){
+                    getSuccess = true;
+                    kv_out.println_debug("GET RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");
+                }
+                else{
+                    if(!serverReconnectEnable){
+                        getSuccess = true;
+                    }
+                    else{
+                        updateMetadata(response);
+                    }
+                }
             }
-            else{
+            if(getSuccess==false){
+                response.setKey(key);
                 response.setValue("");
                 response.setStatus(KVMessage.StatusType.GET_ERROR);
-                return response;
+                kv_out.println_error("Message send failed, no available server");
             }
         }
-        kv_out.println_debug("GET RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");
+        else{
+            response.setKey(key);
+            response.setValue("");
+            response.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
+            kv_out.println_error("Message send failed, KVStore not running");
+        }
         return response;
     }
 

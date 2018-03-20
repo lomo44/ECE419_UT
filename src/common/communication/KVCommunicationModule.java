@@ -46,7 +46,7 @@ public class KVCommunicationModule {
                 ((KVJSONMessage)in_Message).setSendTime();
                 byte[] out = ((KVJSONMessage)in_Message).toBytes();
                 bufferedWrite(out);
-                kv_out.println_info("Sent message to "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
+                //kv_out.println_info("Sent message to "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
             }
             catch (IOException e) {
                 throw new SocketException();
@@ -67,7 +67,7 @@ public class KVCommunicationModule {
             try {
                 KVJSONMessage ret = new KVJSONMessage();
                 ret.fromBytes(internalBuffer,0,bufferedRead());
-                kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
+                //kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
                 return ret;
 
             }

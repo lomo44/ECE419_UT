@@ -9,6 +9,7 @@ import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
 import common.zookeeper.*;
 
+import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -83,7 +84,7 @@ public class ECSClient implements IECSClient {
     }
 
     @Override
-    public boolean start() throws IOException {
+    public boolean start(){
         for (KVStorageNode node: runningServer
                 ) {
             if(!startNode(node)){
@@ -127,7 +128,6 @@ public class ECSClient implements IECSClient {
             process.destroyForcibly();
         }
         isRunning = false;
-
         return ret;
     }
 
@@ -159,6 +159,10 @@ public class ECSClient implements IECSClient {
         if(!shutdownNode(node)){
             return false;
         }
+        this.runningServer.remove(node);
+        this.sleepingServer.add(node);
+        metadataController.removeStorageNode(node.getUID());
+        zkAdmin.broadcastMetadata(runningServer,metadataController.getMetaData());
         return true;
     }
 
@@ -303,19 +307,29 @@ public class ECSClient implements IECSClient {
         return cmdInstance.execute(this);
     }
 
-    public boolean startNode(KVStorageNode node) throws IOException {
+    public boolean startNode(KVStorageNode node){
         if(!controlChannelMap.containsKey(node)){
-            controlChannelMap.put(node,node.createCommunicationModule());
+            try {
+                controlChannelMap.put(node,node.createCommunicationModule());
+            } catch (IOException e) {
+                return false;
+            }
         }
         KVCommunicationModule communicationModule = controlChannelMap.get(node);
         KVJSONMessage msg = new KVJSONMessage();
         msg.setExtendStatus(eKVExtendStatusType.SERVER_START);
-        communicationModule.send(msg);
-        KVJSONMessage response = communicationModule.receiveMessage();
-        if(response.getExtendStatusType() == eKVExtendStatusType.START_SUCCESS) {
-            return true;
-        }
-        else {
+        try {
+            communicationModule.send(msg);
+            KVJSONMessage response = communicationModule.receiveMessage();
+            if(response.getExtendStatusType() == eKVExtendStatusType.START_SUCCESS) {
+                return true;
+            }
+            else {
+                kv_out.println_error("Failed to start server");
+                return false;
+            }
+        } catch (SocketException e) {
+            kv_out.println_error("Failed to start server, socket exception");
             return false;
         }
     }

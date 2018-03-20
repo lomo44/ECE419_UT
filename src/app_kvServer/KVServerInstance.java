@@ -46,6 +46,11 @@ public class KVServerInstance implements Runnable {
                 isRunning = false;
             }
         }
+        try {
+            communicationModule.close();
+        } catch (IOException e) {
+
+        }
         kv_out.println_debug("Instance exit");
 
     }

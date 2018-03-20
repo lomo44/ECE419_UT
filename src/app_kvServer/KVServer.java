@@ -9,11 +9,9 @@ import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
 import common.metadata.KVMetadata;
 import common.metadata.KVMetadataController;
-import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
 import common.zookeeper.ZKClient;
 import database.KVDatabase;
-import org.apache.log4j.Level;
 import logger.KVOut;
 
 import java.io.IOException;
@@ -26,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 public class KVServer implements IKVServer {
 
-    private static KVOut kv_out = new KVOut("server");
+    private KVOut kv_out;
     private Thread handlerThread;
     private KVServerHandler serverHandler;
     private KVServerDaemon serverDaemon;
@@ -51,14 +49,13 @@ public class KVServer implements IKVServer {
      */
      
     public KVServer(int port, int cacheSize, String strategy, String serverName) throws IOException, ClassNotFoundException {
-
-        kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
         UID = serverName;
         KVServerConfig config = new KVServerConfig();
         config.setCacheSize(cacheSize);
         config.setServerPort(port);
         config.setCacheStratagy(strategy);
-        config.setServerHostName(serverName);
+        config.setServerHostAddress("localhost");
+        config.setServerName(serverName);
         try {
             initializeServer(config,null);
         } catch (InterruptedException e) {
@@ -90,6 +87,7 @@ public class KVServer implements IKVServer {
 	}
 
 	public void initializeServer(KVServerConfig config, KVMetadata metadata) throws InterruptedException {
+	    this.kv_out = new KVOut(config.getServerHostAddress());
 	    this.config = config;
 		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),this.UID);
         this.serverDaemon = new KVServerDaemon(this);
@@ -265,14 +263,14 @@ public class KVServer implements IKVServer {
         kv_out.println_debug("Try to kill server.");
         lockWrite();
         stop();
-        metadataController.removeStorageNode(this.getUID());
-        migrateData();
-        unlockWrite();
         try {
-
             serverHandler.stop();
             handlerThread.join();
+            metadataController.removeStorageNode(this.getUID());
+            migrateData();
+            unlockWrite();
             database.close();
+            zkClient.close();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -308,7 +306,6 @@ public class KVServer implements IKVServer {
 	}
 
     public static void main(String[] args) {
-        kv_out.enableLog("logs/server.log", Level.ALL);
         KVServer new_server = new KVServer(args[0],args[1],Integer.parseInt(args[2]));
 	}
 
@@ -421,7 +418,6 @@ public class KVServer implements IKVServer {
                                     return;
                                 }
                                 else{
-                                    System.out.println("asdasdasdasdas");
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();
@@ -436,12 +432,11 @@ public class KVServer implements IKVServer {
     }
 
     public void handleChangeInMetadata(KVMetadata newMetadata) throws Exception {
-        if(metadataController.update(newMetadata)){
-            lockWrite();
-            metadataController.getMetaData().print();
-            migrateData();
-            unlockWrite();
-        }
+        metadataController.update(newMetadata);
+        lockWrite();
+        metadataController.getMetaData().print();
+        migrateData();
+        unlockWrite();
     }
 
     public void handleChangeInConfigData(KVServerConfig newConfig){
@@ -459,7 +454,7 @@ public class KVServer implements IKVServer {
              return node.isResponsible(metadataController.hash(key));
          }
          else{
-             System.out.println(String.format("Node is null, take whatever I can, expect: %s: %d",config.getServerHost(),getPort()));
+             System.out.println(String.format("Node is null, take whatever I can, expect: %s: %d",config.getServerHostAddress(),getPort()));
              return true;
          }
 //        System.out.println(String.format("In range: %b",ret));

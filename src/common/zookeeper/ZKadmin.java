@@ -24,6 +24,7 @@ public class ZKadmin extends ZKInstance {
 
 	private ZKAdminMonitor serverMonitorHandler = new ZKAdminMonitor(this);
 
+	private int metadataVersion = 0;
 
 	public ZKadmin(String connectionString,KVOut logger) {
 		super(connectionString,logger);
@@ -52,7 +53,7 @@ public class ZKadmin extends ZKInstance {
 			config.setCacheSize(cacheSize);
 			config.setCacheStratagy(cacheStrategy);
 			config.setServerPort(server.getPortNumber());
-			config.setServerHostName(server.getHostName());
+			config.setServerHostAddress(server.getHostName());
 			String path = SERVER_BASE_PATH + "/" + server.getUID();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
 			String configpath = path + "/" + SERVER_CONFIG_NAME;
@@ -83,8 +84,9 @@ public class ZKadmin extends ZKInstance {
 				) {
 			String path = SERVER_BASE_PATH + "/" + node.getUID();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
-			DataHandler.setDataSync(metadatapath,metadata.toKVJSONMessage().toBytes(),0);
+			DataHandler.setDataSync(metadatapath,metadata.toKVJSONMessage().toBytes(),metadataVersion);
 		}
+		metadataVersion++;
 	}
 
 	@Override

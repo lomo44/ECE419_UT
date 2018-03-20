@@ -11,6 +11,7 @@ public class KVServerConfig extends KVExclusiveMessage {
     public final static String KEY_CACHE_SIZE = "cache_size";
     public final static String KEY_SERVER_PORT = "server_port";
     public final static String KEY_SERVER_HOST = "server_host";
+    public final static String KEY_SERVER_NAME = "server_name";
 
     public KVServerConfig() {
         super(KVCONFIGRATION_KEY, KVCONFIGRATION_PAYLOADID);
@@ -46,10 +47,15 @@ public class KVServerConfig extends KVExclusiveMessage {
     		add(KEY_SERVER_PORT,Integer.toString(port));
     }
 
-    public void setServerHostName(String host){
+    public void setServerHostAddress(String host){
         add(KEY_SERVER_HOST,host);
     }
-    public String getServerHost(){
+    public String getServerHostAddress(){
         return get(KEY_SERVER_HOST);
+    }
+
+    public void setServerName(String name) {add(KEY_SERVER_NAME,name);}
+    public String getServerName(){
+        return get(KEY_SERVER_NAME);
     }
 }

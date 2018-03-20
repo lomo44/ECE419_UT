@@ -35,21 +35,15 @@ public class KVMetadataController {
      * @param newData new KVMetadata
      * @return True if there are any changes compared to the previous metadata, False if not
      */
-    public boolean update(KVMetadata newData){
-        boolean changed;
+    public void update(KVMetadata newData){
         if(metaData == null){
-            metaData = newData;
-            changed = true;
+            metaData = new KVMetadata();
         }
         else {
-            changed = metaData.merge(newData);
+            metaData = newData;
         }
-        if (changed) {
-            // Rebuild the sorted key set
-            this.keys = new TreeSet<>(this.metaData.getStorageNodeHashes());
-            generateHashRange();
-        }
-        return changed;
+        this.keys = new TreeSet<>(this.metaData.getStorageNodeHashes());
+        generateHashRange();
     }
     
     public KVMetadata getMetaData() {
@@ -127,8 +121,7 @@ public class KVMetadataController {
         }
         for (KVStorageNode node: nodes
              ) {
-            String idString = node.toString();
-            BigInteger hash = hash(idString);
+            BigInteger hash = hash(node.getUID());
             if(!metaData.hasStorageNodeByHash(hash)){
                 this.metaData.addStorageNodeHashPair(hash,node);
                 this.keys.add(hash);

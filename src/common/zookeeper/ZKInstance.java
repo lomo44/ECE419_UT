@@ -3,6 +3,7 @@ package common.zookeeper;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -58,5 +59,9 @@ public abstract class ZKInstance implements Watcher {
 		if (event.getState()==KeeperState.SyncConnected) {
 			connection.countDown();
 		}
+	}
+
+	public void close() throws InterruptedException, KeeperException {
+		this.zk.close();
 	}
 }

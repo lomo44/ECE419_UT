@@ -20,7 +20,7 @@ public class KVServerHandler implements Runnable {
     private int port;
     private ServerSocket serverSocket;
     private KVServer master;
-    private KVOut kv_out = new KVOut("server");
+    private KVOut kv_out;
     private boolean isRunning;
     /**
      * Common thread implementation
@@ -92,8 +92,7 @@ public class KVServerHandler implements Runnable {
         aliveinstancethreads = new Vector<Thread>();
         aliveInstances = new Vector<KVServerInstance>();
         isRunning = false;
-        kv_out.changeLogLevel(eKVLogLevel.OFF);
-        kv_out.changeOutputLevel(eKVLogLevel.OFF);
+        kv_out = managerServer.getLogger();
     }
 
     /**
