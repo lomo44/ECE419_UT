@@ -39,7 +39,7 @@ public class KVServerInstance implements Runnable {
         isRunning = true;
         while(communicationModule.isConnected() && isRunning){
             try {
-                KVJSONMessage in_msg = communicationModule.receiveMessage();
+                KVJSONMessage in_msg = communicationModule.receive();
                 communicationModule.send(handleMessage(in_msg));
             }
             catch (SocketException e){
@@ -71,7 +71,7 @@ public class KVServerInstance implements Runnable {
      * @param in_message inbound message
      * @return KVMessage outbound message
      */
-    public KVMessage handleMessage(KVJSONMessage in_message) {
+    public KVJSONMessage handleMessage(KVJSONMessage in_message) {
         String out = String.format("Received inbound message, key: %s, value: %s,Operator: %d",
                 in_message.getKey(),in_message.getValue(),in_message.getExtendStatusType().getValue());
         kv_out.println_debug(out);

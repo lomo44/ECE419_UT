@@ -102,6 +102,9 @@ public class KVMetadataController {
             this.keys.add(hash);
             generateHashRange();
         }
+        else{
+            this.metaData.addStorageNodeHashPair(hash,node);
+        }
     }
 
     public void removeStorageNode(String UID){

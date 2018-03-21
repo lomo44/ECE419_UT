@@ -6,7 +6,6 @@ import common.networknode.KVNetworkNode;
 import java.io.IOException;
 import java.net.SocketException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Vector;
 
@@ -15,8 +14,6 @@ import java.util.Vector;
  * KVCommunication module will not be initialize until used.
  */
 public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicationModule> {
-
-
     /**
      * Asynchronous sending of broadcast
      * @param msg KVJSONMessage to be send
@@ -42,7 +39,7 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
         for(KVNetworkNode node: this.keySet()){
             if(initialConnection(node)){
                 try {
-                    msg.add(get(node).receiveMessage());
+                    msg.add(get(node).receive());
                 } catch (SocketException e) {
                     remove(node);
                 }
@@ -72,7 +69,7 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
             if(initialConnection(node)){
                 try {
                     get(node).send(msg);
-                    ret = get(node).receiveMessage();
+                    ret = get(node).receive();
                     break;
                 } catch (SocketException e) {
                     // Socket exception, reset connection

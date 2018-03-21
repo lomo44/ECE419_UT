@@ -64,7 +64,7 @@ public class KVTestClient {
      * @throws SocketException thrown if the connection is closed
      */
     public void send(KVMessage msg) throws SocketException {
-        communicationModule.send(msg);
+        //communicationModule.send(msg);
     }
 
     /**
@@ -73,7 +73,7 @@ public class KVTestClient {
      * @throws SocketException thrown when socket is closed
      */
     public KVMessage get() throws SocketException, InterruptedException {
-        return communicationModule.receiveMessage();
+        return communicationModule.receive();
     }
 
     /**

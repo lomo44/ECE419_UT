@@ -22,7 +22,6 @@ import java.util.regex.Pattern;
 import ecs.ECSNode;
 import ecs.IECSNode;
 import logger.KVOut;
-import org.apache.zookeeper.KeeperException;
 
 /*
  * mode				0:PERSISTENT
@@ -320,7 +319,7 @@ public class ECSClient implements IECSClient {
         msg.setExtendStatus(eKVExtendStatusType.SERVER_START);
         try {
             communicationModule.send(msg);
-            KVJSONMessage response = communicationModule.receiveMessage();
+            KVJSONMessage response = communicationModule.receive();
             if(response.getExtendStatusType() == eKVExtendStatusType.START_SUCCESS) {
                 return true;
             }
@@ -342,7 +341,7 @@ public class ECSClient implements IECSClient {
         KVJSONMessage msg = new KVJSONMessage();
         msg.setExtendStatus(eKVExtendStatusType.SERVER_STOP);
         communicationModule.send(msg);
-        KVJSONMessage response = communicationModule.receiveMessage();
+        KVJSONMessage response = communicationModule.receive();
         if(response.getExtendStatusType() == eKVExtendStatusType.STOP_SUCCESS) {
             return true;
         }
@@ -359,7 +358,7 @@ public class ECSClient implements IECSClient {
         KVJSONMessage msg = new KVJSONMessage();
         msg.setExtendStatus(eKVExtendStatusType.CLEAR_STORAGE);
         communicationModule.send(msg);
-        KVJSONMessage response = communicationModule.receiveMessage();
+        KVJSONMessage response = communicationModule.receive();
         if(response.getExtendStatusType() == eKVExtendStatusType.CLEAR_SUCCESS) {
             return true;
         }

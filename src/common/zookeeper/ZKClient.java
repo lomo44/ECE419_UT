@@ -39,10 +39,26 @@ public class ZKClient extends ZKInstance{
 		}
 	};
 
+	/**
+	 * cluster watcher for primary. Need to keep track of current nodes
+	 */
 	private Watcher clusterWatcher = new Watcher() {
 		@Override
 		public void process(WatchedEvent event) {
-
+			switch (event.getType()){
+				case NodeChildrenChanged:{
+					// Underlying node change
+					try {
+						List<KVServerConfig> configs = getServerConfigsFromCluster(event.getPath());
+						serverInstance.handleChangeInCluster(
+								new KVStorageCluster(getClusterNameFromClusterPath(event.getPath()),serverConfig,configs)
+						);
+					} catch (Exception e) {
+					 	e.printStackTrace();
+					}
+					break;
+				}
+			}
 		}
 	};
 	/**
@@ -126,6 +142,15 @@ public class ZKClient extends ZKInstance{
 			ret.add(getServerConfigFromPath(clusterPath+"/"+child));
 		}
 		return ret;
+	}
+
+	private List<KVServerConfig> getServerConfigsFromCluster(String clusterPath) throws KeeperException, InterruptedException {
+		List<String> children = zk.getChildren(clusterPath,false);
+		List<KVServerConfig> serverConfigs = new ArrayList<>();
+		for(String child : children){
+			serverConfigs.add(getServerConfigFromPath(clusterPath+"/"+child));
+		}
+		return serverConfigs;
 	}
 
 	private void setupPrecedingPrimary( String clusterpaths,List<String> sortedChildren) throws KeeperException, InterruptedException {

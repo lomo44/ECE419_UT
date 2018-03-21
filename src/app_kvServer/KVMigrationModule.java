@@ -8,12 +8,9 @@ import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
 import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
-import database.storage.KVStorage;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.net.SocketException;
-import java.util.HashMap;
 
 public class KVMigrationModule {
 
@@ -64,6 +61,6 @@ public class KVMigrationModule {
         KVJSONMessage outputmsg = msg.toKVJSONMessage();
         outputmsg.setExtendStatus(eKVExtendStatusType.MIGRATION_DATA);
         module.send(outputmsg);
-        return module.receiveMessage();
+        return module.receive();
     }
 }

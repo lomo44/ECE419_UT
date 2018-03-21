@@ -9,12 +9,13 @@ import java.net.Socket;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class KVStorageCluster extends KVStorageNode {
     private static final String JSON_KEY_NODELIST = "node_list";
     private static final String JSON_KEY_PRIMARY = "primary_node";
     private HashMap<String, KVStorageNode> childNodes = new HashMap<>();
-    private String primaryNode = null;
+    private String primaryNode = "";
 
     public KVStorageCluster(String UID) {
         super("KVStorageCluster", -1, UID);
@@ -85,7 +86,15 @@ public class KVStorageCluster extends KVStorageNode {
     public KVStorageNode getPrimaryNode() {
         return childNodes.get(this.primaryNode);
     }
-    public void removeNode(String UID){
-        childNodes.remove(UID);
+    public KVStorageNode getRandomMember(){
+        int index = ThreadLocalRandom.current().nextInt(0,childNodes.size());
+        int counter = 0;
+        for(KVStorageNode node: childNodes.values()){
+            if(counter==index){
+                return node;
+            }
+            counter++;
+        }
+        return null;
     }
 }

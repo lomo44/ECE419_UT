@@ -1,13 +1,11 @@
 package client;
 
 import java.io.IOException;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
-import java.util.*;
 import java.net.SocketException;
 import java.lang.System;
-import java.math.BigInteger;
 
+import common.communication.KVCommunicationModuleSet;
+import common.enums.eKVNetworkNodeType;
 import common.networknode.*;
 
 import common.enums.eKVExtendStatusType;
@@ -18,7 +16,6 @@ import common.KVMessage;
 import common.communication.KVCommunicationModule;
 import common.metadata.KVMetadataController;
 import common.metadata.KVMetadata;
-import database.storage.KVStorage;
 import logger.KVOut;
 
 public class KVStore implements KVCommInterface {
@@ -30,7 +27,7 @@ public class KVStore implements KVCommInterface {
     private eKVLogLevel outputlevel = eKVLogLevel.DEBUG;
     private eKVLogLevel logLevel = eKVLogLevel.DEBUG;
     private KVMetadataController metadataController;
-    private HashMap<KVNetworkNode, KVCommunicationModule> connectionMap = new HashMap<>();
+    private KVCommunicationModuleSet connectionMap = new KVCommunicationModuleSet();
     private boolean serverReconnectEnable = true;
 
     /**
@@ -116,27 +113,29 @@ public class KVStore implements KVCommInterface {
             newmessage.setStatus(KVMessage.StatusType.PUT);
             boolean sendSuccess = false;
             while(sendSuccess!=true){
-                KVCommunicationModule module = getResponsibleCommunicationModule(key);
-                try{
-                    module.send(newmessage);
-                    response = module.receiveMessage();
-                } catch (SocketException e) {
-                    connectionMap.values().remove(module);
-                    if(connectionMap.size()==0){
-                        running = false;
-                        break;
+                KVCommunicationModule module = getResponsibleCommunicationModule(key,true);
+                if(module!=null){
+                    try{
+                        module.send(newmessage);
+                        response = module.receive();
+                    } catch (SocketException e) {
+                        connectionMap.values().remove(module);
+                        if(connectionMap.size()==0){
+                            running = false;
+                            break;
+                        }
                     }
-                }
-                if(response.getExtendStatusType()!=eKVExtendStatusType.SERVER_NOT_RESPONSIBLE){
-                    sendSuccess = true;
-                    kv_out.println_debug("PUT RTT: " + (System.currentTimeMillis()-response.getSendTime()) + "ms.");
-                }
-                else{
-                    if(!this.serverReconnectEnable){
+                    if(response.getExtendStatusType()!=eKVExtendStatusType.SERVER_NOT_RESPONSIBLE){
                         sendSuccess = true;
+                        kv_out.println_debug("PUT RTT: " + (System.currentTimeMillis()-response.getSendTime()) + "ms.");
                     }
                     else{
-                        updateMetadata(response);
+                        if(!this.serverReconnectEnable){
+                            sendSuccess = true;
+                        }
+                        else{
+                            updateMetadata(response);
+                        }
                     }
                 }
             }
@@ -170,26 +169,32 @@ public class KVStore implements KVCommInterface {
      * @parm hashedKey the key that identifies the server
      * @return KVStorageNode server
      */
-    public KVCommunicationModule getResponsibleCommunicationModule(String key){
+    public KVCommunicationModule getResponsibleCommunicationModule(String key, boolean isWrite){
         //System.out.printf("Hashed valued: %s\n",metadataController.hash(key));
         KVNetworkNode node = metadataController.getResponsibleStorageNode(metadataController.hash(key));
-        if(node==null){
+        if (node == null) {
             //System.out.println("Cannot find suitable node, trying other one");
-            for (KVNetworkNode remainNode: connectionMap.keySet()
-                 ) {
+            for (KVNetworkNode remainNode : connectionMap.keySet()
+                    ) {
                 return connectionMap.get(remainNode);
             }
-        }
-        else{
-            //System.out.printf("Found server %s, try to get communication module\n",node.getUID());
-            if(!connectionMap.containsKey(node)){
-                try {
-                    connectionMap.put(node,node.createCommunicationModule());
-                } catch (IOException e) {
-                    e.printStackTrace();
+        } else {
+            if(node.getNodeType() == eKVNetworkNodeType.STORAGE_CLUSTER){
+                KVStorageCluster cluster = (KVStorageCluster)node;
+                if(isWrite){
+                    KVNetworkNode primary = cluster.getPrimaryNode();
+                    if(primary==null){
+                        node = cluster.getRandomMember();
+                    }
+                    else{
+                        node = primary;
+                    }
+                }
+                else{
+                    node = cluster.getRandomMember();
                 }
             }
-            return connectionMap.get(node);
+            return connectionMap.getCommunicationModule(node);
         }
         return null;
     }
@@ -210,28 +215,30 @@ public class KVStore implements KVCommInterface {
             newmessage.setStatus(KVMessage.StatusType.GET);
             boolean getSuccess = false;
             while(getSuccess!=true){
-                KVCommunicationModule module = getResponsibleCommunicationModule(key);
-                try{
-                    module.send(newmessage);
-                    response = module.receiveMessage();
-                }
-                catch (SocketException e){
-                    connectionMap.values().remove(module);
-                    if(connectionMap.size()==0){
-                        running = false;
-                        break;
+                KVCommunicationModule module = getResponsibleCommunicationModule(key,false);
+                if(module!=null){
+                    try{
+                        module.send(newmessage);
+                        response = module.receive();
                     }
-                }
-                if(response.getExtendStatusType()!=eKVExtendStatusType.SERVER_NOT_RESPONSIBLE){
-                    getSuccess = true;
-                    kv_out.println_debug("GET RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");
-                }
-                else{
-                    if(!serverReconnectEnable){
+                    catch (SocketException e){
+                        connectionMap.values().remove(module);
+                        if(connectionMap.size()==0){
+                            running = false;
+                            break;
+                        }
+                    }
+                    if(response.getExtendStatusType()!=eKVExtendStatusType.SERVER_NOT_RESPONSIBLE){
                         getSuccess = true;
+                        kv_out.println_debug("GET RTT: " + (System.currentTimeMillis()-response.getSendTime()) + " ms.");
                     }
                     else{
-                        updateMetadata(response);
+                        if(!serverReconnectEnable){
+                            getSuccess = true;
+                        }
+                        else{
+                            updateMetadata(response);
+                        }
                     }
                 }
             }

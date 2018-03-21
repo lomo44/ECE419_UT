@@ -9,6 +9,7 @@ import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
 import common.metadata.KVMetadata;
 import common.metadata.KVMetadataController;
+import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
 import common.zookeeper.ZKClient;
 import database.KVDatabase;
@@ -25,16 +26,16 @@ import java.util.concurrent.TimeUnit;
 public class KVServer implements IKVServer {
 
     private KVOut kv_out;
-    private Thread handlerThread;
     private KVServerHandler serverHandler;
     private KVServerDaemon serverDaemon;
+    private KVDatabase database;
+    private KVServerConfig config;
+    private KVStorageNode node;
+    private KVMetadataController metadataController = new KVMetadataController();
+    private KVMigrationModule migrationModule = new KVMigrationModule();
+    private Thread handlerThread;
     private Thread serverDaemonThread;
-	private KVDatabase database;
-	private KVServerConfig config;
-	private KVStorageNode node;
     private eKVServerStatus serverStatus = eKVServerStatus.STOPPED;
-	private KVMetadataController metadataController = new KVMetadataController();
-	private KVMigrationModule migrationModule = new KVMigrationModule();
 	private ZKClient zkClient;
     /**
      * Start KV Server at given port
@@ -441,6 +442,10 @@ public class KVServer implements IKVServer {
         unlockWrite();
     }
 
+    public void handleChangeInCluster(KVStorageCluster newCluster){
+	    this.metadataController.addStorageNode(newCluster);
+    }
+
 	public boolean isKeyResponsible(String key){
 //	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getUpperBound().toString()));
 //	    System.out.println(String.format("Key  : %s",metadataController.hash(key)));
@@ -486,7 +491,4 @@ public class KVServer implements IKVServer {
         return node;
     }
 
-    public KVMetadataController getMetadataController() {
-        return metadataController;
-    }
 }
