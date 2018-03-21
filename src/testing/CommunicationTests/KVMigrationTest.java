@@ -1,10 +1,8 @@
 package testing.CommunicationTests;
 
 import app_kvClient.Commands.KVCommandGet;
-import app_kvClient.Commands.KVCommandPut;
 import app_kvClient.KVClient;
 import app_kvServer.KVServer;
-import common.KVMessage;
 import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadataController;
@@ -42,8 +40,8 @@ public class KVMigrationTest extends TestCase{
         clientA = new KVClient();
         clientB = new KVClient();
 
-        mainController.addStorageNode(serverB.getNode());
-        mainController.addStorageNode(serverA.getNode());
+        mainController.addStorageNode(serverB.getStorageNode());
+        mainController.addStorageNode(serverA.getStorageNode());
         clientA.newConnection("localhost",serverA.getPort());
         clientB.newConnection("localhost",serverB.getPort());
 
@@ -74,7 +72,7 @@ public class KVMigrationTest extends TestCase{
         HashMap<String,String> map = generatorA.getDataContent();
         Set<String> migratedSet = new HashSet<>();
         Set<String> persistedSet = new HashSet<>();
-        KVNetworkNode serverAnode = serverA.getNode();
+        KVNetworkNode serverAnode = serverA.getStorageNode();
         //System.out.println("Filter key");
         for (String key: map.keySet()
              ) {

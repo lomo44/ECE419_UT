@@ -1,5 +1,6 @@
 package common.networknode;
 
+import app_kvServer.KVServerConfig;
 import common.datastructure.KVRange;
 import common.enums.eKVNetworkNodeType;
 import database.storage.KVStorage;
@@ -23,6 +24,10 @@ public class KVStorageNode extends KVNetworkNode{
     public KVStorageNode(String hostname, int portNumber, String servername) {
         super(hostname, portNumber,servername);
         this.nodeType = eKVNetworkNodeType.STORAGE_NODE;
+    }
+
+    public KVStorageNode(KVServerConfig config){
+        super(config.getServerHostAddress(),config.getServerPort(),config.getServerName());
     }
 
     public KVStorageNode(KVNetworkNode node){

@@ -1,48 +1,39 @@
 package common.networknode;
 
-import common.communication.KVCommunicationModuleSet;
+import app_kvServer.KVServerConfig;
 import common.enums.eKVNetworkNodeType;
-import database.storage.KVStorage;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Objects;
+import java.util.List;
 
 public class KVStorageCluster extends KVStorageNode {
     private static final String JSON_KEY_NODELIST = "node_list";
+    private static final String JSON_KEY_PRIMARY = "primary_node";
     private HashMap<String, KVStorageNode> childNodes = new HashMap<>();
-    private KVStorageCluster parentNodes;
-    private KVCommunicationModuleSet childNodesCommunicationSet = null;
+    private String primaryNode = null;
 
     public KVStorageCluster(String UID) {
-        super("undefined", -1, UID);
+        super("KVStorageCluster", -1, UID);
         this.nodeType = eKVNetworkNodeType.STORAGE_CLUSTER;
     }
     public KVStorageCluster(String hostname, int portNumber, String servername) {
         this(servername);
     }
-
     public KVStorageCluster(KVStorageNode node) {
         this(node.getUID());
         this.setHashRange(node.getHashRange());
     }
-    @Override
-    public JSONObject toJSONObject() {
-        JSONObject jsonObject = super.toJSONObject();
-        JSONObject listObject = new JSONObject();
-        for (String nodeName: childNodes.keySet()
-             ) {
-            listObject.put(
-                    Integer.toString(childNodes.get(nodeName).getNodeType().toInt()),
-                    childNodes.get(nodeName).toJSONObject());
+    public KVStorageCluster(String UID, KVServerConfig primary, List<KVServerConfig> members){
+        this(UID);
+        this.primaryNode = primary.getServerName();
+        for(KVServerConfig member_config: members){
+            addNode(new KVStorageNode(member_config));
         }
-        jsonObject.put(JSON_KEY_NODELIST,listObject);
-        return jsonObject;
     }
-
     public static KVStorageCluster fromJSONObject(JSONObject obj){
         KVStorageCluster cluster =  new KVStorageCluster(KVStorageNode.fromJSONObject(obj));
         JSONObject listObject = obj.getJSONObject(JSON_KEY_NODELIST);
@@ -55,35 +46,46 @@ public class KVStorageCluster extends KVStorageNode {
                 }
                 case STORAGE_CLUSTER:{
                     KVStorageCluster subCluster =  KVStorageCluster.fromJSONObject(listObject.getJSONObject(key));
-                    subCluster.setParentNodes(cluster);
                     cluster.addNode(subCluster);
                     break;
                 }
             }
         }
+        cluster.setPrimaryNode(obj.getString(JSON_KEY_PRIMARY));
         return cluster;
     }
-
+    public Collection<KVStorageNode> getChildNodes() {
+        return childNodes.values();
+    }
+    public void addNode(KVStorageNode node){
+        this.childNodes.put(node.UID,node);
+    }
+    @Override
+    public JSONObject toJSONObject() {
+        JSONObject jsonObject = super.toJSONObject();
+        JSONObject listObject = new JSONObject();
+        for (String nodeName: childNodes.keySet()
+                ) {
+            listObject.put(
+                    Integer.toString(childNodes.get(nodeName).getNodeType().toInt()),
+                    childNodes.get(nodeName).toJSONObject());
+        }
+        jsonObject.put(JSON_KEY_NODELIST,listObject);
+        jsonObject.put(JSON_KEY_PRIMARY,primaryNode);
+        return jsonObject;
+    }
     @Override
     public Socket createSocket() throws IOException {
         // should not create socket based on cluster either.
         return null;
     }
-
-    public KVStorageCluster getParentNodes(){
-        return this.parentNodes;
+    public void setPrimaryNode(String UID) {
+        this.primaryNode = UID;
     }
-
-    public Collection<KVStorageNode> getChildNodes() {
-        return childNodes.values();
+    public KVStorageNode getPrimaryNode() {
+        return childNodes.get(this.primaryNode);
     }
-
-    public void setParentNodes(KVStorageCluster parentNodes) {
-        this.parentNodes = parentNodes;
+    public void removeNode(String UID){
+        childNodes.remove(UID);
     }
-
-    public void addNode(KVStorageNode node){
-        this.childNodes.put(node.UID,node);
-    }
-
 }

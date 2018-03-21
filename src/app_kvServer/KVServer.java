@@ -36,7 +36,6 @@ public class KVServer implements IKVServer {
 	private KVMetadataController metadataController = new KVMetadataController();
 	private KVMigrationModule migrationModule = new KVMigrationModule();
 	private ZKClient zkClient;
-	private String UID = "tmp";
     /**
      * Start KV Server at given port
      * @param port given port for storage server to operate
@@ -49,7 +48,6 @@ public class KVServer implements IKVServer {
      */
      
     public KVServer(int port, int cacheSize, String strategy, String serverName) throws IOException, ClassNotFoundException {
-        UID = serverName;
         KVServerConfig config = new KVServerConfig();
         config.setCacheSize(cacheSize);
         config.setServerPort(port);
@@ -75,7 +73,6 @@ public class KVServer implements IKVServer {
 	 * @param zkPort		port where zookeeper is running
 	 */
 	public KVServer(String name, String zkHostname, int zkPort) {
-        this.UID = name;
 	    //kv_out.println_debug(String.format("Starting server at port %d, cache size: %d, stratagy: %s",port,cacheSize,strategy));
         try {
             zkClient = new ZKClient(zkHostname+":"+Integer.toString(zkPort),name,this);
@@ -89,7 +86,7 @@ public class KVServer implements IKVServer {
 	public void initializeServer(KVServerConfig config, KVMetadata metadata) throws InterruptedException {
 	    this.kv_out = new KVOut(config.getServerHostAddress());
 	    this.config = config;
-		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),this.UID);
+		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),getUID());
         this.serverDaemon = new KVServerDaemon(this);
         this.serverDaemonThread = new Thread(this.serverDaemon);
 		serverHandler = createServerHandler();
@@ -119,7 +116,7 @@ public class KVServer implements IKVServer {
 
 
 	public String getUID() {
-		return UID;
+		return config.getServerName();
 	}
 	
     /**
@@ -386,10 +383,10 @@ public class KVServer implements IKVServer {
             // assort key to different node
             //System.out.println(String.format("Migration Sender starts %s",this.getNetworkNode().toString()));
             HashMap<KVStorageNode, Set<String>> msgtable = new HashMap<>();
+            String k =this.getStorageNode().toString();
             for (String key: keys
                     ) {
                 KVStorageNode node = metadataController.getResponsibleStorageNode(metadataController.hash(key));
-                String k =this.getNode().toString();
                 if(node!=null && !node.toString().matches(k)){
                     if(!msgtable.containsKey(node))
                         msgtable.put(node,new HashSet<String>());
@@ -444,12 +441,6 @@ public class KVServer implements IKVServer {
         unlockWrite();
     }
 
-    public void handleChangeInConfigData(KVServerConfig newConfig){
-        if(database==null){
-            database = new KVDatabase(newConfig.getCacheSize(),5000000,newConfig.getCacheStratagy(), UID);
-        }
-    }
-
 	public boolean isKeyResponsible(String key){
 //	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getUpperBound().toString()));
 //	    System.out.println(String.format("Key  : %s",metadataController.hash(key)));
@@ -491,7 +482,11 @@ public class KVServer implements IKVServer {
         this.node = node;
     }
 
-    public KVStorageNode getNode() {
+    public KVStorageNode getStorageNode() {
         return node;
+    }
+
+    public KVMetadataController getMetadataController() {
+        return metadataController;
     }
 }

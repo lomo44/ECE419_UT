@@ -4,7 +4,13 @@ import app_kvServer.KVServer;
 import app_kvServer.KVServerConfig;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadata;
+import common.networknode.KVStorageCluster;
 import org.apache.zookeeper.*;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class ZKClient extends ZKInstance{
 
@@ -13,6 +19,7 @@ public class ZKClient extends ZKInstance{
 	private String serverMetadataPath;
 	private String serverTaskQueuePath;
 	private String serverPoolPath;
+	private static final Pattern regex_sequenceNumber = Pattern.compile("n_(\\d*)");
 
 	//private ZKClientMonitor ClientMonitorHandler= new ZKClientMonitor(this);
 	private KVServer serverInstance;
@@ -27,6 +34,31 @@ public class ZKClient extends ZKInstance{
 					serverInstance.handleChangeInMetadata(obtainMetadataFromZK());
 				} catch (Exception e) {
 					e.printStackTrace();
+				}
+			}
+		}
+	};
+
+	private Watcher clusterWatcher = new Watcher() {
+		@Override
+		public void process(WatchedEvent event) {
+
+		}
+	};
+	/**
+	 * This watcher is used for watching precedent node, if the precedent node is down, then it becomes the primary.
+	 */
+	private Watcher primaryWatcher = new Watcher() {
+		@Override
+		public void process(WatchedEvent event) {
+			switch (event.getType()){
+				case NodeDeleted:{
+					// proceding node got deleted, reevalutate the leader situation
+					String clusterpath = getClusterPathFromClusterMemberPath(event.getPath());
+					try {
+						createClusterInstance(clusterpath);
+					} catch (Exception e){
+					}
 				}
 			}
 		}
@@ -59,6 +91,51 @@ public class ZKClient extends ZKInstance{
 		KVJSONMessage temp = new KVJSONMessage();
 		temp.MetadatafromBytes(metadata, 0, metadata.length);
 		serverInstance.handleChangeInMetadata(KVMetadata.fromKVJSONMessage(temp));
+	}
+
+	protected KVStorageCluster joinCluster(String clusterPath) throws KeeperException, InterruptedException {
+		// Create a node on the cluster path;
+		zk.create(clusterPath+"/n_",
+				serverConfig.toKVJSONMessage().toBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL);
+		return createClusterInstance(clusterPath);
+	}
+
+	private KVStorageCluster createClusterInstance(String clusterPath) throws KeeperException, InterruptedException {
+		List<String> sortedChildren = zk.getChildren(clusterPath,false);
+		Collections.sort(sortedChildren);
+		KVServerConfig primaryConfig = getServerConfigFromPath(clusterPath+"/"+sortedChildren.get(0));
+		if(primaryConfig.getServerName() != this.serverConfig.getServerName()){
+			setupPrecedingPrimary(clusterPath,sortedChildren);
+		}
+		List<KVServerConfig> memberConfig = getServerConfigsFromCluster(clusterPath,sortedChildren);
+		return new KVStorageCluster(getClusterNameFromClusterPath(clusterPath),primaryConfig,memberConfig);
+	}
+
+	private KVServerConfig getServerConfigFromPath(String clusterPath) throws KeeperException, InterruptedException {
+		KVJSONMessage msg = new KVJSONMessage();
+		byte[] data = zk.getData(clusterPath,false,null);
+		msg.fromBytes(data,0,data.length);
+		return KVServerConfig.fromKVJSONMessage(msg);
+	}
+
+	private List<KVServerConfig> getServerConfigsFromCluster(String clusterPath, List<String> sortedChildren)
+			throws KeeperException, InterruptedException {
+		List<KVServerConfig> ret = new ArrayList<>();
+		for (String child: sortedChildren
+			 ) {
+			ret.add(getServerConfigFromPath(clusterPath+"/"+child));
+		}
+		return ret;
+	}
+
+	private void setupPrecedingPrimary( String clusterpaths,List<String> sortedChildren) throws KeeperException, InterruptedException {
+		String previous = "";
+		for (int i = 0; i < sortedChildren.size(); i++) {
+			if(sortedChildren.get(i).matches(this.serverConfig.getServerName())){
+				zk.getData(clusterpaths+"/"+previous,primaryWatcher,null);
+			}
+			previous = sortedChildren.get(i);
+		}
 	}
 
 	protected void signalInitialization(){
