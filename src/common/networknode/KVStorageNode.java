@@ -47,7 +47,7 @@ public class KVStorageNode extends KVNetworkNode{
 
     @Override
     public int hashCode() {
-        return Objects.hash(getUID());
+        return getUID().hashCode();
     }
 
     @Override

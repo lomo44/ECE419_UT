@@ -161,7 +161,8 @@ public class KVMetadata {
     public void print(){
         for (BigInteger hash: storageNodes.keySet()
              ) {
-            System.out.println(String.format("Hash: %s, Node: %s",hash,storageNodes.get(hash).toString()));
+            System.out.println(String.format("Hash: %s, Node: %s, Range: %s",
+                    hash,storageNodes.get(hash).toString(),storageNodes.get(hash).getHashRange().toString()));
         }
     }
 }

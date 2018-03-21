@@ -2,22 +2,24 @@ package app_kvServer;
 
 
 import common.communication.KVCommunicationModule;
+import common.communication.KVCommunicationModuleSet;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
 import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
+import database.storage.KVStorage;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.HashMap;
 
 public class KVMigrationModule {
 
-    private HashMap<KVNetworkNode,KVCommunicationModule> connectionTable;
+    private KVCommunicationModuleSet connectionTable = new KVCommunicationModuleSet();
 
     public KVMigrationModule(){
-        this.connectionTable = new HashMap<>();
     }
 
     /**
@@ -44,14 +46,21 @@ public class KVMigrationModule {
      * @throws IOException thrown if the connection between the servers cannot be made
      */
     public KVJSONMessage migrate(KVNetworkNode outputNode, KVMigrationMessage msg) throws IOException {
+        switch (outputNode.getNodeType()){
+            case NETWORK_NODE:
+            case STORAGE_NODE:{
+                return migrate((KVStorageNode) outputNode,msg);
+            }
+        }
+        return null;
+    }
+
+    private KVJSONMessage migrate(KVStorageNode outputNode, KVMigrationMessage msg) throws SocketException {
         if(!connectionTable.containsKey(outputNode)){
-            // Previous Connection doesn't exist, need to create a new one
-            Socket newConnection = outputNode.createSocket();
-            KVCommunicationModule newCommunicationModule = new KVCommunicationModule(newConnection,"localhost");
-            connectionTable.put(outputNode,newCommunicationModule);
+            connectionTable.add(outputNode);
         }
         // Find the communication module initiates the migration
-        KVCommunicationModule module = connectionTable.get(outputNode);
+        KVCommunicationModule module = connectionTable.getCommunicationModule(outputNode);
         KVJSONMessage outputmsg = msg.toKVJSONMessage();
         outputmsg.setExtendStatus(eKVExtendStatusType.MIGRATION_DATA);
         module.send(outputmsg);

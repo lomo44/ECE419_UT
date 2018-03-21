@@ -99,11 +99,15 @@ public class KVPutGetGenerator extends IKVTrafficGenerator {
     }
 
     public boolean verify(String key, String value){
+        System.out.printf("Verifing %s...",key);
         if(dataContent.containsKey(key)){
-            if(dataContent.get(key).equals(value)){
+            if(dataContent.get(key).matches(value)){
+                System.out.printf("OK\n");
                 return true;
             }
+            System.out.printf("Value wrong, expect: %s, actual: %s\n",dataContent.get(key),value);
         }
+        System.out.printf("Value dose not exist, expect: %s\n",dataContent.get(key));
         return false;
     }
 

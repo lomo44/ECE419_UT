@@ -171,14 +171,17 @@ public class KVStore implements KVCommInterface {
      * @return KVStorageNode server
      */
     public KVCommunicationModule getResponsibleCommunicationModule(String key){
+        //System.out.printf("Hashed valued: %s\n",metadataController.hash(key));
         KVNetworkNode node = metadataController.getResponsibleStorageNode(metadataController.hash(key));
         if(node==null){
+            //System.out.println("Cannot find suitable node, trying other one");
             for (KVNetworkNode remainNode: connectionMap.keySet()
                  ) {
                 return connectionMap.get(remainNode);
             }
         }
         else{
+            //System.out.printf("Found server %s, try to get communication module\n",node.getUID());
             if(!connectionMap.containsKey(node)){
                 try {
                     connectionMap.put(node,node.createCommunicationModule());

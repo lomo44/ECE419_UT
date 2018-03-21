@@ -71,6 +71,11 @@ public class KVRange<T extends Comparable> {
     }
 
     @Override
+    public String toString() {
+        return String.format("Lower: %s, Upper: %s",lowerBound.toString(),upperBound.toString());
+    }
+
+    @Override
     public boolean equals(Object o) {
         KVRange<T> a = (KVRange<T>) o;
         return a.upperBound.compareTo(this.upperBound) == 0 &&

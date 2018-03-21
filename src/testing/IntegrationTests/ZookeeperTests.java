@@ -55,7 +55,7 @@ public class ZookeeperTests extends TestCase{
     public void tearDown() throws Exception {
         ecsClient.clearAllStorage();
         ecsClient.shutdown();
-        Thread.sleep(5000);
+        Thread.sleep(2000);
         deleteDirectoryAndContent(new File(ZK_DATA_DIR));
         zkProcess.destroyForcibly();
     }
@@ -114,6 +114,7 @@ public class ZookeeperTests extends TestCase{
             KVCommand cmd = generator.getNextCommand();
             if(cmd.getCommandType()== KVCommandPattern.KVCommandType.GET){
                 KVJSONMessage keyPair = client.executeCommand(cmd);
+                System.out.printf("Request %s, response %s\n",cmd.getValue("Key"),new String(keyPair.toBytes()));
                 assertEquals(true,generator.verify(keyPair.getKey(),keyPair.getValue()));
             }
             if(cmd.getCommandType() == KVCommandPattern.KVCommandType.PUT){

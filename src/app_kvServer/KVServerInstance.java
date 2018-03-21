@@ -75,6 +75,7 @@ public class KVServerInstance implements Runnable {
         String out = String.format("Received inbound message, key: %s, value: %s,Operator: %d",
                 in_message.getKey(),in_message.getValue(),in_message.getExtendStatusType().getValue());
         kv_out.println_debug(out);
+        System.out.printf("Server: %s serving %s\n",this.serverinstance.getUID(),new String(in_message.toBytes()));
         eKVExtendStatusType statusType = in_message.getExtendStatusType();
         KVJSONMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
@@ -217,6 +218,7 @@ public class KVServerInstance implements Runnable {
                     response.setValue(ret);
                     response.setStatus(GET_SUCCESS);
                 } catch (Exception e) {
+                    System.out.printf("Server %s, cannot find %s \n",this.serverinstance.getUID(),msg.getKey());
                     response.setStatus(GET_ERROR);
                 }
             }
@@ -283,6 +285,7 @@ public class KVServerInstance implements Runnable {
     }
     private KVJSONMessage handleIrresponsibleRequest(){
         KVJSONMessage ret =  serverinstance.getCurrentMetadata().toKVJSONMessage();
+        serverinstance.getCurrentMetadata().print();
         ret.setStatus(SERVER_NOT_RESPONSIBLE);
         return ret;
     }

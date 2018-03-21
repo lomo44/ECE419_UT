@@ -121,4 +121,11 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
             return true;
         }
     }
+
+    public KVCommunicationModule getCommunicationModule(KVNetworkNode node) {
+        if(initialConnection(node)){
+            return this.get(node);
+        }
+        return null;
+    }
 }

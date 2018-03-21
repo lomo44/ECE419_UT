@@ -160,10 +160,10 @@ public class KVMetadataController {
             BigInteger previous = itor.next();
             while(itor.hasNext()){
                 BigInteger current = itor.next();
-                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(current,previous.subtract(BigInteger.valueOf(1)),true,true));
+                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(previous,current.subtract(BigInteger.valueOf(1)),true,true));
                 previous = current;
             }
-            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(keys.first(),previous.subtract(BigInteger.valueOf(1)),true,true));
+            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(previous,keys.first().subtract(BigInteger.valueOf(1)),true,true));
         }
     }
 

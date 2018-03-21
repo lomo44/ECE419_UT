@@ -459,7 +459,7 @@ public class KVServer implements IKVServer {
              return node.isResponsible(metadataController.hash(key));
          }
          else{
-             //System.out.println(String.format("Node is null, take whatever I can, expect: %s: %d",config.getServerHostAddress(),getPort()));
+             System.out.println(String.format("Node is null, take whatever I can, expect: %s",config.getServerName()));
              return true;
          }
 //        System.out.println(String.format("In range: %b",ret));
