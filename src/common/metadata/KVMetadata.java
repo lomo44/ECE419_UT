@@ -35,11 +35,9 @@ public class KVMetadata {
         KVExclusiveMessage msgParsed = new KVExclusiveMessage(KVMETADATA_IDENTIFIER,KVMETADATA_PAYLOAD_ID);
         if(msgParsed.loadFromKVJSONMessage(msg)){
             data = new KVMetadata();
-            HashMap<String, String> entries = msgParsed.getEntries();
-            Set<String> hashes = msgParsed.getEntries().keySet();
-            for (String hash: hashes
+            for (String hash: msgParsed.keySet()
                  ) {
-                String networkIDstring = entries.get(hash);
+                String networkIDstring = msgParsed.get(hash);
                 KVStorageNode newID = KVStorageNode.fromString(networkIDstring);
                 if(newID!=null){
                     data.addStorageNodeHashPair(new BigInteger(hash),newID);
@@ -65,7 +63,7 @@ public class KVMetadata {
     public KVJSONMessage toKVJSONMessage(){
         KVExclusiveMessage msg = new KVExclusiveMessage(KVMETADATA_IDENTIFIER,KVMETADATA_PAYLOAD_ID);
         for(BigInteger key : storageNodes.keySet()){
-            msg.add(key.toString(), storageNodes.get(key).toString());
+            msg.put(key.toString(), storageNodes.get(key).toString());
         }
         return msg.toKVJSONMessage();
     }

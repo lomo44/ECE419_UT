@@ -5,6 +5,7 @@ import app_kvClient.KVClient;
 import app_kvServer.KVMigrationModule;
 import app_kvServer.KVServer;
 import common.KVMessage;
+import common.communication.KVCommunicationModuleSet;
 import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
 import junit.framework.TestCase;
@@ -20,7 +21,7 @@ public class KVMigrationModuleTest extends TestCase {
     private Vector<KVServer> serverList = new Vector<>();
     private Vector<KVClient> clientList = new Vector<>();
     private KVPutGetGenerator generator;
-    private KVMigrationModule migrationModule = new KVMigrationModule();
+    private KVMigrationModule migrationModule = new KVMigrationModule(new KVCommunicationModuleSet());
 
     public int numOfClientServerPair = 10;
     public int msgPerServer = 7;
@@ -60,7 +61,7 @@ public class KVMigrationModuleTest extends TestCase {
         String tag = "AddressInfo";
         for (KVServer server: serverList){
             KVMigrationMessage msg = new KVMigrationMessage();
-            msg.add(tag,server.getStorageNode().toString());
+            msg.put(tag,server.getStorageNode().toString());
             KVJSONMessage ret = migrationModule.migrate(server.getStorageNode(),msg);
             assertEquals(MIGRATION_COMPLETE,ret.getExtendStatusType());
         }
@@ -79,7 +80,7 @@ public class KVMigrationModuleTest extends TestCase {
                 @Override
                 public void run() {
                     KVMigrationMessage msg = new KVMigrationMessage();
-                    msg.add(tag,server.getStorageNode().toString());
+                    msg.put(tag,server.getStorageNode().toString());
                     KVJSONMessage ret = null;
                     try {
                         ret = migrationModule.migrate(server.getStorageNode(),msg);

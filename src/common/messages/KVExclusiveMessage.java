@@ -5,14 +5,12 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 
-public class KVExclusiveMessage {
-    HashMap<String, String> entries;
+public class KVExclusiveMessage extends HashMap<String,String>{
     String identifier;
     String payloadID;
     public KVExclusiveMessage(String identifier, String payloadID){
         this.identifier = identifier;
         this.payloadID = payloadID;
-        entries = new HashMap<>();
     }
 
     public boolean loadFromKVJSONMessage(KVJSONMessage message){
@@ -23,30 +21,18 @@ public class KVExclusiveMessage {
                 JSONObject entries = payload.getJSONObject(payloadID);
                 for (String key: entries.keySet()
                         ) {
-                    this.add(key,entries.getString(key));
+                    this.put(key,entries.getString(key));
                 }
                 return true;
             }
         }
         return false;
     }
-
-    public void add(String key, String payload){
-        entries.put(key,payload);
-    }
-    public String get(String key){
-        return entries.get(key);
-    }
-
-    public HashMap<String, String> getEntries() {
-        return entries;
-    }
-
     public KVJSONMessage toKVJSONMessage(){
         KVJSONMessage ret = new KVJSONMessage();
         ret.setKey(identifier);
         JSONObject payload = new JSONObject();
-        payload.put(payloadID, entries);
+        payload.put(payloadID, this);
         ret.setValue(payload.toString());
         ret.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
         return ret;

@@ -19,7 +19,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 public class KVClusterUpdateDaemon implements Runnable{
     KVServer serverInstance;
     BlockingQueue<KVJSONMessage> updateQueue = new LinkedBlockingDeque<>();
-    KVCommunicationModuleSet communicationModuleSet  = new KVCommunicationModuleSet();
+    KVCommunicationModuleSet communicationModuleSet;
     Thread updateThread = new Thread(this);
     boolean running = false;
     boolean checkAckEnable = false;
@@ -27,6 +27,7 @@ public class KVClusterUpdateDaemon implements Runnable{
     public KVClusterUpdateDaemon(KVServer serverInstance, boolean checkAckEnable){
         this.serverInstance = serverInstance;
         this.checkAckEnable = checkAckEnable;
+        this.communicationModuleSet = serverInstance.getServerCommunicationSet();
     }
     public KVClusterUpdateDaemon(KVServer serverInstance){
         this.serverInstance = serverInstance;

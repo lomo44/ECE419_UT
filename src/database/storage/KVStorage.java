@@ -11,8 +11,6 @@ public interface KVStorage {
 	 */
 	public boolean inStorage(String key);
 
-
-
 	/**
 	 * Get the value associated with the key
 	 * 

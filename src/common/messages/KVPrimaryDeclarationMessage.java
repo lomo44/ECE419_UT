@@ -18,13 +18,13 @@ public class KVPrimaryDeclarationMessage extends KVExclusiveMessage {
         }
     }
     public void setClusterID(String clusterID){
-        add(KVPRIMARYDECLARATIONMESSAGE_CLUSTERID,clusterID);
+        put(KVPRIMARYDECLARATIONMESSAGE_CLUSTERID,clusterID);
     }
     public String getClusterID(){
         return get(KVPRIMARYDECLARATIONMESSAGE_CLUSTERID);
     }
     public void setPrimaryID(String primaryID){
-        add(KVPRIMARYDECLARATIONMESSAGE_PRIMARYID,primaryID);
+        put(KVPRIMARYDECLARATIONMESSAGE_PRIMARYID,primaryID);
     }
     public String getPrimaryID(){
         return get(KVPRIMARYDECLARATIONMESSAGE_PRIMARYID);

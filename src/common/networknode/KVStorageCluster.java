@@ -6,9 +6,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class KVStorageCluster extends KVStorageNode {
@@ -58,6 +56,16 @@ public class KVStorageCluster extends KVStorageNode {
     public Collection<KVStorageNode> getChildNodes() {
         return childNodes.values();
     }
+    public Collection<KVStorageNode> getChildNodesWithoutPrimary(){
+        List<KVStorageNode> ret = new ArrayList<>();
+        Collection<KVStorageNode> nodes = getChildNodes();
+        for(KVStorageNode node : nodes){
+            if(!isPrimary(node)){
+                ret.add(node);
+            }
+        }
+        return ret;
+    }
     public void addNode(KVStorageNode node){
         this.childNodes.put(node.UID,node);
     }
@@ -89,7 +97,7 @@ public class KVStorageCluster extends KVStorageNode {
     public void setPrimaryNodeUID(String UID) {
         this.primaryNodeUID = UID;
     }
-    public KVStorageNode getPrimaryNodeUID() {
+    public KVStorageNode getPrimaryNode() {
         return childNodes.get(this.primaryNodeUID);
     }
     public KVStorageNode getRandomMember(){

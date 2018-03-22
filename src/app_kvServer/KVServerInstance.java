@@ -101,7 +101,6 @@ public class KVServerInstance implements Runnable {
                 else{
                     serverinstance.lockRead();
                     retMessage = handlePut(in_message);
-                    handleDepartingPrimaryUpdate(in_message);
                     serverinstance.unlockRead();
                 }
                 break;
@@ -176,6 +175,8 @@ public class KVServerInstance implements Runnable {
                 }
                 try {
                     serverinstance.putKV(msg.getKey(),msg.getValue());
+                    msg.setExtendStatus(eKVExtendStatusType.PRIMARY_UPDATE);
+                    this.serverinstance.getClusterCommunicationModule().queueClusterUpdate(msg);
                     emptyMessage.setStatus(DELETE_SUCCESS);
                 } catch (Exception e) {
                     emptyMessage.setStatus(DELETE_ERROR);
@@ -209,6 +210,8 @@ public class KVServerInstance implements Runnable {
                     }
                     try {
                         serverinstance.putKV(msg.getKey(),msg.getValue());
+                        msg.setExtendStatus(eKVExtendStatusType.PRIMARY_UPDATE);
+                        this.serverinstance.getClusterCommunicationModule().queueClusterUpdate(msg);
                     } catch (Exception e1) {
                         kv_out.println_error(String.format("Key $s is not in range of this server",msg.getKey()));
                         response.setStatus(SERVER_NOT_RESPONSIBLE);
@@ -257,15 +260,18 @@ public class KVServerInstance implements Runnable {
             ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
             // Migration process started
             KVMigrationMessage migrationMessage = KVMigrationMessage.fromKVJSONMessage(msg);
-            HashMap<String, String> entries = migrationMessage.getEntries();
-            for(String key: entries.keySet()){
+            for(String key: migrationMessage.keySet()){
                 try {
-                    serverinstance.putKV(key,entries.get(key));
+                    serverinstance.putKV(key,migrationMessage.get(key));
                 } catch (Exception e) {
                     kv_out.println_fatal("Incorrect migration data. Key is not in range");
                     ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
                 }
             }
+        }
+        if(msg.getExtendStatusType()==eKVExtendStatusType.MIGRATION_DATA){
+            msg.setExtendStatus(eKVExtendStatusType.PRIMARY_MIGRATE);
+            this.serverinstance.getClusterCommunicationModule().queueClusterUpdate(msg);
         }
         //System.out.println("Migration ends.");
         return ret;
@@ -314,16 +320,6 @@ public class KVServerInstance implements Runnable {
             ret.setExtendStatus(eKVExtendStatusType.REPLICA_ERROR);
         }
         return ret;
-    }
-    private KVJSONMessage handleDepartingPrimaryUpdate(KVJSONMessage msg){
-        if(serverinstance.getClusterUpdateDaemon()!=null){
-            try {
-                serverinstance.getClusterUpdateDaemon().queueMessage(msg);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
     }
     private KVJSONMessage handleClusterOperation(KVJSONMessage msg){
         KVClusterOperationMessage clusterMsg = KVClusterOperationMessage.fromKVJSONMessage(msg);

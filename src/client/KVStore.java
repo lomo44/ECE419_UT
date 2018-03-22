@@ -182,7 +182,7 @@ public class KVStore implements KVCommInterface {
             if(node.getNodeType() == eKVNetworkNodeType.STORAGE_CLUSTER){
                 KVStorageCluster cluster = (KVStorageCluster)node;
                 if(isWrite){
-                    KVNetworkNode primary = cluster.getPrimaryNodeUID();
+                    KVNetworkNode primary = cluster.getPrimaryNode();
                     if(primary==null){
                         node = cluster.getRandomMember();
                     }

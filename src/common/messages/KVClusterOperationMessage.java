@@ -11,14 +11,14 @@ public class KVClusterOperationMessage extends KVExclusiveMessage{
         super(KVCLUSTEROPERATIONMESSAGE_IDENTIFIER, KVCLUSTEROPERATIONMESSAGE_PAYLOADID);
     }
     public void setTargetCluster(String clusterUID){
-        this.add(KVCLUSTEROPERATIONMESSAGE_TARGETCLUSTER,clusterUID);
+        this.put(KVCLUSTEROPERATIONMESSAGE_TARGETCLUSTER,clusterUID);
     }
     public String getTargetCluster(){
         return get(KVCLUSTEROPERATIONMESSAGE_TARGETCLUSTER);
     }
 
     public void setOperationType(eKVClusterOperationType operation){
-        this.add(KVCLUSTEROPERATIONMESSAGE_OPERATION,Integer.toString(operation.toInt()));
+        this.put(KVCLUSTEROPERATIONMESSAGE_OPERATION,Integer.toString(operation.toInt()));
     }
 
     public eKVClusterOperationType getOperationType(){

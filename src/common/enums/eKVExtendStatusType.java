@@ -50,6 +50,7 @@ public enum eKVExtendStatusType {
     REPLICA_OK(45),
     REPLICA_ERROR(46),
     CLUSTER_OPERATION(47),
+    PRIMARY_MIGRATE(48),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -116,6 +117,7 @@ public enum eKVExtendStatusType {
             case 45: return REPLICA_OK;
             case 46: return REPLICA_ERROR;
             case 47: return CLUSTER_OPERATION;
+            case 48: return PRIMARY_MIGRATE;
 
         }
         return null;

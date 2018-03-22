@@ -122,7 +122,7 @@ public class ZKClient extends ZKInstance{
 		zk.create(clusterPath+"/n_",
 				serverConfig.toKVJSONMessage().toBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL);
 		KVStorageCluster cluster = createClusterInstance(clusterPath);
-		if(cluster.getPrimaryNodeUID().getUID().matches(this.serverInstance.getUID())){
+		if(cluster.getPrimaryNode().getUID().matches(this.serverInstance.getUID())){
 			// setup watch for the cluster;
 			System.out.printf("Server: %s is selected as leader of cluster %s\n",serverInstance.getUID(),clusterPath);
 			zk.getChildren(clusterPath,clusterWatcher);
