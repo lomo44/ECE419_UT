@@ -389,7 +389,7 @@ public class KVServer implements IKVServer {
                 KVStorageNode node = metadataController.getResponsibleStorageNode(metadataController.hash(key));
                 if(node!=null && !node.toString().matches(k)) {
                     if (!msgtable.containsKey(node)) {
-                        msgtable.put(node, new HashMap<>());
+                        msgtable.put(node, new HashMap<String,String>());
                     }
                     try {
                         String value = database.getKV(key);
