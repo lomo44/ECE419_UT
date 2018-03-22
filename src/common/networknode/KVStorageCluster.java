@@ -97,4 +97,7 @@ public class KVStorageCluster extends KVStorageNode {
         }
         return null;
     }
+    public boolean isPrimary(KVStorageNode node){
+        return this.primaryNode.matches(node.getUID());
+    }
 }

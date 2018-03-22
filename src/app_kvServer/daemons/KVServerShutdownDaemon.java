@@ -1,8 +1,10 @@
-package app_kvServer;
+package app_kvServer.daemons;
 
-public class KVServerDaemon implements Runnable{
+import app_kvServer.KVServer;
+
+public class KVServerShutdownDaemon implements Runnable{
     KVServer serverInstance;
-    public KVServerDaemon(KVServer serverInstance){
+    public KVServerShutdownDaemon(KVServer serverInstance){
         this.serverInstance = serverInstance;
     }
     @Override

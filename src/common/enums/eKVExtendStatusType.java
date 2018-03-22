@@ -45,6 +45,10 @@ public enum eKVExtendStatusType {
     CLEAR_STORAGE(40),
     CLEAR_SUCCESS(41),
     CLEAR_FAILED(42),
+    PRIMARY_UPDATE(43),
+    PRIMARY_DECLARE(44),
+    REPLICA_OK(45),
+    REPLICA_ERROR(46),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -106,6 +110,11 @@ public enum eKVExtendStatusType {
             case 40: return CLEAR_STORAGE;
             case 41: return CLEAR_SUCCESS;
             case 42: return CLEAR_FAILED;
+            case 43: return PRIMARY_UPDATE;
+            case 44: return PRIMARY_DECLARE;
+            case 45: return REPLICA_OK;
+            case 46: return REPLICA_ERROR;
+
         }
         return null;
     }

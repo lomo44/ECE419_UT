@@ -1,6 +1,5 @@
 package app_kvServer;
 
-import common.KVMessage;
 import common.communication.KVCommunicationModule;
 import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
@@ -97,6 +96,7 @@ public class KVServerInstance implements Runnable {
                 else{
                     serverinstance.lockRead();
                     retMessage = handlePut(in_message);
+                    handleDepartingPrimaryUpdate(in_message);
                     serverinstance.unlockRead();
                 }
                 break;
@@ -129,6 +129,9 @@ public class KVServerInstance implements Runnable {
                 serverinstance.unlockWrite();
                 break;
             }
+            case PRIMARY_UPDATE:{
+                retMessage = handleIncommingPrimaryUpdate(in_message);
+            }
             default:{
                 retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
                 break;
@@ -151,7 +154,7 @@ public class KVServerInstance implements Runnable {
     private KVJSONMessage handleDelete(KVJSONMessage msg){
         KVJSONMessage emptyMessage = communicationModule.getEmptyMessage();
         if(isKeyValid(msg.getKey())){
-            if(isKeyResponsible(msg.getKey())){
+            if(isKeyResponsible(msg.getKey(),true)){
                 try {
                     serverinstance.getKV(msg.getKey());
                 } catch (Exception e) {
@@ -181,7 +184,7 @@ public class KVServerInstance implements Runnable {
         else{
             KVJSONMessage response = communicationModule.getEmptyMessage();
             if(isKeyValid(msg.getKey())){
-                if(isKeyResponsible(msg.getKey())){
+                if(isKeyResponsible(msg.getKey(),true)){
                     try {
                         serverinstance.getKV(msg.getKey());
                         response.setStatus(PUT_UPDATE);
@@ -211,7 +214,7 @@ public class KVServerInstance implements Runnable {
     private KVJSONMessage handleGet(KVJSONMessage msg){
         KVJSONMessage response = communicationModule.getEmptyMessage();
         if(isKeyValid(msg.getKey())){
-            if(isKeyResponsible(msg.getKey())){
+            if(isKeyResponsible(msg.getKey(),false)){
                 try {
                     String ret = serverinstance.getKV(msg.getKey());
                     response.setKey(msg.getKey());
@@ -289,18 +292,39 @@ public class KVServerInstance implements Runnable {
         ret.setStatus(SERVER_NOT_RESPONSIBLE);
         return ret;
     }
+    private KVJSONMessage handleIncommingPrimaryUpdate(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        ret.setExtendStatus(eKVExtendStatusType.REPLICA_OK);
+        try {
+            serverinstance.putKV(msg.getKey(),msg.getValue());
+        } catch (Exception e) {
+            ret.setExtendStatus(eKVExtendStatusType.REPLICA_ERROR);
+        }
+        return ret;
+    }
+    private KVJSONMessage handleDepartingPrimaryUpdate(KVJSONMessage msg){
+        if(serverinstance.getClusterUpdateDaemon()!=null){
+            try {
+                serverinstance.getClusterUpdateDaemon().queueMessage(msg);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
     /**
      * Check if the key is valid
      * @param key
      * @return
      */
+
     private  boolean isKeyValid(String key){
         return !key.matches("") && !whitespacechecker.matcher(key).find() && key.length() <= 20;
     }
     private boolean isValidDeleteIdentifier(String value){
         return value.matches(DELETE_IDENTIFIER) || value.matches("");
     }
-    private boolean isKeyResponsible(String key){
-        return serverinstance.isKeyResponsible(key);
+    private boolean isKeyResponsible(String key, boolean isWrite){
+        return serverinstance.isKeyResponsible(key, isWrite);
     }
 }

@@ -1,10 +1,9 @@
 package app_kvServer;
 
+import app_kvServer.daemons.KVClusterUpdateDaemon;
+import app_kvServer.daemons.KVServerShutdownDaemon;
 import common.datastructure.KVRange;
-import common.enums.eKVExtendCacheType;
-import common.enums.eKVExtendStatusType;
-import common.enums.eKVLogLevel;
-import common.enums.eKVServerStatus;
+import common.enums.*;
 import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
 import common.metadata.KVMetadata;
@@ -27,7 +26,8 @@ public class KVServer implements IKVServer {
 
     private KVOut kv_out;
     private KVServerHandler serverHandler;
-    private KVServerDaemon serverDaemon;
+    private KVServerShutdownDaemon serverExitDaemon;
+    private KVClusterUpdateDaemon ClusterUpdateDaemon = null;
     private KVDatabase database;
     private KVServerConfig config;
     private KVStorageNode node;
@@ -88,8 +88,8 @@ public class KVServer implements IKVServer {
 	    this.kv_out = new KVOut(config.getServerHostAddress());
 	    this.config = config;
 		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),getUID());
-        this.serverDaemon = new KVServerDaemon(this);
-        this.serverDaemonThread = new Thread(this.serverDaemon);
+        this.serverExitDaemon = new KVServerShutdownDaemon(this);
+        this.serverDaemonThread = new Thread(this.serverExitDaemon);
 		serverHandler = createServerHandler();
         setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
         handlerThread = new Thread(serverHandler);
@@ -446,13 +446,22 @@ public class KVServer implements IKVServer {
 	    this.metadataController.addStorageNode(newCluster);
     }
 
-	public boolean isKeyResponsible(String key){
+	public boolean isKeyResponsible(String key, boolean isWrite){
 //	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getUpperBound().toString()));
 //	    System.out.println(String.format("Key  : %s",metadataController.hash(key)));
 //        System.out.println(String.format("Lower: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getLowerBound().toString()));
-         KVStorageNode node= metadataController.getStorageNode(this.getUID());
+         KVStorageNode node = metadataController.getResponsibleStorageNode(key);
          if(node!=null){
-             return node.isResponsible(metadataController.hash(key));
+             if(node.getNodeType() == eKVNetworkNodeType.STORAGE_CLUSTER){
+                if(isWrite){
+                    KVStorageCluster cluster = (KVStorageCluster) node;
+                    return cluster.getPrimaryNode().getUID().matches(this.getUID());
+                }
+                return true;
+             }
+             else{
+                 return node.getUID().matches(this.getUID());
+             }
          }
          else{
              System.out.println(String.format("Node is null, take whatever I can, expect: %s",config.getServerName()));
@@ -460,6 +469,10 @@ public class KVServer implements IKVServer {
          }
 //        System.out.println(String.format("In range: %b",ret));
 //        System.out.println("-------------------------------------------------");
+    }
+
+    public KVStorageNode getResponsibleNode(String key){
+	    return this.metadataController.getResponsibleStorageNode(key);
     }
 
     public KVMetadata getCurrentMetadata(){
@@ -477,7 +490,7 @@ public class KVServer implements IKVServer {
     public void printResponsibleKeyValuePair() throws Exception {
 	    Set<String> keys = database.getKeys();
 	    for(String key: keys){
-	        if(isKeyResponsible(key)){
+	        if(isKeyResponsible(key,false)){
 	            System.out.printf("%s,%s\n",key, database.getKV(key));
             }
         }
@@ -491,4 +504,7 @@ public class KVServer implements IKVServer {
         return node;
     }
 
+    public KVClusterUpdateDaemon getClusterUpdateDaemon() {
+        return ClusterUpdateDaemon;
+    }
 }
