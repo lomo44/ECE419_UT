@@ -3,8 +3,10 @@ package app_kvServer;
 import common.communication.KVCommunicationModule;
 import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
+import common.messages.KVClusterOperationMessage;
 import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
+import common.messages.KVPrimaryDeclarationMessage;
 import logger.KVOut;
 
 import static common.KVMessage.StatusType.*;
@@ -39,7 +41,10 @@ public class KVServerInstance implements Runnable {
         while(communicationModule.isConnected() && isRunning){
             try {
                 KVJSONMessage in_msg = communicationModule.receive();
-                communicationModule.send(handleMessage(in_msg));
+                KVJSONMessage response = handleMessage(in_msg);
+                if(response!=null){
+                    communicationModule.send(response);
+                }
             }
             catch (SocketException e){
                 isRunning = false;
@@ -130,7 +135,15 @@ public class KVServerInstance implements Runnable {
                 break;
             }
             case PRIMARY_UPDATE:{
-                retMessage = handleIncommingPrimaryUpdate(in_message);
+                retMessage = handleIncomingPrimaryUpdate(in_message);
+                break;
+            }
+            case PRIMARY_DECLARE:{
+                retMessage = handlePrimaryDeclaration(in_message);
+                break;
+            }
+            case CLUSTER_OPERATION:{
+                retMessage = handleClusterOperation(in_message);
             }
             default:{
                 retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
@@ -292,7 +305,7 @@ public class KVServerInstance implements Runnable {
         ret.setStatus(SERVER_NOT_RESPONSIBLE);
         return ret;
     }
-    private KVJSONMessage handleIncommingPrimaryUpdate(KVJSONMessage msg){
+    private KVJSONMessage handleIncomingPrimaryUpdate(KVJSONMessage msg){
         KVJSONMessage ret = new KVJSONMessage();
         ret.setExtendStatus(eKVExtendStatusType.REPLICA_OK);
         try {
@@ -312,12 +325,36 @@ public class KVServerInstance implements Runnable {
         }
         return null;
     }
+    private KVJSONMessage handleClusterOperation(KVJSONMessage msg){
+        KVClusterOperationMessage clusterMsg = KVClusterOperationMessage.fromKVJSONMessage(msg);
+        KVJSONMessage ret = new KVJSONMessage();
+        ret.setExtendStatus(eKVExtendStatusType.REPLICA_ERROR);
+        switch (clusterMsg.getOperationType()){
+            case EXIT:{
+                if(serverinstance.joinCluster(clusterMsg.getTargetCluster())){
+                    ret.setExtendStatus(eKVExtendStatusType.REPLICA_OK);
+                }
+                break;
+            }
+            case JOIN:{
+                if(serverinstance.exitCluster(clusterMsg.getTargetCluster())){
+                    ret.setExtendStatus(eKVExtendStatusType.REPLICA_OK);
+                }
+                break;
+            }
+        }
+        return ret;
+    }
+    private KVJSONMessage handlePrimaryDeclaration(KVJSONMessage msg){
+        KVPrimaryDeclarationMessage declarationMessage = KVPrimaryDeclarationMessage.fromKVJSONMessage(msg);
+        serverinstance.getMetadataController().setPrimary(declarationMessage.getClusterID(),declarationMessage.getPrimaryID());
+        return null;
+    }
     /**
      * Check if the key is valid
      * @param key
      * @return
      */
-
     private  boolean isKeyValid(String key){
         return !key.matches("") && !whitespacechecker.matcher(key).find() && key.length() <= 20;
     }

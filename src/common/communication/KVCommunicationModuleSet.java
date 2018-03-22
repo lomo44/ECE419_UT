@@ -5,9 +5,7 @@ import common.networknode.KVNetworkNode;
 
 import java.io.IOException;
 import java.net.SocketException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * Class that maintain set of communications
@@ -30,11 +28,31 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
         }
     }
 
+    public void asyncBroadcastSend(KVJSONMessage msg, Collection<? extends KVNetworkNode> nodes){
+        for(KVNetworkNode node: nodes){
+            try {
+                getCommunicationModule(node).send(msg);
+            } catch (SocketException e) {
+            }
+        }
+    }
+
+    public Vector<KVJSONMessage> asyncBroadcastReceive(KVJSONMessage msg, Collection<? extends KVNetworkNode> nodes){
+        Vector<KVJSONMessage> received = new Vector<>();
+        for(KVNetworkNode node: nodes){
+            try {
+                received.add(getCommunicationModule(node).receive());
+            } catch (SocketException e) {
+            }
+        }
+        return received;
+    }
+
     /**
      * Asynchronous receiving of broadcast
      * @return list of msg return by the connections
      */
-    public Vector<KVJSONMessage> asyncBroadCastReceive(){
+    public Vector<KVJSONMessage> asyncBroadcastReceive(){
         Vector<KVJSONMessage> msg = new Vector<>();
         for(KVNetworkNode node: this.keySet()){
             if(initialConnection(node)){
@@ -55,7 +73,12 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
      */
     public Vector<KVJSONMessage> syncBroadcast(KVJSONMessage msg){
         asyncBroadcastSend(msg);
-        return asyncBroadCastReceive();
+        return asyncBroadcastReceive();
+    }
+
+    public Vector<KVJSONMessage> syncBoradcast(KVJSONMessage msg, Collection<? extends KVNetworkNode> nodes){
+        asyncBroadcastSend(msg,nodes);
+        return asyncBroadcastReceive(msg,nodes);
     }
 
     /**

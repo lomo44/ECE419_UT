@@ -1,9 +1,9 @@
 package common.metadata;
 
 import common.datastructure.KVRange;
-import common.networknode.KVNetworkNode;
+import common.enums.eKVNetworkNodeType;
+import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
-import database.storage.KVStorage;
 
 
 import java.io.UnsupportedEncodingException;
@@ -139,6 +139,14 @@ public class KVMetadataController {
     		metaData.clear();
         if(keys!=null)
         keys.clear();
+    }
+
+    public void setPrimary(String clusterUID, String serverUID){
+        KVStorageNode node = getStorageNode(clusterUID);
+        if(node.getNodeType()== eKVNetworkNodeType.STORAGE_CLUSTER){
+            KVStorageCluster cluster = (KVStorageCluster)node;
+            cluster.setPrimaryNodeUID(serverUID);
+        }
     }
 
     /**

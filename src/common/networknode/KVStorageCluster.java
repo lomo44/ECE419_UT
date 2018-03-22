@@ -15,7 +15,7 @@ public class KVStorageCluster extends KVStorageNode {
     private static final String JSON_KEY_NODELIST = "node_list";
     private static final String JSON_KEY_PRIMARY = "primary_node";
     private HashMap<String, KVStorageNode> childNodes = new HashMap<>();
-    private String primaryNode = "";
+    private String primaryNodeUID = "";
 
     public KVStorageCluster(String UID) {
         super("KVStorageCluster", -1, UID);
@@ -30,7 +30,7 @@ public class KVStorageCluster extends KVStorageNode {
     }
     public KVStorageCluster(String UID, KVServerConfig primary, List<KVServerConfig> members){
         this(UID);
-        this.primaryNode = primary.getServerName();
+        this.primaryNodeUID = primary.getServerName();
         for(KVServerConfig member_config: members){
             addNode(new KVStorageNode(member_config));
         }
@@ -52,7 +52,7 @@ public class KVStorageCluster extends KVStorageNode {
                 }
             }
         }
-        cluster.setPrimaryNode(obj.getString(JSON_KEY_PRIMARY));
+        cluster.setPrimaryNodeUID(obj.getString(JSON_KEY_PRIMARY));
         return cluster;
     }
     public Collection<KVStorageNode> getChildNodes() {
@@ -60,6 +60,12 @@ public class KVStorageCluster extends KVStorageNode {
     }
     public void addNode(KVStorageNode node){
         this.childNodes.put(node.UID,node);
+    }
+    public void removeNodeByUID(String UID){
+        if(UID.matches(this.primaryNodeUID)){
+            primaryNodeUID = "";
+        }
+        childNodes.remove(UID);
     }
     @Override
     public JSONObject toJSONObject() {
@@ -72,7 +78,7 @@ public class KVStorageCluster extends KVStorageNode {
                     childNodes.get(nodeName).toJSONObject());
         }
         jsonObject.put(JSON_KEY_NODELIST,listObject);
-        jsonObject.put(JSON_KEY_PRIMARY,primaryNode);
+        jsonObject.put(JSON_KEY_PRIMARY, primaryNodeUID);
         return jsonObject;
     }
     @Override
@@ -80,11 +86,11 @@ public class KVStorageCluster extends KVStorageNode {
         // should not create socket based on cluster either.
         return null;
     }
-    public void setPrimaryNode(String UID) {
-        this.primaryNode = UID;
+    public void setPrimaryNodeUID(String UID) {
+        this.primaryNodeUID = UID;
     }
-    public KVStorageNode getPrimaryNode() {
-        return childNodes.get(this.primaryNode);
+    public KVStorageNode getPrimaryNodeUID() {
+        return childNodes.get(this.primaryNodeUID);
     }
     public KVStorageNode getRandomMember(){
         int index = ThreadLocalRandom.current().nextInt(0,childNodes.size());
@@ -98,6 +104,9 @@ public class KVStorageCluster extends KVStorageNode {
         return null;
     }
     public boolean isPrimary(KVStorageNode node){
-        return this.primaryNode.matches(node.getUID());
+        return this.primaryNodeUID.matches(node.getUID());
+    }
+    public boolean contain(String UID){
+        return childNodes.containsKey(UID);
     }
 }

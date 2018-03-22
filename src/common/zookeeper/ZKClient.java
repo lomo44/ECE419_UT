@@ -49,7 +49,8 @@ public class ZKClient extends ZKInstance{
 				case NodeChildrenChanged:{
 					// Underlying node change
 					try {
-						List<KVServerConfig> configs = getServerConfigsFromCluster(event.getPath());
+						List<String> children = zk.getChildren(event.getPath(),clusterWatcher);
+						List<KVServerConfig> configs = getServerConfigsFromCluster(event.getPath(),children);
 						serverInstance.handleChangeInCluster(
 								new KVStorageCluster(getClusterNameFromClusterPath(event.getPath()),serverConfig,configs)
 						);
@@ -109,11 +110,40 @@ public class ZKClient extends ZKInstance{
 		serverInstance.handleChangeInMetadata(KVMetadata.fromKVJSONMessage(temp));
 	}
 
-	protected KVStorageCluster joinCluster(String clusterPath) throws KeeperException, InterruptedException {
+	/**
+	 * join a cluster based on cluster path. This function will not initialize any server part
+	 * @param clusterPath zookeeper cluster path
+	 * @return KVStorageCluster if joining is successfull
+	 * @throws KeeperException
+	 * @throws InterruptedException
+	 */
+	public KVStorageCluster joinCluster(String clusterPath) throws KeeperException, InterruptedException {
 		// Create a node on the cluster path;
 		zk.create(clusterPath+"/n_",
 				serverConfig.toKVJSONMessage().toBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL);
-		return createClusterInstance(clusterPath);
+		KVStorageCluster cluster = createClusterInstance(clusterPath);
+		if(cluster.getPrimaryNodeUID().getUID().matches(this.serverInstance.getUID())){
+			// setup watch for the cluster;
+			System.out.printf("Server: %s is selected as leader of cluster %s\n",serverInstance.getUID(),clusterPath);
+			zk.getChildren(clusterPath,clusterWatcher);
+		}
+		return cluster;
+	}
+
+	/**
+	 * Exit a cluster. This function assume that the caller has remove the local node from the cluster
+	 * @param clusterPath
+	 */
+	public void exitCluster(String clusterPath) throws KeeperException, InterruptedException {
+		// remove local node from local metadata
+		List<String> children = zk.getChildren(clusterPath,false);
+		for(String child: children){
+			KVServerConfig config = getServerConfigFromPath(clusterPath+"/"+child);
+			if(config.getServerName().matches(this.serverInstance.getUID())){
+				//server node find, remove the node
+				zk.delete(clusterPath+"/"+child,-1);
+			}
+		}
 	}
 
 	private KVStorageCluster createClusterInstance(String clusterPath) throws KeeperException, InterruptedException {
@@ -142,15 +172,6 @@ public class ZKClient extends ZKInstance{
 			ret.add(getServerConfigFromPath(clusterPath+"/"+child));
 		}
 		return ret;
-	}
-
-	private List<KVServerConfig> getServerConfigsFromCluster(String clusterPath) throws KeeperException, InterruptedException {
-		List<String> children = zk.getChildren(clusterPath,false);
-		List<KVServerConfig> serverConfigs = new ArrayList<>();
-		for(String child : children){
-			serverConfigs.add(getServerConfigFromPath(clusterPath+"/"+child));
-		}
-		return serverConfigs;
 	}
 
 	private void setupPrecedingPrimary( String clusterpaths,List<String> sortedChildren) throws KeeperException, InterruptedException {

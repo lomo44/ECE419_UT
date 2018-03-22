@@ -49,6 +49,7 @@ public enum eKVExtendStatusType {
     PRIMARY_DECLARE(44),
     REPLICA_OK(45),
     REPLICA_ERROR(46),
+    CLUSTER_OPERATION(47),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -114,6 +115,7 @@ public enum eKVExtendStatusType {
             case 44: return PRIMARY_DECLARE;
             case 45: return REPLICA_OK;
             case 46: return REPLICA_ERROR;
+            case 47: return CLUSTER_OPERATION;
 
         }
         return null;

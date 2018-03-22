@@ -13,6 +13,7 @@ import common.networknode.KVStorageNode;
 import common.zookeeper.ZKClient;
 import database.KVDatabase;
 import logger.KVOut;
+import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -27,7 +28,7 @@ public class KVServer implements IKVServer {
     private KVOut kv_out;
     private KVServerHandler serverHandler;
     private KVServerShutdownDaemon serverExitDaemon;
-    private KVClusterUpdateDaemon ClusterUpdateDaemon = null;
+    private KVClusterUpdateDaemon clusterUpdateDaemon = null;
     private KVDatabase database;
     private KVServerConfig config;
     private KVStorageNode node;
@@ -320,7 +321,6 @@ public class KVServer implements IKVServer {
         serverHandler.setLogLevel(outputlevel,logLevel);
     }
 
-
     @Override
 	public void start() {
 		serverStatus = eKVServerStatus.STARTED;
@@ -446,6 +446,10 @@ public class KVServer implements IKVServer {
 	    this.metadataController.addStorageNode(newCluster);
     }
 
+    public void handleElectionVictory(KVStorageCluster newCluster){
+
+    }
+
 	public boolean isKeyResponsible(String key, boolean isWrite){
 //	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getUpperBound().toString()));
 //	    System.out.println(String.format("Key  : %s",metadataController.hash(key)));
@@ -453,11 +457,11 @@ public class KVServer implements IKVServer {
          KVStorageNode node = metadataController.getResponsibleStorageNode(key);
          if(node!=null){
              if(node.getNodeType() == eKVNetworkNodeType.STORAGE_CLUSTER){
+                 KVStorageCluster cluster = (KVStorageCluster) node;
                 if(isWrite){
-                    KVStorageCluster cluster = (KVStorageCluster) node;
-                    return cluster.getPrimaryNode().getUID().matches(this.getUID());
+                    return cluster.getPrimaryNodeUID().getUID().matches(this.getUID());
                 }
-                return true;
+                return cluster.contain(this.getUID());
              }
              else{
                  return node.getUID().matches(this.getUID());
@@ -505,6 +509,56 @@ public class KVServer implements IKVServer {
     }
 
     public KVClusterUpdateDaemon getClusterUpdateDaemon() {
-        return ClusterUpdateDaemon;
+        return clusterUpdateDaemon;
+    }
+
+    public void startClusterUpdateDaemon(){
+	    if(this.clusterUpdateDaemon ==null){
+	        kv_out.println_debug("Starting cluster update daemon");
+            this.clusterUpdateDaemon = new KVClusterUpdateDaemon(this);
+            this.clusterUpdateDaemon.start();
+        }
+        else{
+	        kv_out.println_debug("Cluster update daemon already started");
+        }
+    }
+
+    public KVMetadataController getMetadataController() {
+        return metadataController;
+    }
+
+    public boolean joinCluster(String clusterpath){
+        KVStorageCluster cluster =null;
+        try {
+             cluster = zkClient.joinCluster(clusterpath);
+        } catch (Exception e){
+            kv_out.println_error("fail to join cluster");
+        }
+        if(cluster!=null){
+            if(cluster.getPrimaryNodeUID().getUID().matches(this.getUID())){
+                // primary node, need to declare victory
+                startClusterUpdateDaemon();
+                handleElectionVictory(cluster);
+            }
+            this.metadataController.addStorageNode(cluster);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean exitCluster(String clusterPath){
+	    String clusterName = zkClient.getClusterNameFromClusterPath(clusterPath);
+        KVStorageCluster cluster = (KVStorageCluster) this.metadataController.getStorageNode(clusterName);
+        if(cluster!=null){
+            cluster.removeNodeByUID(clusterName);
+            try {
+                zkClient.exitCluster(clusterPath);
+                return true;
+            } catch (Exception e) {
+                kv_out.println_error("Fail to exit cluster");
+                return false;
+            }
+        }
+        return false;
     }
 }
