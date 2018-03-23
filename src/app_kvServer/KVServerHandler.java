@@ -57,7 +57,7 @@ public class KVServerHandler implements Runnable {
                     kv_out.println_info("Server connected to "+client.getInetAddress().getHostName()+" on port "+client.getPort());
                 }
                 catch (SocketException e){
-                    // Socket close
+                    // Socket stop
                     isRunning = false;
                     kv_out.println_error("Unable to establish connection.");
                 }

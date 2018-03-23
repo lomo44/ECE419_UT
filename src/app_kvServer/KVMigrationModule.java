@@ -18,15 +18,15 @@ public class KVMigrationModule {
 
     private KVCommunicationModuleSet connectionTable;
 
-    public KVMigrationModule(KVCommunicationModuleSet communicationModuleSet){
-        this.connectionTable = communicationModuleSet;
+    public KVMigrationModule(){
+        this.connectionTable = new KVCommunicationModuleSet();
     }
 
     /**
      * Close the migration module
      */
     public void close(){
-        //Iterate through the cocmmunication module and close the connection
+        //Iterate through the cocmmunication module and stop the connection
         for (KVNetworkNode node: connectionTable.keySet()
              ) {
             KVCommunicationModule module = connectionTable.get(node);

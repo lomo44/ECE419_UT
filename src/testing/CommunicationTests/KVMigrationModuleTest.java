@@ -21,7 +21,7 @@ public class KVMigrationModuleTest extends TestCase {
     private Vector<KVServer> serverList = new Vector<>();
     private Vector<KVClient> clientList = new Vector<>();
     private KVPutGetGenerator generator;
-    private KVMigrationModule migrationModule = new KVMigrationModule(new KVCommunicationModuleSet());
+    private KVMigrationModule migrationModule = new KVMigrationModule();
 
     public int numOfClientServerPair = 10;
     public int msgPerServer = 7;

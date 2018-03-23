@@ -2,7 +2,11 @@ package app_kvECS;
 
 import common.command.KVCommand;
 import common.communication.KVCommunicationModule;
+import common.communication.KVCommunicationModuleSet;
+import common.enums.eKVClusterOperationType;
 import common.enums.eKVExtendStatusType;
+import common.enums.eKVNetworkNodeType;
+import common.messages.KVClusterOperationMessage;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadataController;
 import common.networknode.KVNetworkNode;
@@ -43,7 +47,7 @@ public class ECSClient implements IECSClient {
     private String deployedServerJarPath = "~/ECE419_UT/m2-server.jar";
     private List<KVStorageNode> sleepingServer;
     private List<KVStorageNode> runningServer = new ArrayList<>();
-    private HashMap<KVNetworkNode, KVCommunicationModule> controlChannelMap = new HashMap<>();
+    private KVCommunicationModuleSet serverCommunicationModules = new KVCommunicationModuleSet();
     private Map<String, KVStorageNode> nameKVStorageNodeMap = new HashMap<>();
     private TreeMap<String, IECSNode> nameECSNodeMap = new TreeMap<>();
     private List<Process> createdProcess = new ArrayList<>();
@@ -245,7 +249,6 @@ public class ECSClient implements IECSClient {
         return serverToAdd;
     }
 
-
     @Override
     public IECSNode getNodeByKey(String Key) {
         return metadataController.getResponsibleStorageNode(Key).toECSNode();
@@ -307,14 +310,14 @@ public class ECSClient implements IECSClient {
     }
 
     public boolean startNode(KVStorageNode node){
-        if(!controlChannelMap.containsKey(node)){
+        if(!serverCommunicationModules.containsKey(node)){
             try {
-                controlChannelMap.put(node,node.createCommunicationModule());
+                serverCommunicationModules.put(node,node.createCommunicationModule());
             } catch (IOException e) {
                 return false;
             }
         }
-        KVCommunicationModule communicationModule = controlChannelMap.get(node);
+        KVCommunicationModule communicationModule = serverCommunicationModules.get(node);
         KVJSONMessage msg = new KVJSONMessage();
         msg.setExtendStatus(eKVExtendStatusType.SERVER_START);
         try {
@@ -334,10 +337,10 @@ public class ECSClient implements IECSClient {
     }
 
     public boolean stopNode(KVStorageNode node) throws IOException {
-        if(!controlChannelMap.containsKey(node)){
-            controlChannelMap.put(node,node.createCommunicationModule());
+        if(!serverCommunicationModules.containsKey(node)){
+            serverCommunicationModules.put(node,node.createCommunicationModule());
         }
-        KVCommunicationModule communicationModule = controlChannelMap.get(node);
+        KVCommunicationModule communicationModule = serverCommunicationModules.get(node);
         KVJSONMessage msg = new KVJSONMessage();
         msg.setExtendStatus(eKVExtendStatusType.SERVER_STOP);
         communicationModule.send(msg);
@@ -350,11 +353,52 @@ public class ECSClient implements IECSClient {
         }
     }
 
-    public boolean clearStorage(KVNetworkNode node) throws IOException{
-        if(!controlChannelMap.containsKey(node)){
-            controlChannelMap.put(node,node.createCommunicationModule());
+    public boolean leaveCluster(String clusterName, String nodeName){
+        boolean ret = false;
+        KVClusterOperationMessage msg = new KVClusterOperationMessage();
+        msg.setOperationType(eKVClusterOperationType.EXIT);
+        msg.setTargetCluster("clusters/"+clusterName);
+        KVStorageNode node = this.metadataController.getStorageNode(nodeName);
+        KVJSONMessage response = null;
+        if(node.getNodeType()== eKVNetworkNodeType.STORAGE_NODE){
+            response = serverCommunicationModules.syncSend(msg.toKVJSONMessage(),node);
+            if(response.getExtendStatusType() == eKVExtendStatusType.REPLICA_OK){
+                ret = true;
+            }
         }
-        KVCommunicationModule communicationModule = controlChannelMap.get(node);
+        return ret;
+    }
+
+    public boolean joinCluster(String clusterName, String nodeName){
+        boolean ret = false;
+        KVClusterOperationMessage msg = new KVClusterOperationMessage();
+        msg.setOperationType(eKVClusterOperationType.JOIN);
+        msg.setTargetCluster("clusters/"+clusterName);
+        KVStorageNode node = this.metadataController.getStorageNode(nodeName);
+        KVJSONMessage response;
+        if(node.getNodeType()== eKVNetworkNodeType.STORAGE_NODE){
+            response = serverCommunicationModules.syncSend(msg.toKVJSONMessage(),node);
+            if(response.getExtendStatusType() == eKVExtendStatusType.REPLICA_OK){
+                ret = true;
+            }
+        }
+        return ret;
+    }
+
+    public boolean createCluster(String clusterName){
+        return false;
+    }
+
+    public boolean removeCluster(String clusterName){
+        return false;
+    }
+
+
+    public boolean clearStorage(KVNetworkNode node) throws IOException{
+        if(!serverCommunicationModules.containsKey(node)){
+            serverCommunicationModules.put(node,node.createCommunicationModule());
+        }
+        KVCommunicationModule communicationModule = serverCommunicationModules.get(node);
         KVJSONMessage msg = new KVJSONMessage();
         msg.setExtendStatus(eKVExtendStatusType.CLEAR_STORAGE);
         communicationModule.send(msg);
@@ -368,10 +412,10 @@ public class ECSClient implements IECSClient {
     }
 
     public boolean shutdownNode(KVNetworkNode node) throws IOException{
-        if(!controlChannelMap.containsKey(node)){
-            controlChannelMap.put(node,node.createCommunicationModule());
+        if(!serverCommunicationModules.containsKey(node)){
+            serverCommunicationModules.put(node,node.createCommunicationModule());
         }
-        KVCommunicationModule communicationModule = controlChannelMap.get(node);
+        KVCommunicationModule communicationModule = serverCommunicationModules.get(node);
         KVJSONMessage msg = new KVJSONMessage();
         msg.setExtendStatus(eKVExtendStatusType.SERVER_SHUTDOWN);
         communicationModule.send(msg);

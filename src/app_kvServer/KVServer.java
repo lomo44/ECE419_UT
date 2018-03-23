@@ -32,7 +32,7 @@ public class KVServer implements IKVServer {
     private KVStorageNode node;
     private KVCommunicationModuleSet serverCommunicationSet = new KVCommunicationModuleSet();
     private KVMetadataController metadataController = new KVMetadataController();
-    private KVMigrationModule migrationModule = new KVMigrationModule(serverCommunicationSet);
+    private KVMigrationModule migrationModule = new KVMigrationModule();
     private KVClusterCommunicationModule clusterCommunicationModule = new KVClusterCommunicationModule(this);
     private Thread handlerThread;
     private Thread serverDaemonThread;
@@ -240,7 +240,7 @@ public class KVServer implements IKVServer {
     }
 
     /**
-     * Gracefully close a server
+     * Gracefully stop a server
      */
 	@Override
     public void close() {
@@ -520,6 +520,7 @@ public class KVServer implements IKVServer {
             if(cluster.getPrimaryNode().getUID().matches(this.getUID())){
                 // primary node, need to declare victory
                 this.clusterCommunicationModule.announcePrimary(this.getUID(),cluster.getUID());
+                this.clusterCommunicationModule.startUpdateDaemon();
             }
             this.metadataController.addStorageNode(cluster);
             return true;

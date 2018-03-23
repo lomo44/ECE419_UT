@@ -58,4 +58,8 @@ public abstract class KVCommand<T> {
      * @param response response message return from execution
      */
     public abstract void handleResponse(KVJSONMessage response);
+
+    public void setCommandType(KVCommandPattern.KVCommandType commandType){
+        this.commandType = commandType;
+    }
 }

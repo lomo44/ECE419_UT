@@ -2,7 +2,9 @@ package common.enums;
 
 public enum  eKVClusterOperationType {
     JOIN(0),
-    EXIT(1);
+    EXIT(1),
+    CREATE(2),
+    REMOVE(3);
 
     private int value;
 
@@ -15,6 +17,8 @@ public enum  eKVClusterOperationType {
         switch (value){
             case 0: return JOIN;
             case 1: return EXIT;
+            case 2: return CREATE;
+            case 3: return REMOVE;
         }
         return null;
     }

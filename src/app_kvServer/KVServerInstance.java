@@ -61,8 +61,8 @@ public class KVServerInstance implements Runnable {
 
     /**
      * Stop the current server instance. This function will try to stop the thread stub and
-     * close the communication module
-     * @throws IOException thrown when communication module fail to close
+     * stop the communication module
+     * @throws IOException thrown when communication module fail to stop
      */
     public void stop() throws IOException {
         isRunning = false;

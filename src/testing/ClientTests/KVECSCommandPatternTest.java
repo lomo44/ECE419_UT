@@ -1,11 +1,9 @@
 package testing.ClientTests;
 
-import app_kvECS.Commands.KVCommandAddNode;
-import app_kvECS.Commands.KVCommandAddNodes;
-import app_kvECS.Commands.KVCommandGetNodeByKey;
-import app_kvECS.Commands.KVCommandRemoveNodeByIndex;
+import app_kvECS.Commands.*;
 import app_kvECS.ECSClientCommandLineParser;
 import common.command.KVCommand;
+import common.enums.eKVClusterOperationType;
 import junit.framework.TestCase;
 import org.junit.Test;
 
@@ -73,9 +71,11 @@ public class KVECSCommandPatternTest extends TestCase{
     }
 
     @Test
-    public void testKVCommandPatternRemoveNode_Invalid(){
+    public void testKVCommandPatternRemoveNodeByName(){
         KVCommand command = parser.getParsedCommand("removeNode a");
-        assertNull(command);
+        assertNotNull(command);
+        KVCommandRemoveNodeByName cmd = (KVCommandRemoveNodeByName) command;
+        assertEquals("a",cmd.getNodeName());
     }
 
     @Test
@@ -94,5 +94,43 @@ public class KVECSCommandPatternTest extends TestCase{
     public void testKVCommandPattern_Stop(){
         KVCommand command = parser.getParsedCommand("stop");
         assertNotNull(command);
+    }
+
+    @Test
+    public void testKVCommandJoinCluster(){
+        KVCommand command = parser.getParsedCommand("joinCluster node1 cluster1");
+        KVCommandModifyClusterNode realCmd = (KVCommandModifyClusterNode)command;
+        assertNotNull(realCmd);
+        assertEquals("node1",realCmd.getNodeName());
+        assertEquals("cluster1",realCmd.getClusterName());
+        assertEquals(eKVClusterOperationType.JOIN,realCmd.getClusterOperationType());
+    }
+
+    @Test
+    public void testKVCommandExitCluster(){
+        KVCommand command = parser.getParsedCommand("leaveCluster node1 cluster1");
+        KVCommandModifyClusterNode realCmd = (KVCommandModifyClusterNode)command;
+        assertNotNull(realCmd);
+        assertEquals("node1",realCmd.getNodeName());
+        assertEquals("cluster1",realCmd.getClusterName());
+        assertEquals(eKVClusterOperationType.EXIT,realCmd.getClusterOperationType());
+    }
+
+    @Test
+    public void testKVCommandcreateCluster(){
+        KVCommand command = parser.getParsedCommand("createCluster cluster1");
+        KVCommandModifyCluster realCmd = (KVCommandModifyCluster)command;
+        assertNotNull(realCmd);
+        assertEquals("cluster1",realCmd.getClusterName());
+        assertEquals(eKVClusterOperationType.CREATE,realCmd.getClusterOperationType());
+    }
+
+    @Test
+    public void testKVCommandremoveCluster(){
+        KVCommand command = parser.getParsedCommand("removeCluster cluster1");
+        KVCommandModifyCluster realCmd = (KVCommandModifyCluster)command;
+        assertNotNull(realCmd);
+        assertEquals("cluster1",realCmd.getClusterName());
+        assertEquals(eKVClusterOperationType.REMOVE,realCmd.getClusterOperationType());
     }
 }

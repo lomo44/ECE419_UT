@@ -1,7 +1,6 @@
 package app_kvServer.daemons;
 
 import app_kvServer.KVServer;
-import common.communication.KVCommunicationModule;
 import common.communication.KVCommunicationModuleSet;
 import common.enums.eKVExtendStatusType;
 import common.enums.eKVNetworkNodeType;
@@ -9,9 +8,7 @@ import common.messages.KVJSONMessage;
 import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
 
-import java.net.SocketException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -46,7 +43,7 @@ public class KVClusterUpdateDaemon implements Runnable{
         }
         System.out.println("Cluster Update Daemon exits..");
     }
-    public void close() throws InterruptedException {
+    public void stop() throws InterruptedException {
         this.running = false;
         this.updateThread.interrupt();
         this.updateThread.join();
@@ -60,6 +57,9 @@ public class KVClusterUpdateDaemon implements Runnable{
         this.updateQueue.put(msg);
     }
 
+    public boolean isRunning(){
+        return running;
+    }
     private boolean forwardUpdate(KVJSONMessage msg){
         boolean ret = true;
         KVStorageNode node = serverInstance.getResponsibleNode(msg.getKey());
@@ -67,7 +67,7 @@ public class KVClusterUpdateDaemon implements Runnable{
             KVStorageCluster cluster = (KVStorageCluster)node;
             Collection<KVStorageNode> children = cluster.getChildNodes();
             if(checkAckEnable){
-                Vector<KVJSONMessage> acks = communicationModuleSet.syncBoradcast(msg,children);
+                Vector<KVJSONMessage> acks = communicationModuleSet.syncBroadcast(msg,children);
                 if(acks.size()==children.size()){
                     for (KVJSONMessage ack: acks
                          ) {
