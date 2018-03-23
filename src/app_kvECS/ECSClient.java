@@ -4,12 +4,14 @@ import common.command.KVCommand;
 import common.communication.KVCommunicationModule;
 import common.communication.KVCommunicationModuleSet;
 import common.enums.eKVClusterOperationType;
+import common.enums.eKVClusterStatus;
 import common.enums.eKVExtendStatusType;
 import common.enums.eKVNetworkNodeType;
 import common.messages.KVClusterOperationMessage;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadataController;
 import common.networknode.KVNetworkNode;
+import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
 import common.zookeeper.*;
 
@@ -211,6 +213,19 @@ public class ECSClient implements IECSClient {
         return null;
     }
 
+    public Collection<IECSNode> addNodes(int count, String cacheStrategy, int cacheSize, String clusterName){
+        Collection<IECSNode> addedNodes =  addNodes(count,cacheStrategy,cacheSize);
+        if(!clusterName.isEmpty()){
+            for(IECSNode node: addedNodes){
+                if(!joinCluster(clusterName,node.getNodeName())){
+                    kv_out.println_info(String.format(
+                            "Node %s failed to join the cluster %s\n",node.getNodeName(),clusterName));
+                }
+            }
+        }
+        return addedNodes;
+    }
+
     @Override
     public Collection<IECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
         List<KVStorageNode> selectedNode = selectServerToSetup(count);
@@ -360,15 +375,34 @@ public class ECSClient implements IECSClient {
         msg.setTargetCluster("clusters/"+clusterName);
         KVStorageNode node = this.metadataController.getStorageNode(nodeName);
         KVJSONMessage response = null;
-        if(node.getNodeType()== eKVNetworkNodeType.STORAGE_NODE){
-            response = serverCommunicationModules.syncSend(msg.toKVJSONMessage(),node);
-            if(response.getExtendStatusType() == eKVExtendStatusType.REPLICA_OK){
-                ret = true;
+        KVStorageCluster cluster = (KVStorageCluster) this.metadataController.getStorageNode(clusterName);
+        if(node!=null&&cluster!=null &&
+                node.getNodeType()==eKVNetworkNodeType.STORAGE_NODE && cluster.getNodeType() == eKVNetworkNodeType.STORAGE_CLUSTER){
+            if(node.getNodeType()== eKVNetworkNodeType.STORAGE_NODE){
+                response = serverCommunicationModules.syncSend(msg.toKVJSONMessage(),node);
+                if(response.getExtendStatusType() == eKVExtendStatusType.REPLICA_OK){
+                    ret = true;
+                }
+            }
+            if(ret){
+                /**
+                 * Check if the cluster is empty, if it is then remove the cluster from the metadata
+                 */
+                cluster.removeNodeByUID(nodeName);
+                if(cluster.getNumOfMembers()==0){
+                    removeCluster(clusterName);
+                }
             }
         }
         return ret;
     }
 
+    /**
+     * Let node join the cluster. If the cluster does not exist, it will try to create the cluster
+     * @param clusterName cluster name
+     * @param nodeName node name
+     * @return true if success, fail if not
+     */
     public boolean joinCluster(String clusterName, String nodeName){
         boolean ret = false;
         KVClusterOperationMessage msg = new KVClusterOperationMessage();
@@ -376,21 +410,54 @@ public class ECSClient implements IECSClient {
         msg.setTargetCluster("clusters/"+clusterName);
         KVStorageNode node = this.metadataController.getStorageNode(nodeName);
         KVJSONMessage response;
-        if(node.getNodeType()== eKVNetworkNodeType.STORAGE_NODE){
-            response = serverCommunicationModules.syncSend(msg.toKVJSONMessage(),node);
-            if(response.getExtendStatusType() == eKVExtendStatusType.REPLICA_OK){
-                ret = true;
+        eKVClusterStatus clusterStatus = createCluster(clusterName);
+        if(clusterStatus==eKVClusterStatus.CREATED || clusterStatus==eKVClusterStatus.EXIST){
+            if(node!= null && node.getNodeType()== eKVNetworkNodeType.STORAGE_NODE){
+                response = serverCommunicationModules.syncSend(msg.toKVJSONMessage(),node);
+                if(response.getExtendStatusType() == eKVExtendStatusType.REPLICA_OK){
+                    ret = true;
+                }
+                else{
+                    // roll back cluster creation if it is the first time create the cluster
+                    if(clusterStatus==eKVClusterStatus.CREATED){
+                        removeCluster(clusterName);
+                    }
+                }
             }
+        }
+        else{
+            return false;
         }
         return ret;
     }
 
-    public boolean createCluster(String clusterName){
-        return false;
+    public eKVClusterStatus createCluster(String clusterName){
+        if(metadataController.getStorageNode(clusterName)==null){
+            // Create a new cluster
+            try {
+                zkAdmin.createCluster(clusterName);
+            } catch (Exception e) {
+                return eKVClusterStatus.INVALID;
+            }
+            KVStorageCluster newCluster = new KVStorageCluster(clusterName);
+            this.metadataController.addStorageNode(newCluster);
+            return eKVClusterStatus.CREATED;
+        }
+        return eKVClusterStatus.EXIST;
     }
 
-    public boolean removeCluster(String clusterName){
-        return false;
+    public eKVClusterStatus removeCluster(String clusterName){
+        if(metadataController.getStorageNode(clusterName)!=null){
+            // Create a new cluster
+            try {
+                zkAdmin.removeCluster(clusterName);
+            } catch (Exception e) {
+                return eKVClusterStatus.EXIST;
+            }
+            metadataController.removeStorageNode(clusterName);
+            return eKVClusterStatus.REMOVED;
+        }
+        return eKVClusterStatus.INVALID;
     }
 
 

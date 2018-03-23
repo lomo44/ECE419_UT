@@ -117,4 +117,7 @@ public class KVStorageCluster extends KVStorageNode {
     public boolean contain(String UID){
         return childNodes.containsKey(UID);
     }
+    public int getNumOfMembers(){
+        return childNodes.size();
+    }
 }

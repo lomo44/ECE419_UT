@@ -10,12 +10,16 @@ import ecs.IECSNode;
 import java.util.Collection;
 
 public class KVCommandAddNodes extends KVCommand<ECSClient> {
+    public static final String NODE_COUNT_KEY = "num_nodes";
+    public static final String CACHE_SIZE_KEY = "cache_size";
+    public static final String CACHE_STRAT_KEY = "cache_strategy";
+    public static final String CLUSTER_NAME_KEY = "cluster_name";
     public KVCommandAddNodes() { super(KVCommandPattern.KVCommandType.ADD_NODES); }
 
     @Override
     public KVJSONMessage execute(ECSClient clientInstance) {
         KVJSONMessage ret = new KVJSONMessage();
-        Collection<IECSNode> nodes = clientInstance.addNodes(getNumNodes(),getCacheStrategy(),getCacheSize());
+        Collection<IECSNode> nodes = clientInstance.addNodes(getNumNodes(),getCacheStrategy(),getCacheSize(),getClusterName());
         if(nodes ==null || nodes.size()!=getNumNodes()){
             ret.setExtendStatus(eKVExtendStatusType.ADD_NODE_FAIL);
         }
@@ -34,22 +38,24 @@ public class KVCommandAddNodes extends KVCommand<ECSClient> {
         }
     }
 
-    public void setNumNodes(String numNodes) {
-        set("NumNodes",numNodes);
+    public void setNumNodes(int numNodes) {
+        set(NODE_COUNT_KEY,Integer.toString(numNodes));
     }
-    public void setCacheSize(String cacheSize) {
-        set("CacheSize",cacheSize);
+    public void setCacheSize(int cacheSize) {
+        set(CACHE_SIZE_KEY,Integer.toString(cacheSize));
     }
     public void setCacheStrategy(String cacheStrategy) {
-        set("CacheStrategy",cacheStrategy);
+        set(CACHE_STRAT_KEY,cacheStrategy);
     }
+    public void setClusterName(String clusterName){set(CLUSTER_NAME_KEY,clusterName);}
     public int getNumNodes() {
-        return Integer.parseInt(getValue("NumNodes"));
+        return Integer.parseInt(getValue(NODE_COUNT_KEY));
     }
     public int getCacheSize() {
-        return Integer.parseInt(getValue("CacheSize"));
+        return Integer.parseInt(getValue(CACHE_SIZE_KEY));
     }
     public String getCacheStrategy() {
-        return getValue("CacheStrategy");
+        return getValue(CACHE_STRAT_KEY);
     }
+    public String getClusterName(){return getValue(CLUSTER_NAME_KEY);}
 }

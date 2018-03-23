@@ -13,20 +13,21 @@ public class KVCommandPatternAddNodes extends KVCommandPattern {
         Matcher matcher = commandRegex.matcher(input);
         matcher.find();
         KVCommandAddNodes newcommand = new KVCommandAddNodes();
-        newcommand.setNumNodes(matcher.group(1));
-        newcommand.setCacheSize(matcher.group(2));
+        newcommand.setNumNodes(Integer.parseInt(matcher.group(1)));
+        newcommand.setCacheSize(Integer.parseInt(matcher.group(2)));
         newcommand.setCacheStrategy(matcher.group(3));
+        newcommand.setClusterName(matcher.group(4));
         return newcommand;
     }
 
     @Override
     public Pattern generateRegex() {
-        return Pattern.compile("^addNodes (\\d*) (\\d*) (FIFO|LRU|LFU)$");
+        return Pattern.compile("^addNodes (\\d*) (\\d*) (FIFO|LRU|LFU) ?(.*)$");
     }
 
     @Override
     public String getHelpMessageString() {
-        return  "addNodes <number of nodes> <cache size> <cache strategy>\n" +
+        return  "addNodes numberOfNodes cacheSize FIFO|LRU|LFU [clusterName]\n" +
                 "   Description: Start up the specified number of servers,\n" +
                 "   with the specified cache size & replacement strategy\n";
     }

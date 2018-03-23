@@ -16,8 +16,12 @@ public class ECSClientCommandLineParser extends KVCommandParser {
         commandPatterns.add(new KVCommandPatternGetNodes());
         commandPatterns.add(new KVCommandPatternSetRemoteExecutablePath());
         commandPatterns.add(new KvCommandPatternRemoveNodeByName());
-        commandPatterns.add(new KVCommandPatternCreateCluster());
-        commandPatterns.add(new KVCommandPatternRemoveCluster());
+        /**
+         * Currently, we will not allow user to create cluster. The cluster will be created
+         * along with the nodes
+         */
+//        commandPatterns.add(new KVCommandPatternCreateCluster());
+//        commandPatterns.add(new KVCommandPatternRemoveCluster());
         commandPatterns.add(new KVCommandPatternLeaveCluster());
         commandPatterns.add(new KVCommandPatternJoinCluster());
     }

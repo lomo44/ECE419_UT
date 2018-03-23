@@ -64,6 +64,28 @@ public class ZKadmin extends ZKInstance {
 		}
 	}
 
+	public boolean createCluster(String clusterName) throws KeeperException, InterruptedException {
+		List<String> clusters = zk.getChildren(CLUSTER_PATH,false);
+		for(String cluster: clusters){
+			if(cluster.matches(clusterName)){
+				return true;
+			}
+		}
+		createNodeHandler.createNodeSync(CLUSTER_PATH+"/"+clusterName,"",0);
+		return true;
+	}
+
+	public boolean removeCluster(String clusterName) throws KeeperException, InterruptedException {
+		List<String> clusters = zk.getChildren(CLUSTER_PATH,false);
+		for(String cluster: clusters){
+			if(cluster.matches(clusterName)){
+				deleteAll(CLUSTER_PATH+"/"+cluster);
+				return true;
+			}
+		}
+		return true;
+	}
+
 
 	public void removeNodes(List<KVStorageNode> nodes) throws KeeperException, InterruptedException {
 		for (KVStorageNode server : nodes) {
