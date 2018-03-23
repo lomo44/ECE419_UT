@@ -2,6 +2,8 @@ package common.metadata;
 
 import common.messages.KVExclusiveMessage;
 import common.messages.KVJSONMessage;
+import common.networknode.KVNetworkNode;
+import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
 import org.json.JSONObject;
 
@@ -37,10 +39,16 @@ public class KVMetadata {
             data = new KVMetadata();
             for (String hash: msgParsed.keySet()
                  ) {
-                String networkIDstring = msgParsed.get(hash);
-                KVStorageNode newID = KVStorageNode.fromString(networkIDstring);
-                if(newID!=null){
-                    data.addStorageNodeHashPair(new BigInteger(hash),newID);
+                JSONObject object = new JSONObject(msgParsed.get(hash));
+                KVStorageNode node = KVStorageNode.fromJSONObject(object);
+                switch (node.getNodeType()){
+                    case STORAGE_CLUSTER:{
+                        node = KVStorageCluster.fromJSONObject(object);
+                        break;
+                    }
+                }
+                if(node!=null){
+                    data.addStorageNodeHashPair(new BigInteger(hash),node);
                 }
                 else{
                     return null;
@@ -63,7 +71,7 @@ public class KVMetadata {
     public KVJSONMessage toKVJSONMessage(){
         KVExclusiveMessage msg = new KVExclusiveMessage(KVMETADATA_IDENTIFIER,KVMETADATA_PAYLOAD_ID);
         for(BigInteger key : storageNodes.keySet()){
-            msg.put(key.toString(), storageNodes.get(key).toString());
+            msg.put(key.toString(), storageNodes.get(key).toJSONObject().toString());
         }
         return msg.toKVJSONMessage();
     }

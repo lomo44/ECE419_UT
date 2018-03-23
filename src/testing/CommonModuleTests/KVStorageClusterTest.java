@@ -1,6 +1,8 @@
 package testing.CommonModuleTests;
 
 import common.datastructure.KVRange;
+import common.enums.eKVNetworkNodeType;
+import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
 import database.storage.KVStorage;
@@ -34,5 +36,23 @@ public class KVStorageClusterTest extends TestCase {
         KVStorageCluster clusterC = KVStorageCluster.fromJSONObject(clusterA.toJSONObject());
         assertEquals(clusterA,clusterC);
         assertTrue(clusterC.getChildNodes().contains(subClusterB));
+    }
+
+    @Test
+    public void testKVStorageCluster_PartialSerialization_StorageNode(){
+        KVStorageCluster clusterA = new KVStorageCluster("123_456");
+        clusterA.setHashRange(new KVRange<>(BigInteger.valueOf(1),BigInteger.valueOf(5),true,false));
+        clusterA.addNode(new KVStorageNode("123",5,"11111"));
+        KVStorageNode nodeB = KVStorageNode.fromJSONObject(clusterA.toJSONObject());
+        assertEquals(eKVNetworkNodeType.STORAGE_CLUSTER,nodeB.getNodeType());
+    }
+
+    @Test
+    public void testKVStorageCluster_PartialSerialization_NetworkNode(){
+        KVStorageCluster clusterA = new KVStorageCluster("123_456");
+        clusterA.setHashRange(new KVRange<>(BigInteger.valueOf(1),BigInteger.valueOf(5),true,false));
+        clusterA.addNode(new KVStorageNode("123",5,"11111"));
+        KVNetworkNode nodeB = KVNetworkNode.fromJSONObject(clusterA.toJSONObject());
+        assertEquals(eKVNetworkNodeType.STORAGE_CLUSTER,nodeB.getNodeType());
     }
 }

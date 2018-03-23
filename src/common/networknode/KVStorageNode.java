@@ -68,6 +68,7 @@ public class KVStorageNode extends KVNetworkNode{
             KVStorageNode node = new KVStorageNode(network_node);
             JSONObject hashRangeObject = obj.getJSONObject(JSON_HASHRANGE_KEY);
             node.setHashRange(KVRange.fromJSONObject(hashRangeObject));
+            node.setNodeType(eKVNetworkNodeType.fromInt(obj.getInt(JSON_NODETYPE_KEY)));
             return node;
         }
         return null;

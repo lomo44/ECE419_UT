@@ -1,6 +1,8 @@
 package testing.CommonModuleTests;
 
 import common.datastructure.KVRange;
+import common.enums.eKVNetworkNodeType;
+import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageNode;
 import database.storage.KVStorage;
 import junit.framework.TestCase;
@@ -27,5 +29,12 @@ public class KVStorageNodeTest extends TestCase{
         KVStorageNode nodeA = new KVStorageNode("123",456,"789");
         KVStorageNode nodeB = new KVStorageNode("123",456,"789");
         assertEquals(nodeA,nodeB);
+    }
+
+    @Test
+    public void testKVStorageNode_PartialSerialization(){
+        KVStorageNode node = new KVStorageNode("1231231",456,"12");
+        KVNetworkNode testNode = KVNetworkNode.fromJSONObject(node.toJSONObject());
+        assertEquals(eKVNetworkNodeType.STORAGE_NODE,testNode.getNodeType());
     }
 }

@@ -52,12 +52,14 @@ public class KVNetworkNode {
     }
 
     public static KVNetworkNode fromJSONObject(JSONObject object){
+        KVNetworkNode node = null;
         if(object.has(JSON_NODETYPE_KEY)){
-            return new KVNetworkNode(object.getString(JSON_HOSTNAME_KEY),
+            node = new KVNetworkNode(object.getString(JSON_HOSTNAME_KEY),
                     object.getInt(JSON_PORTNUMBER_KEY),
                     object.getString(JSON_UID_KEY));
+            node.nodeType = eKVNetworkNodeType.fromInt(object.getInt(JSON_NODETYPE_KEY));
         }
-        return null;
+        return node;
     }
 
     /**
@@ -111,6 +113,10 @@ public class KVNetworkNode {
 
     public eKVNetworkNodeType getNodeType(){
         return this.nodeType;
+    }
+
+    public void setNodeType(eKVNetworkNodeType nodeType) {
+        this.nodeType = nodeType;
     }
 
     /**
