@@ -261,28 +261,63 @@ public class KVServerInstance implements Runnable {
     private KVJSONMessage handleMigration(KVJSONMessage msg){
         //System.out.println("Migration Received, processing start.");
         KVJSONMessage ret = communicationModule.getEmptyMessage();
-        if(serverinstance.isStopped()){
-            ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
-        }
-        else{
-            ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
+        ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
+        KVMigrationMessage migrationMessage = KVMigrationMessage.fromKVJSONMessage(msg);
+        boolean requireAck = migrationMessage.getIsRequiredAck();
+        if(!serverinstance.isStopped()){
             // Migration process started
-            KVMigrationMessage migrationMessage = KVMigrationMessage.fromKVJSONMessage(msg);
-            HashMap<String,String> entries = migrationMessage.getEntries();
-            for(String entry : entries.keySet()){
-                try {
-                    serverinstance.putKV(entry,entries.get(entry));
-                } catch (Exception e) {
-                    kv_out.println_fatal("Incorrect migration data. Key is not in range");
+            KVStorageNode targetNode = serverinstance.getMetadataController().getStorageNode(migrationMessage.getTargetNodeUID());
+            if(targetNode!=null){
+                switch (targetNode.getNodeType()){
+                    case STORAGE_CLUSTER:{
+                        /**
+                         * target is a cluster, need to determine if current node is a primary or a replica
+                         * if current node is a replica, then need to forward this message to primary.
+                         * if this node is primary, need to forward this message to all of the replica
+                         */
+                        KVStorageCluster cluster = (KVStorageCluster)targetNode;
+                        if(cluster.isPrimary(this.serverinstance.getUID())){
+                            if(!intergratKVMigrationMessage(migrationMessage)){
+                                ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+                            }
+                            /**
+                             * Initiate internal migration, no acknowledge is needed
+                             */
+                            this.serverinstance.getMigrationModule().clusterInternalMigration(cluster,migrationMessage);
+                        }
+                        else{
+                            /**
+                             * Keep try to forward migration to leader.
+                             */
+                            while(!this.serverinstance.getMigrationModule().syncDirectMigration(cluster,migrationMessage)){
+                                cluster = (KVStorageCluster) serverinstance.getMetadataController().getStorageNode(migrationMessage.getTargetNodeUID());
+                            }
+                        }
+                        break;
+                    }
+                    case STORAGE_NODE:{
+                        if(!intergratKVMigrationMessage(migrationMessage)){
+                            ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+                        }
+                        break;
+                    }
+                }
+
+            }
+            else{
+                if(!intergratKVMigrationMessage(migrationMessage)){
                     ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
                 }
             }
-            KVStorageNode targetNode = serverinstance.getMetadataController().getStorageNode(migrationMessage.getTargetNodeUID());
-            if(targetNode!=null&& targetNode.getNodeType()== eKVNetworkNodeType.STORAGE_CLUSTER){
-                serverinstance.getMigrationModule().clusterInternalMigration((KVStorageCluster) targetNode,migrationMessage);
-            }
+
         }
-        return ret;
+        if(requireAck){
+            return ret;
+        }
+        else{
+            return null;
+        }
+
     }
     private KVJSONMessage handleStop(KVJSONMessage msg){
         KVJSONMessage ret = new KVJSONMessage();
@@ -325,14 +360,14 @@ public class KVServerInstance implements Runnable {
         try {
             serverinstance.putKV(msg.getKey(),msg.getValue());
         } catch (Exception e) {
-            ret.setExtendStatus(eKVExtendStatusType.REPLICA_ERROR);
+            ret.setExtendStatus(eKVExtendStatusType.REPLICA_FAIL);
         }
         return ret;
     }
     private KVJSONMessage handleClusterOperation(KVJSONMessage msg){
         KVClusterOperationMessage clusterMsg = KVClusterOperationMessage.fromKVJSONMessage(msg);
         KVJSONMessage ret = new KVJSONMessage();
-        ret.setExtendStatus(eKVExtendStatusType.REPLICA_ERROR);
+        ret.setExtendStatus(eKVExtendStatusType.REPLICA_FAIL);
         switch (clusterMsg.getOperationType()){
             case EXIT:{
                 if(serverinstance.joinCluster(clusterMsg.getTargetCluster())){
@@ -370,6 +405,13 @@ public class KVServerInstance implements Runnable {
      * @param key
      * @return
      */
+    private KVJSONMessage handleForwardMigration(KVJSONMessage msg){
+        /**
+         * received migration from replica, send the migration message to myself since I need to
+         * act the replica as well
+         */
+        return handleMigration(msg);
+    }
     private  boolean isKeyValid(String key){
         return !key.matches("") && !whitespacechecker.matcher(key).find() && key.length() <= 20;
     }
@@ -378,5 +420,18 @@ public class KVServerInstance implements Runnable {
     }
     private boolean isKeyResponsible(String key, boolean isWrite){
         return serverinstance.isKeyResponsible(key, isWrite);
+    }
+    private boolean intergratKVMigrationMessage(KVMigrationMessage migrationMessage){
+        HashMap<String,String> entries = migrationMessage.getEntries();
+        boolean ret = true;
+        for(String entry : entries.keySet()){
+            try {
+                serverinstance.putKV(entry,entries.get(entry));
+            } catch (Exception e) {
+                kv_out.println_fatal("Incorrect migration data. Key is not in range");
+                ret = false;
+            }
+        }
+        return ret;
     }
 }

@@ -20,7 +20,7 @@ public class KVCommandModifyClusterNode extends KVCommand<ECSClient> {
     @Override
     public KVJSONMessage execute(ECSClient Instance) {
         KVJSONMessage ret = new KVJSONMessage();
-        ret.setExtendStatus(eKVExtendStatusType.REPLICA_ERROR);
+        ret.setExtendStatus(eKVExtendStatusType.REPLICA_FAIL);
         switch (this.getClusterOperationType()){
             case JOIN:{
                 if(Instance.joinCluster(getClusterName(),getNodeName())){

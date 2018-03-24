@@ -117,6 +117,9 @@ public class KVStorageCluster extends KVStorageNode {
     public boolean isPrimary(KVStorageNode node){
         return this.primaryNodeUID.matches(node.getUID());
     }
+    public boolean isPrimary(String UID){
+        return this.primaryNodeUID.matches(UID);
+    }
     public boolean contain(String UID){
         return childNodes.containsKey(UID);
     }

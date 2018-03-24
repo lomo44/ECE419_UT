@@ -7,7 +7,6 @@ import common.enums.eKVClusterOperationType;
 import common.enums.eKVClusterStatus;
 import common.enums.eKVExtendStatusType;
 import common.messages.KVJSONMessage;
-import ecs.ECSNode;
 
 public class KVCommandModifyCluster extends KVCommand<ECSClient>{
     public static final String CLUSTER_NAME_KEY = "cluster_name";
@@ -23,12 +22,12 @@ public class KVCommandModifyCluster extends KVCommand<ECSClient>{
         switch (getClusterOperationType()){
             case CREATE:{
                 if(Instance.createCluster(getClusterName())== eKVClusterStatus.INVALID){
-                    ret.setExtendStatus(eKVExtendStatusType.REPLICA_ERROR);
+                    ret.setExtendStatus(eKVExtendStatusType.REPLICA_FAIL);
                 }
             }
             case REMOVE:{
                 if(Instance.removeCluster(getClusterName())==eKVClusterStatus.EXIST){
-                    ret.setExtendStatus(eKVExtendStatusType.REPLICA_ERROR);
+                    ret.setExtendStatus(eKVExtendStatusType.REPLICA_FAIL);
                 }
             }
         }

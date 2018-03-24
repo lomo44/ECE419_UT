@@ -389,16 +389,33 @@ public class KVServer implements IKVServer {
             for (String key: keys
                     ) {
                 KVStorageNode node = metadataController.getResponsibleStorageNode(metadataController.hash(key));
-                if(node!=null && !node.toString().matches(k)) {
-                    if (!msgtable.containsKey(node)) {
-                        msgtable.put(node, new HashMap<String,String>());
-                    }
-                    try {
-                        String value = database.getKV(key);
-                        if (!value.matches("")) {
-                            msgtable.get(node).put(key,value);
+                if(node!=null){
+                    boolean shouldMigrate = true;
+                    switch (node.getNodeType()){
+                        case STORAGE_NODE:{
+                            if(node.getUID().matches(this.getUID())){
+                                shouldMigrate = false;
+                            }
+                            break;
                         }
-                    } catch (Exception e) {
+                        case STORAGE_CLUSTER:{
+                            KVStorageCluster cluster = (KVStorageCluster)node;
+                            if(cluster.contain(this.getUID())){
+                                shouldMigrate = false;
+                            }
+                        }
+                    }
+                    if(shouldMigrate) {
+                        if (!msgtable.containsKey(node)) {
+                            msgtable.put(node, new HashMap<String, String>());
+                        }
+                        try {
+                            String value = database.getKV(key);
+                            if (!value.matches("")) {
+                                msgtable.get(node).put(key, value);
+                            }
+                        } catch (Exception e) {
+                        }
                     }
                 }
             }
@@ -409,6 +426,7 @@ public class KVServer implements IKVServer {
                     KVMigrationMessage msg = new KVMigrationMessage();
                     msg.setEntries(msgtable.get(node));
                     msg.setTargetName(node.getUID());
+                    msg.setIsRequiredAck(true);
                     KVJSONMessage ret = new KVJSONMessage();
                     ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
                     try {

@@ -12,6 +12,7 @@ public class KVMigrationMessage extends KVExclusiveMessage{
     public final static String KVMIGRATIONMESSAGE_PAYLOAD_ID = "cc1046ba-8949-4f0e-a7f9-ea0597c1de25";
     public final static String KVMIGRATIONMESSAGE_TARGET_NAME = "target_name";
     public final static String KVMIGRATIONMESSAGE_TARGET_DATA = "target_data";
+    public final static String KVMIGRATIONMESSAGE_IS_REQUIRE_ACK = "require_act";
     public KVMigrationMessage(){
         super(KVMIGRATIONMESSAGE_IDENTIFIER,KVMIGRATIONMESSAGE_PAYLOAD_ID);
     }
@@ -42,5 +43,11 @@ public class KVMigrationMessage extends KVExclusiveMessage{
     public void setEntries(HashMap<String, String> entries){
         JSONObject entriesObject = new JSONObject(entries);
         this.put(KVMIGRATIONMESSAGE_TARGET_DATA,entriesObject.toString());
+    }
+    public void setIsRequiredAck(boolean isRequiredAct){
+        put(KVMIGRATIONMESSAGE_IS_REQUIRE_ACK,Boolean.toString(isRequiredAct));
+    }
+    public boolean getIsRequiredAck(){
+        return Boolean.parseBoolean(get(KVMIGRATIONMESSAGE_IS_REQUIRE_ACK));
     }
 }
