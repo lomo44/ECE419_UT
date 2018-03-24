@@ -37,6 +37,7 @@ public class KVServer implements IKVServer {
     private Thread serverDaemonThread;
     private eKVServerStatus serverStatus = eKVServerStatus.STOPPED;
 	private ZKClient zkClient;
+	private List<String> replicas;
     /**
      * Start KV Server at given port
      * @param port given port for storage server to operate
@@ -382,6 +383,39 @@ public class KVServer implements IKVServer {
         unlockWrite();
 		return ret;
 	}
+    
+    public boolean moveData( KVRange<BigInteger> range, KVStorageNode node) throws Exception {
+		boolean ret = false;
+	    lockWrite();
+	    // Fetch the corresponding node from the meta data controller.
+		if(node!=null){
+            KVMigrationMessage migrationMessage = new KVMigrationMessage();
+            Set<String> keys = database.getKeys();
+            HashMap<String, String> migrationEntries = new HashMap<>();
+            for (String key: keys
+                    ) {
+                if(range.inRange(metadataController.hash(key))){
+                    migrationEntries.put(key,database.getKV(key));
+                }
+            }
+            migrationMessage.setEntries(migrationEntries);
+            migrationMessage.setTargetName(node.getUID());
+            KVJSONMessage response = migrationModule.clusterExternalMigration(node,migrationMessage);
+            if(response.getExtendStatusType()== eKVExtendStatusType.MIGRATION_COMPLETE){
+                ret = true;
+            }
+            else{
+                ret = false;
+            }
+        }
+        unlockWrite();
+		return ret;
+	}
+    
+    public void updateReplicas(List<String> Replicas) {
+    		
+    }
+    
 
 	private void migrateData(){
         // Filter out migrating data
@@ -462,8 +496,10 @@ public class KVServer implements IKVServer {
         unlockWrite();
     }
 
-    public void handleChangeInCluster(KVStorageCluster newCluster){
-	    this.metadataController.addStorageNode(newCluster);
+    public void handleChangeInCluster(String clusterName, KVStorageNode newReplica) throws Exception{
+    		KVStorageCluster cluster = (KVStorageCluster)metadataController.getResponsibleStorageNode(clusterName);
+    		moveData(cluster.getHashRange(),newReplica);
+    		
     }
 
 
@@ -549,7 +585,7 @@ public class KVServer implements IKVServer {
     }
 
     public boolean exitCluster(String clusterPath){
-	    String clusterName = zkClient.getClusterNameFromClusterPath(clusterPath);
+	    String clusterName = zkClient.getClusterPathFromPath(clusterPath);
         KVStorageCluster cluster = (KVStorageCluster) this.metadataController.getStorageNode(clusterName);
         if(cluster!=null){
             cluster.removeNodeByUID(clusterName);

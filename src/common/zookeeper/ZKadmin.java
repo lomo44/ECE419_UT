@@ -26,13 +26,13 @@ public class ZKadmin extends ZKInstance {
 
 	private int metadataVersion = 0;
 
-	public ZKadmin(String connectionString,KVOut logger) {
-		super(connectionString,logger);
-		//this.sleepingServer = idleServer;
+	public ZKadmin(String connectionString, KVOut logger) {
+		super(connectionString, logger);
+		// this.sleepingServer = idleServer;
 		init();
 	}
 
-	public void addNodeIndicator(String nodeName){
+	public void addNodeIndicator(String nodeName) {
 		this.currentSetupNodes.add(nodeName);
 	}
 
@@ -40,11 +40,10 @@ public class ZKadmin extends ZKInstance {
 		return currentSetupNodes;
 	}
 
-
-	public synchronized void updateCurrentSetupNodesName(List<String> names){
+	public synchronized void updateCurrentSetupNodesName(List<String> names) {
 		currentSetupNodes.clear();
 		currentSetupNodes.addAll(names);
-		System.out.println(String.format("Current Setup Nodes: %d",names.size()));
+		System.out.println(String.format("Current Setup Nodes: %d", names.size()));
 	}
 
 
@@ -67,6 +66,9 @@ public class ZKadmin extends ZKInstance {
 			}
 		}
 		createNodeHandler.createNodeSync(SERVER_CLUSTER_PATH +"/"+clusterName,"",0);
+		createNodeHandler.createNodeSync(SERVER_CLUSTER_PATH + "/" + clusterName, "", 0);
+		createNodeHandler.createNodeAsync(getNewReplicasPath(clusterName), "", 0);
+        createNodeHandler.createNodeAsync(getOldReplciaPath(clusterName), "", 0);
 		return true;
 	}
 
@@ -116,16 +118,16 @@ public class ZKadmin extends ZKInstance {
 			List<String> childServers=zk.getChildren(SERVER_POOL_BASE_PATH,false);
 			System.out.println("server root found, active servers #: " + childServers.size());
 		} catch (KeeperException e) {
-			switch (e.code()){
+			switch (e.code()) {
 			case CONNECTIONLOSS:
 				init();
 				break;
 			case NONODE:
-        			System.out.println("No Servers found, creating server root: " + SERVER_POOL_BASE_PATH);
-				createNodeHandler.createNodeSync(SERVER_POOL_BASE_PATH,"",0);
+				System.out.println("No Servers found, creating server root: " + SERVER_POOL_BASE_PATH);
+				createNodeHandler.createNodeSync(SERVER_POOL_BASE_PATH, "", 0);
 				break;
 			default:
-        			System.out.println("Error while init server root " + SERVER_POOL_BASE_PATH);
+				System.out.println("Error while init server root " + SERVER_POOL_BASE_PATH);
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
@@ -143,16 +145,13 @@ public class ZKadmin extends ZKInstance {
 	}
 
 	private void deleteAll(String path) throws KeeperException, InterruptedException {
-		List<String> children = zk.getChildren(path,false,null);
-		if(children.size()==0){
-			zk.delete(path,-1);
-		}
-		else{
-			for (String child: children
-					) {
-				deleteAll(path+"/"+child);
+		List<String> children = zk.getChildren(path, false, null);
+		if (children.size() != 0) {
+			for (String child : children) {
+				deleteAll(path + "/" + child);
 			}
 		}
+		zk.delete(path, -1);
 	}
 }
 

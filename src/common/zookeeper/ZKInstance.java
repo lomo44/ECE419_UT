@@ -58,19 +58,15 @@ public abstract class ZKInstance implements Watcher {
 	
 	protected abstract void init();
 
-	public String getClusterPath(String clusterName){
-		return String.format("%s/%s", SERVER_CLUSTER_PATH,clusterName);
+	public String getNewReplicasPath(String clusterName){
+		return String.format("%s/%s/newReplicas", SERVER_CLUSTER_PATH,clusterName);
 	}
 
-	public String getClusterNameFromClusterPath(String path){
-		Matcher match = regexClusterPath.matcher(path);
-		if(match.find()){
-			return match.group(1);
-		}
-		return null;
+	public String getOldReplciaPath(String clusterName){
+		return String.format("%s/%s/oldReplicas", SERVER_CLUSTER_PATH,clusterName);
 	}
 
-	public String getClusterPathFromClusterMemberPath(String path){
+	public String getClusterPathFromPath(String path){
 		Matcher match = regexClusterName.matcher(path);
 		if(match.find()){
 			return match.group(1);

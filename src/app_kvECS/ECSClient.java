@@ -274,14 +274,14 @@ public class ECSClient implements IECSClient {
                             targetClusterNode.addNode(node);
                             ret.add(node);
                             ret.add(targetClusterNode);
-                            clusters.add("/clusters/"+targetClusterName);
+                            clusters.add(targetClusterName);
                             break;
                         }
                         case EXIST:{
                             KVStorageCluster targetClusterNode = (KVStorageCluster) metadataController.getStorageNode(targetClusterName);
                             targetClusterNode.addNode(node);
                             ret.add(node);
-                            clusters.add("/clusters/"+targetClusterName);
+                            clusters.add(targetClusterName);
                             break;
                         }
                         case INVALID:{
