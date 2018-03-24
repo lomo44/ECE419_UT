@@ -5,6 +5,8 @@ import app_kvServer.KVServerConfig;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadata;
 import common.networknode.KVStorageCluster;
+import common.networknode.KVStorageNode;
+
 import org.apache.zookeeper.*;
 
 import java.util.ArrayList;
@@ -40,7 +42,7 @@ public class ZKClient extends ZKInstance{
 	};
 
 	/**
-	 * cluster watcher for primary. Need to keep track of current nodes
+	 * cluster watcher for primary. Need to keep track of current nodes under cluster/clustername/newreplicas
 	 */
 	private Watcher clusterWatcher = new Watcher() {
 		@Override
@@ -49,11 +51,7 @@ public class ZKClient extends ZKInstance{
 				case NodeChildrenChanged:{
 					// Underlying node change
 					try {
-						List<String> children = zk.getChildren(event.getPath(),clusterWatcher);
-						List<KVServerConfig> configs = getServerConfigsFromCluster(event.getPath(),children);
-						serverInstance.handleChangeInCluster(
-								new KVStorageCluster(getClusterNameFromClusterPath(event.getPath()),serverConfig,configs)
-						);
+						migrateNewReplicas(event.getPath());
 					} catch (Exception e) {
 					 	e.printStackTrace();
 					}
@@ -114,10 +112,9 @@ public class ZKClient extends ZKInstance{
 	 * join a cluster based on cluster path. This function will not initialize any server part
 	 * @param clusterPath zookeeper cluster path
 	 * @return KVStorageCluster if joining is successfull
-	 * @throws KeeperException
-	 * @throws InterruptedException
+	 * @throws Exception 
 	 */
-	public KVStorageCluster joinCluster(String clusterPath) throws KeeperException, InterruptedException {
+	public KVStorageCluster joinCluster(String clusterPath) throws Exception {
 		// Create a node on the cluster path;
 		zk.create(clusterPath+"/n_",
 				serverConfig.toKVJSONMessage().toBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL);
@@ -125,9 +122,25 @@ public class ZKClient extends ZKInstance{
 		if(cluster.getPrimaryNode().getUID().matches(this.serverInstance.getUID())){
 			// setup watch for the cluster;
 			System.out.printf("Server: %s is selected as leader of cluster %s\n",serverInstance.getUID(),clusterPath);
-			zk.getChildren(clusterPath,clusterWatcher);
+			migrateNewReplicas(clusterPath + "/newreplicas");
 		}
+		else zk.create(clusterPath + "/newreplicas" + "/n_", 
+				serverConfig.toKVJSONMessage().toBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL);
 		return cluster;
+	}
+	
+	
+	// primary server migrate data to pending new replica, handles case where leader not available yet
+	private synchronized void migrateNewReplicas(String path) throws Exception {
+		List<String> children = zk.getChildren(path,clusterWatcher);
+		if (!children.isEmpty()) {
+			for (String name : children) {
+				String subPath=path + "/" + name;
+				KVServerConfig config = getServerConfigFromPath(subPath);
+				serverInstance.handleChangeInCluster(getClusterNameFromClusterPath(path),new KVStorageNode(config));
+				zk.delete(subPath, -1);
+			}
+		}
 	}
 
 	/**

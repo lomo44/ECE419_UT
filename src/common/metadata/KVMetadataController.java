@@ -10,8 +10,11 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -73,8 +76,7 @@ public class KVMetadataController {
     public List<KVStorageNode> getStorageNodes(){
         return metaData.getStorageNodes();
     }
-
-
+    
     /**
      * Initialize digest algorithm
      * @return MessageDigest object
@@ -148,6 +150,7 @@ public class KVMetadataController {
             cluster.setPrimaryNodeUID(serverUID);
         }
     }
+    
 
     /**
      * Hash an input string

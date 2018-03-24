@@ -13,12 +13,10 @@ import org.apache.zookeeper.KeeperException;
 import app_kvServer.KVServerConfig;
 import common.networknode.KVStorageNode;
 
-
-
 public class ZKadmin extends ZKInstance {
 
-//	private List<KVStorageNode> sleepingServer;
-//	private List<KVStorageNode> runningServer;
+	// private List<KVStorageNode> sleepingServer;
+	// private List<KVStorageNode> runningServer;
 
 	private Set<String> currentSetupNodes = new ConcurrentHashMap().newKeySet();
 
@@ -26,13 +24,13 @@ public class ZKadmin extends ZKInstance {
 
 	private int metadataVersion = 0;
 
-	public ZKadmin(String connectionString,KVOut logger) {
-		super(connectionString,logger);
-		//this.sleepingServer = idleServer;
+	public ZKadmin(String connectionString, KVOut logger) {
+		super(connectionString, logger);
+		// this.sleepingServer = idleServer;
 		init();
 	}
 
-	public void addNodeIndicator(String nodeName){
+	public void addNodeIndicator(String nodeName) {
 		this.currentSetupNodes.add(nodeName);
 	}
 
@@ -40,11 +38,10 @@ public class ZKadmin extends ZKInstance {
 		return currentSetupNodes;
 	}
 
-
-	public synchronized void updateCurrentSetupNodesName(List<String> names){
+	public synchronized void updateCurrentSetupNodesName(List<String> names) {
 		currentSetupNodes.clear();
 		currentSetupNodes.addAll(names);
-		System.out.println(String.format("Current Setup Nodes: %d",names.size()));
+		System.out.println(String.format("Current Setup Nodes: %d", names.size()));
 	}
 
 	public void setupNodes(List<KVStorageNode> nodes, String cacheStrategy, int cacheSize) {
@@ -60,32 +57,32 @@ public class ZKadmin extends ZKInstance {
 			createNodeHandler.createNodeSync(path, "", 0);
 			// We don't need to populate meta data for now since we are not doing migration
 			createNodeHandler.createNodeSync(metadatapath, "", 0);
-			createNodeHandler.createNodeSync(configpath,new String(config.toKVJSONMessage().toBytes()),1);
+			createNodeHandler.createNodeSync(configpath, new String(config.toKVJSONMessage().toBytes()), 1);
 		}
 	}
 
 	public boolean createCluster(String clusterName) throws KeeperException, InterruptedException {
-		List<String> clusters = zk.getChildren(CLUSTER_PATH,false);
-		for(String cluster: clusters){
-			if(cluster.matches(clusterName)){
+		List<String> clusters = zk.getChildren(CLUSTER_PATH, false);
+		for (String cluster : clusters) {
+			if (cluster.matches(clusterName)) {
 				return true;
 			}
 		}
-		createNodeHandler.createNodeSync(CLUSTER_PATH+"/"+clusterName,"",0);
+		createNodeHandler.createNodeSync(CLUSTER_PATH + "/" + clusterName, "", 0);
+		createNodeHandler.createNodeAsync(CLUSTER_PATH + "/" + clusterName + "/newreplicas", "", 0);
 		return true;
 	}
 
 	public boolean removeCluster(String clusterName) throws KeeperException, InterruptedException {
-		List<String> clusters = zk.getChildren(CLUSTER_PATH,false);
-		for(String cluster: clusters){
-			if(cluster.matches(clusterName)){
-				deleteAll(CLUSTER_PATH+"/"+cluster);
+		List<String> clusters = zk.getChildren(CLUSTER_PATH, false);
+		for (String cluster : clusters) {
+			if (cluster.matches(clusterName)) {
+				deleteAll(CLUSTER_PATH + "/" + cluster);
 				return true;
 			}
 		}
 		return true;
 	}
-
 
 	public void removeNodes(List<KVStorageNode> nodes) throws KeeperException, InterruptedException {
 		for (KVStorageNode server : nodes) {
@@ -93,20 +90,18 @@ public class ZKadmin extends ZKInstance {
 		}
 	}
 
-
 	public void removeNodes(KVStorageNode nodes) throws KeeperException, InterruptedException {
 		String path = SERVER_BASE_PATH + "/" + nodes.getUID();
 		String metadatapath = path + "/" + SERVER_METADATA_NAME;
 		String configpath = path + "/" + SERVER_CONFIG_NAME;
-		zk.delete(path,-1);
+		zk.delete(path, -1);
 	}
 
-	public void broadcastMetadata(List<KVStorageNode> nodes, KVMetadata metadata){
-		for (KVStorageNode node: nodes
-				) {
+	public void broadcastMetadata(List<KVStorageNode> nodes, KVMetadata metadata) {
+		for (KVStorageNode node : nodes) {
 			String path = SERVER_BASE_PATH + "/" + node.getUID();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
-			DataHandler.setDataSync(metadatapath,metadata.toKVJSONMessage().toBytes(),metadataVersion);
+			DataHandler.setDataSync(metadatapath, metadata.toKVJSONMessage().toBytes(), metadataVersion);
 		}
 		metadataVersion++;
 	}
@@ -114,25 +109,25 @@ public class ZKadmin extends ZKInstance {
 	@Override
 	protected void init() {
 		try {
-			List<String> childServers=zk.getChildren(SERVER_POOL_BASE_PATH,false);
+			List<String> childServers = zk.getChildren(SERVER_POOL_BASE_PATH, false);
 			System.out.println("server root found, active servers #: " + childServers.size());
 		} catch (KeeperException e) {
-			switch (e.code()){
+			switch (e.code()) {
 			case CONNECTIONLOSS:
 				init();
 				break;
 			case NONODE:
-        			System.out.println("No Servers found, creating server root: " + SERVER_POOL_BASE_PATH);
-				createNodeHandler.createNodeSync(SERVER_POOL_BASE_PATH,"",0);
+				System.out.println("No Servers found, creating server root: " + SERVER_POOL_BASE_PATH);
+				createNodeHandler.createNodeSync(SERVER_POOL_BASE_PATH, "", 0);
 				break;
 			default:
-        			System.out.println("Error while init server root " + SERVER_POOL_BASE_PATH);
+				System.out.println("Error while init server root " + SERVER_POOL_BASE_PATH);
 			}
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		createNodeHandler.createNodeSync(SERVER_BASE_PATH,"",0);
+		createNodeHandler.createNodeSync(SERVER_BASE_PATH, "", 0);
 		serverMonitorHandler.monitorServers(SERVER_POOL_BASE_PATH);
 	}
 
@@ -142,17 +137,12 @@ public class ZKadmin extends ZKInstance {
 	}
 
 	private void deleteAll(String path) throws KeeperException, InterruptedException {
-		List<String> children = zk.getChildren(path,false,null);
-		if(children.size()==0){
-			zk.delete(path,-1);
-		}
-		else{
-			for (String child: children
-					) {
-				deleteAll(path+"/"+child);
+		List<String> children = zk.getChildren(path, false, null);
+		if (children.size() != 0) {
+			for (String child : children) {
+				deleteAll(path + "/" + child);
 			}
 		}
+		zk.delete(path, -1);
 	}
 }
-
-

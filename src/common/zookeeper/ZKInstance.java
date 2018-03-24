@@ -20,7 +20,7 @@ public abstract class ZKInstance implements Watcher {
 	protected final static String SERVER_METADATA_NAME = "metadata";
 	protected final static String SERVER_TASK_QUEUE_NAME = "taskQueue";
 	protected final static String CLUSTER_PATH = "/clusters";
-	private static final Pattern regexClusterName = Pattern.compile("\\/clusters\\/(.*)\\/n_(?:\\d*)");
+	private static final Pattern regexClusterName = Pattern.compile("\\/clusters\\/(.*)\\/newreplicas");
 	private static final Pattern regexClusterPath = Pattern.compile("(.*)\\/n_(?:\\d*)");
 	protected ZooKeeper zk;
 	protected String connectionString;
