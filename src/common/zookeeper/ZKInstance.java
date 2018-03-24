@@ -19,9 +19,10 @@ public abstract class ZKInstance implements Watcher {
 	protected final static String SERVER_CONFIG_NAME = "config";
 	protected final static String SERVER_METADATA_NAME = "metadata";
 	protected final static String SERVER_TASK_QUEUE_NAME = "taskQueue";
-	protected final static String CLUSTER_PATH = "/clusters";
-	private static final Pattern regexClusterName = Pattern.compile("\\/clusters\\/(.*)\\/n_(?:\\d*)");
+	protected final static String SERVER_CLUSTER_PATH = "/clusters";
+	private static final Pattern regexClusterName = Pattern.compile("\\/clusters\\/(.*)\\/(?:.*)");
 	private static final Pattern regexClusterPath = Pattern.compile("(.*)\\/n_(?:\\d*)");
+
 	protected ZooKeeper zk;
 	protected String connectionString;
 	final CountDownLatch connection = new CountDownLatch(1);
@@ -58,11 +59,11 @@ public abstract class ZKInstance implements Watcher {
 	protected abstract void init();
 
 	public String getClusterPath(String clusterName){
-		return String.format("%s/%s",CLUSTER_PATH,clusterName);
+		return String.format("%s/%s", SERVER_CLUSTER_PATH,clusterName);
 	}
 
 	public String getClusterNameFromClusterPath(String path){
-		Matcher match = regexClusterName.matcher(path);
+		Matcher match = regexClusterPath.matcher(path);
 		if(match.find()){
 			return match.group(1);
 		}
@@ -70,7 +71,7 @@ public abstract class ZKInstance implements Watcher {
 	}
 
 	public String getClusterPathFromClusterMemberPath(String path){
-		Matcher match = regexClusterPath.matcher(path);
+		Matcher match = regexClusterName.matcher(path);
 		if(match.find()){
 			return match.group(1);
 		}

@@ -10,10 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public class KVMetadataController {
     KVMetadata metaData;
@@ -71,6 +68,9 @@ public class KVMetadataController {
     }
 
     public List<KVStorageNode> getStorageNodes(){
+        if(metaData==null){
+            update(metaData = new KVMetadata());
+        }
         return metaData.getStorageNodes();
     }
 
@@ -179,6 +179,56 @@ public class KVMetadataController {
     }
 
     public KVStorageNode getStorageNode(String UID){
+        if(metaData==null){
+            this.metaData = new KVMetadata();
+        }
         return this.metaData.getStorageNodeFromHash(this.hash(UID));
+    }
+
+    public int getNodeCountByType(eKVNetworkNodeType type){
+        int counter = 0;
+        List<KVStorageNode> nodes = getStorageNodes();
+        if(nodes!=null){
+            for(KVStorageNode node : nodes){
+                if(node.getNodeType() == type){
+                    counter++;
+                }
+            }
+        }
+        return counter;
+    }
+
+    public List<KVStorageNode> getStorageNodesByType(eKVNetworkNodeType type){
+        List<KVStorageNode> ret =new ArrayList<>();
+        List<KVStorageNode> currentNode = getStorageNodes();
+        for(KVStorageNode node : currentNode){
+            if(node.getNodeType() == type){
+                ret.add(node);
+            }
+        }
+        return ret;
+    }
+
+    public List<KVStorageNode> getReleventNodes(String nodeUID){
+        List<KVStorageNode> allNodes = getStorageNodes();
+        List<KVStorageNode> ret = new ArrayList<>();
+        for(KVStorageNode node : allNodes){
+            switch (node.getNodeType()){
+                case STORAGE_NODE:{
+                    if(node.getUID().matches(nodeUID)){
+                        ret.add(node);
+                    }
+                    break;
+                }
+                case STORAGE_CLUSTER:{
+                    KVStorageCluster cluster = (KVStorageCluster) node;
+                    if(cluster.contain(nodeUID)){
+                        ret.add(cluster);
+                    }
+                    break;
+                }
+            }
+        }
+        return ret;
     }
 }

@@ -126,4 +126,7 @@ public class KVStorageCluster extends KVStorageNode {
     public int getNumOfMembers(){
         return childNodes.size();
     }
+    public boolean isEmpty(){
+        return getChildNodes().size()==0;
+    }
 }

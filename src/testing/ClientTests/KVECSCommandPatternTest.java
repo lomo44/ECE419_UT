@@ -63,13 +63,13 @@ public class KVECSCommandPatternTest extends TestCase{
         assertNotNull(command);
     }
 
-    @Test
-    public void testKVCommandPatternRemoveNode_Valid(){
-        KVCommand command = parser.getParsedCommand("removeNode 1");
-        assertNotNull(command);
-        KVCommandRemoveNodeByIndex removeNode = (KVCommandRemoveNodeByIndex) command;
-        assertEquals(1,removeNode.getIndex());
-    }
+//    @Test
+//    public void testKVCommandPatternRemoveNode_Valid(){
+//        KVCommand command = parser.getParsedCommand("removeNode 1");
+//        assertNotNull(command);
+//        KVCommandRemoveNodeByIndex removeNode = (KVCommandRemoveNodeByIndex) command;
+//        assertEquals(1,removeNode.getIndex());
+//    }
 
     @Test
     public void testKVCommandPatternRemoveNodeByName(){

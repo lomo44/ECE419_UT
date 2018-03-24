@@ -11,7 +11,7 @@ public class ECSClientCommandLineParser extends KVCommandParser {
         commandPatterns.add(new KVCommandPatternShutdown());
         commandPatterns.add(new KVCommandPatternAddNode());
         commandPatterns.add(new KVCommandPatternAddNodes());
-        commandPatterns.add(new KVCommandPatternRemoveNodeByIndex());
+        //commandPatterns.add(new KVCommandPatternRemoveNodeByIndex());
         commandPatterns.add(new KVCommandPatternGetNodeByKey());
         commandPatterns.add(new KVCommandPatternGetNodes());
         commandPatterns.add(new KVCommandPatternSetRemoteExecutablePath());

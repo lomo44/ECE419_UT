@@ -1,12 +1,10 @@
 package app_kvECS;
 
+import app_kvServer.KVServerConfig;
 import common.command.KVCommand;
 import common.communication.KVCommunicationModule;
 import common.communication.KVCommunicationModuleSet;
-import common.enums.eKVClusterOperationType;
-import common.enums.eKVClusterStatus;
-import common.enums.eKVExtendStatusType;
-import common.enums.eKVNetworkNodeType;
+import common.enums.*;
 import common.messages.KVClusterOperationMessage;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadataController;
@@ -47,12 +45,13 @@ public class ECSClient implements IECSClient {
     private final static Pattern config_parser = Pattern.compile("(.*) (.*) (\\d*)");
 
     private String deployedServerJarPath = "~/ECE419_UT/m2-server.jar";
-    private List<KVStorageNode> sleepingServer;
-    private List<KVStorageNode> runningServer = new ArrayList<>();
-    private KVCommunicationModuleSet serverCommunicationModules = new KVCommunicationModuleSet();
-    private Map<String, KVStorageNode> nameKVStorageNodeMap = new HashMap<>();
-    private TreeMap<String, IECSNode> nameECSNodeMap = new TreeMap<>();
+    private HashMap<String, KVStorageNode> sleepingServer = new HashMap<>();
+    private HashMap<String, KVStorageNode> runningServer = new HashMap<>();
     private List<Process> createdProcess = new ArrayList<>();
+    private TreeMap<String, IECSNode> nameECSNodeMap = new TreeMap<>();
+    private KVCommunicationModuleSet serverCommunicationModules = new KVCommunicationModuleSet();
+    private eKVNodeCreationMode nodeCreationMode = eKVNodeCreationMode.INDIVIDUAL_CLUSTER;
+    private KVMetadataController metadataController = new KVMetadataController();
 
 
     private static KVOut kv_out = new KVOut("ECS");
@@ -63,13 +62,13 @@ public class ECSClient implements IECSClient {
     private boolean isRunning = false;
     private ECSClientCommandLineParser cmdParser = new ECSClientCommandLineParser();
 
-    private KVMetadataController metadataController = new KVMetadataController();
+
 
     public ECSClient(String host, int port) throws IOException{
-    		this(CONFIG_PATH,host,port);
+    		this(host,port,CONFIG_PATH);
     }
     
-    public ECSClient(String configFile, String host, int port) throws IOException {
+    public ECSClient(String host,int port,String configFile) throws IOException {
         this(configFile,host,port,System.in);
 
     }
@@ -90,7 +89,7 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean start(){
-        for (KVStorageNode node: runningServer
+        for (KVStorageNode node: runningServer.values()
                 ) {
             if(!startNode(node)){
                 return false;
@@ -101,7 +100,7 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean stop() throws IOException {
-        for (KVStorageNode node: runningServer
+        for (KVStorageNode node: runningServer.values()
                 ) {
             if(!stopNode(node)){
                 return false;
@@ -113,7 +112,7 @@ public class ECSClient implements IECSClient {
     @Override
     public boolean shutdown(){
         boolean ret = true;
-        for (KVStorageNode node: runningServer
+        for (KVStorageNode node: runningServer.values()
              ) {
             try {
                 if(!shutdownNode(node)){
@@ -138,7 +137,7 @@ public class ECSClient implements IECSClient {
 
 
     public boolean clearAllStorage() throws IOException {
-        for (KVStorageNode node: runningServer
+        for (KVStorageNode node: runningServer.values()
                 ) {
             if(!clearStorage(node)){
                 return false;
@@ -159,15 +158,34 @@ public class ECSClient implements IECSClient {
         return true;
     }
 
-    public boolean removeNode(String nodeNames) throws IOException {
-        KVStorageNode node = this.nameKVStorageNodeMap.get(nodeNames);
-        if(!shutdownNode(node)){
-            return false;
+    public boolean removeNode(String nodeName) throws IOException {
+        KVStorageNode node = this.runningServer.get(nodeName);
+        if(node!=null){
+            if(!shutdownNode(node)){
+                return false;
+            }
+            this.runningServer.remove(node);
+            this.sleepingServer.put(node.getUID(),node);
+            List<KVStorageNode> relevantNodes = metadataController.getReleventNodes(nodeName);
+            for(KVStorageNode relevantNode : relevantNodes){
+                switch (relevantNode.getNodeType()){
+                    case STORAGE_NODE:{
+                        metadataController.removeStorageNode(node.getUID());
+                        break;
+                    }
+                    case STORAGE_CLUSTER:{
+                        KVStorageCluster cluster = (KVStorageCluster) relevantNode;
+                        cluster.removeNodeByUID(nodeName);
+                        if(cluster.isEmpty()){
+                            removeCluster(cluster.getUID());
+                        }
+                        break;
+                    }
+                }
+            }
+            zkAdmin.broadcastMetadata(runningServer.values(),metadataController.getMetaData());
         }
-        this.runningServer.remove(node);
-        this.sleepingServer.add(node);
-        metadataController.removeStorageNode(node.getUID());
-        zkAdmin.broadcastMetadata(runningServer,metadataController.getMetaData());
+        zkAdmin.removeNodeInZookeeper(nodeName);
         return true;
     }
 
@@ -176,74 +194,164 @@ public class ECSClient implements IECSClient {
         return nameECSNodeMap;
     }
 
-    public TreeMap<String, IECSNode> getNameECSNodeMap() {
-        return nameECSNodeMap;
-    }
-
     @Override
     public IECSNode addNode(String cacheStrategy, int cacheSize) {
         return addNodes(1,cacheStrategy,cacheSize).iterator().next();
     }
-
     @Override
     public Collection<IECSNode> addNodes(int count, String cacheStrategy, int cacheSize) {
-        // Select nodes to setup
-        List<KVStorageNode> selectedNode = selectServerToSetup(count);
-        // Setup nodes on zookeeper
-        zkAdmin.setupNodes(selectedNode, cacheStrategy, cacheSize);
-        try {
-            // Try to start server via ssh
-            startServers(selectedNode);
-            // Wait for nodes to come in
-        } catch (Exception e) {
-            System.out.println("add nodes timed out");
-            e.printStackTrace();
+        return addNodes(count,cacheStrategy,cacheSize,"");
+    }
+    public Collection<IECSNode> addNodes(int count, String cacheStrategy, int cacheSize, String clusterName){
+        List<KVStorageNode> selectedNodes = selectServerToSetup(count);
+        List<KVServerConfig> configs = new ArrayList<>();
+        for(KVStorageNode node : selectedNodes){
+            configs.add(createServerConfig(node,cacheStrategy,cacheSize,clusterName));
         }
-        runningServer.addAll(selectedNode);
-        // Add selected nodes
-        try {
-            if(awaitNodes(count,15*1000)){
-                metadataController.addStorageNodes(selectedNode);
-                zkAdmin.broadcastMetadata(selectedNode,metadataController.getMetaData());
-                return convertToECSNode(selectedNode);
+        return convertToECSNode(addNodes(selectedNodes,configs));
+    }
+    public List<KVStorageNode> addNodes(List<KVStorageNode> selectedNodes, List<KVServerConfig> configs){
+        // Setup nodes on zookeeper
+        List<KVStorageNode> createdNode = setupNodes(selectedNodes,configs);
+        if(createdNode!=null){
+            // Try to start server via ssh
+            List<Process> addedProcess = startServers(selectedNodes);
+            // Wait for nodes to come in
+            if(addedProcess!=null){
+                // Add selected nodes
+                try {
+                    if(awaitNodes(selectedNodes.size(),15*1000)){
+                        for(KVStorageNode readyNode : selectedNodes){
+                            runningServer.put(readyNode.getUID(),readyNode);
+                        }
+                        createdProcess.addAll(addedProcess);
+                        zkAdmin.broadcastMetadata(selectedNodes,metadataController.getMetaData());
+                        return selectedNodes;
+                    }
+                    else {
+                        for(Process process:addedProcess){
+                            process.destroyForcibly();
+                        }
+                        rewindeNodes(createdNode);
+                        return null;
+                    }
+                } catch (Exception e) {
+                    return null;
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            else{
+               rewindeNodes(createdNode);
+               return null;
+            }
         }
         return null;
     }
-
-    public Collection<IECSNode> addNodes(int count, String cacheStrategy, int cacheSize, String clusterName){
-        Collection<IECSNode> addedNodes =  addNodes(count,cacheStrategy,cacheSize);
-        if(!clusterName.isEmpty()){
-            for(IECSNode node: addedNodes){
-                if(!joinCluster(clusterName,node.getNodeName())){
-                    kv_out.println_info(String.format(
-                            "Node %s failed to join the cluster %s\n",node.getNodeName(),clusterName));
-                }
-            }
-        }
-        return addedNodes;
-    }
-
     @Override
     public Collection<IECSNode> setupNodes(int count, String cacheStrategy, int cacheSize) {
-        List<KVStorageNode> selectedNode = selectServerToSetup(count);
-        zkAdmin.setupNodes(selectedNode,cacheStrategy,cacheSize);
-        return convertToECSNode(selectedNode);
+        List<KVStorageNode> selectedNodes = selectServerToSetup(count);
+        List<KVServerConfig> configs = new ArrayList<>();
+        for(KVStorageNode node : selectedNodes){
+            configs.add(createServerConfig(node,cacheStrategy,cacheSize,""));
+        }
+        List<KVStorageNode> createdNodes = setupNodes(selectedNodes,configs);
+        if(createdNodes!=null){
+            return convertToECSNode(selectedNodes);
+        }
+        return null;
     }
-
-    private Collection<IECSNode> convertToECSNode(List<KVStorageNode> list){
-        Collection<IECSNode> ret = new HashSet<>();
-        for (KVStorageNode node : list
-                ) {
-            ret.add(new ECSNode(node));
+    private List<KVStorageNode> setupNodes(List<KVStorageNode> nodes, List<KVServerConfig> configs){
+        int serverCount = 0;
+        List<KVStorageNode> ret = new ArrayList<>();
+        for(KVStorageNode node : nodes){
+            KVServerConfig config = configs.get(serverCount);
+            HashSet<String> clusters = new HashSet<>();
+            switch (nodeCreationMode){
+                case INDIVIDUAL_CLUSTER:{
+                    String targetClusterName = "cluster"+metadataController.getStorageNodes().size();
+                    switch (createCluster(targetClusterName)){
+                        case CREATED:{
+                            KVStorageCluster targetClusterNode = (KVStorageCluster) metadataController.getStorageNode(targetClusterName);
+                            targetClusterNode.addNode(node);
+                            ret.add(node);
+                            ret.add(targetClusterNode);
+                            clusters.add("/clusters/"+targetClusterName);
+                            break;
+                        }
+                        case EXIST:{
+                            KVStorageCluster targetClusterNode = (KVStorageCluster) metadataController.getStorageNode(targetClusterName);
+                            targetClusterNode.addNode(node);
+                            ret.add(node);
+                            clusters.add("/clusters/"+targetClusterName);
+                            break;
+                        }
+                        case INVALID:{
+                            rewindeNodes(ret);
+                            return null;
+                        }
+                    }
+                    break;
+                }
+                case FREE_NODE:{
+                    this.metadataController.addStorageNode(node);
+                    break;
+                }
+                case JOIN_CLUSTER_MAX_SIZE_3:{
+                    //TODO:
+                }
+            }
+            config.setBelongedCluster(clusters);
+            zkAdmin.setupNodeInZookeeper(node,configs.get(serverCount));
+            serverCount++;
         }
         return ret;
     }
 
+    private void rewindeNodes(List<KVStorageNode> nodes){
+        for(KVStorageNode node: nodes){
+            switch (node.getNodeType()){
+                case STORAGE_CLUSTER:{
+                    removeCluster(node.getHostName());
+                    break;
+                }
+                case STORAGE_NODE:{
+                    try {
+                        removeNode(node.getUID());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    private KVServerConfig createServerConfig(KVStorageNode node, String cacheStrategy, int cacheSize, String targetCluster){
+        KVServerConfig config = new KVServerConfig();
+        config.setCacheSize(cacheSize);
+        config.setCacheStratagy(cacheStrategy);
+        config.setServerPort(node.getPortNumber());
+        config.setServerHostAddress(node.getHostName());
+        config.setServerName(node.getUID());
+        // initialize cluster information
+        return config;
+    }
+
+    private Collection<IECSNode> convertToECSNode(List<KVStorageNode> list){
+        if(list==null){
+            return null;
+        }
+        else {
+            Collection<IECSNode> ret = new HashSet<>();
+            for (KVStorageNode node : list
+                    ) {
+                ret.add(new ECSNode(node));
+            }
+            return ret;
+        }
+    }
+
     @Override
-    public boolean awaitNodes(int count, int timeout) throws Exception {
+    public boolean awaitNodes(int count, int timeout){
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis()-startTime <= timeout){
             if(zkAdmin.getCurrentSetupNodesNames().size() >= count){
@@ -258,8 +366,14 @@ public class ECSClient implements IECSClient {
         List<KVStorageNode> serverToAdd = new ArrayList<>();
         while(serverToAdd.size()!=count && sleepingServer.size()!=0){
             int index = ThreadLocalRandom.current().nextInt(0, sleepingServer.size());
-            serverToAdd.add(sleepingServer.get(index));
-            sleepingServer.remove(index);
+            for(String uid : sleepingServer.keySet()){
+                if(index==0){
+                    serverToAdd.add(sleepingServer.get(uid));
+                    sleepingServer.remove(uid);
+                    break;
+                }
+                index--;
+            }
         }
         return serverToAdd;
     }
@@ -269,14 +383,23 @@ public class ECSClient implements IECSClient {
         return metadataController.getResponsibleStorageNode(Key).toECSNode();
     }
 
-    private void startServers(List<KVStorageNode> nodes) throws IOException, InterruptedException {
+    private List<Process> startServers(List<KVStorageNode> nodes){
+        List<Process> ret = new ArrayList<>();
         for(KVStorageNode node : nodes){
-            runServerViaSSH(node.getUID(),ZOOKEEPER_SERVER_HOSTNAME,zkport);
+            try {
+                ret.add(runServerViaSSH(node.getUID(),ZOOKEEPER_SERVER_HOSTNAME,zkport));
+            } catch (IOException e) {
+                for(Process process:ret){
+                    process.destroyForcibly();
+                }
+                return null;
+            }
         }
+        return ret;
     }
 
-    private List<KVStorageNode> getAvailableNodesFromConfig(String file) throws IOException {
-        List<KVStorageNode> ret = new ArrayList<>();
+    private HashMap<String, KVStorageNode> getAvailableNodesFromConfig(String file) throws IOException {
+        HashMap<String, KVStorageNode> ret = new HashMap<>();
         FileReader config = new FileReader(file);
         BufferedReader readbuf = new BufferedReader(config);
         String configLine = readbuf.readLine();
@@ -285,8 +408,7 @@ public class ECSClient implements IECSClient {
             if(match.find()){
                 // hostname portnumber servername
                 KVStorageNode newNode = new KVStorageNode(match.group(2),Integer.parseInt(match.group(3)),match.group(1));
-                ret.add(newNode);
-                nameKVStorageNodeMap.put(newNode.getUID(),newNode);
+                ret.put(newNode.getUID(),newNode);
                 nameECSNodeMap.put(newNode.getUID(),newNode.toECSNode());
             }
             configLine = readbuf.readLine();
@@ -295,12 +417,12 @@ public class ECSClient implements IECSClient {
         return ret;
     }
 
-    private void runServerViaSSH(String name, String zkhost, int zkport) throws IOException, InterruptedException {
+    private Process runServerViaSSH(String name, String zkhost, int zkport) throws IOException {
         String[] args = new String[]{"ssh", "-n", LOCAL_HOST_IP, "nohup",
                 "java", "-jar", deployedServerJarPath, name, zkhost, Integer.toString(zkport)};
         System.out.println("start init server...");
         Process builder = new ProcessBuilder().inheritIO().command(args).start();
-        createdProcess.add(builder);
+        return builder;
         //pb.waitFor();
     }
 
@@ -431,6 +553,11 @@ public class ECSClient implements IECSClient {
         return ret;
     }
 
+    /**
+     * Create a cluster using a name
+     * @param clusterName cluster name
+     * @return CREATED if cluster is newly created, EXIST if cluster already exists, INVALID if failed.
+     */
     public eKVClusterStatus createCluster(String clusterName){
         if(metadataController.getStorageNode(clusterName)==null){
             // Create a new cluster
@@ -501,7 +628,7 @@ public class ECSClient implements IECSClient {
             System.out.printf("Missing path to ECS.config, exiting...\n");
         }
         else{
-            ECSClient admin = new ECSClient(args[0], zkhost, zkport);
+            ECSClient admin = new ECSClient(zkhost, zkport,args[0]);
             admin.run();
         }
 //        ZKadmin zkAdmin = admin.zkAdmin;

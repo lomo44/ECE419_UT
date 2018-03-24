@@ -100,7 +100,7 @@ public class ZKClient extends ZKInstance{
 		System.out.println("Try to initialize metadata");
 		// Retain server initial metadata file;
 		obtainMetadataFromZK();
-		serverInstance.initializeServer(serverConfig, null);
+		serverInstance.initializeServer(serverConfig, null,this);
 		signalInitialization();
 	}
 

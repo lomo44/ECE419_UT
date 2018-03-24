@@ -304,11 +304,7 @@ public class KVServerInstance implements Runnable {
                 }
 
             }
-            else{
-                if(!intergratKVMigrationMessage(migrationMessage)){
-                    ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
-                }
-            }
+
 
         }
         if(requireAck){

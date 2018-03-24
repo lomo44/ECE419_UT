@@ -56,7 +56,7 @@ public class KVServer implements IKVServer {
         config.setServerHostAddress("localhost");
         config.setServerName(serverName);
         try {
-            initializeServer(config,null);
+            initializeServer(config,null,null);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -84,18 +84,17 @@ public class KVServer implements IKVServer {
         //KVServerConfig config = zkClient.getCurrentServerConfig();
 	}
 
-	public void initializeServer(KVServerConfig config, KVMetadata metadata) throws InterruptedException {
+	public void initializeServer(KVServerConfig config, KVMetadata metadata, ZKClient client) throws InterruptedException {
 	    this.kv_out = new KVOut(config.getServerHostAddress());
 	    this.config = config;
-		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),getUID());
+	    System.out.println(new String(config.toKVJSONMessage().toBytes()));
+		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),config.getServerName());
         this.serverExitDaemon = new KVServerShutdownDaemon(this);
         this.serverDaemonThread = new Thread(this.serverExitDaemon);
 		serverHandler = createServerHandler();
         setLogLevel(eKVLogLevel.ALL,eKVLogLevel.DEBUG);
         handlerThread = new Thread(serverHandler);
         handlerThread.start();
-
-
         // Pull the handler and check if the handler is running
         while(!serverHandler.isRunning()){
             try {
@@ -112,6 +111,12 @@ public class KVServer implements IKVServer {
         }
         else{
             metadataController.update(new KVMetadata());
+        }
+        this.zkClient = client;
+        if(zkClient!=null){
+            for(String cluster : config.getBelongedCluster()){
+                joinCluster(cluster);
+            }
         }
     }
 
@@ -532,12 +537,12 @@ public class KVServer implements IKVServer {
             kv_out.println_error("fail to join cluster");
         }
         if(cluster!=null){
+            this.metadataController.addStorageNode(cluster);
             if(cluster.getPrimaryNode().getUID().matches(this.getUID())){
                 // primary node, need to declare victory
                 this.clusterCommunicationModule.announcePrimary(this.getUID(),cluster.getUID());
                 this.clusterCommunicationModule.startUpdateDaemon();
             }
-            this.metadataController.addStorageNode(cluster);
             return true;
         }
         return false;
