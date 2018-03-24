@@ -5,7 +5,6 @@ import app_kvClient.KVClient;
 import app_kvServer.KVMigrationModule;
 import app_kvServer.KVServer;
 import common.KVMessage;
-import common.communication.KVCommunicationModuleSet;
 import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
 import junit.framework.TestCase;
@@ -62,7 +61,7 @@ public class KVMigrationModuleTest extends TestCase {
         for (KVServer server: serverList){
             KVMigrationMessage msg = new KVMigrationMessage();
             msg.put(tag,server.getStorageNode().toString());
-            KVJSONMessage ret = migrationModule.migrate(server.getStorageNode(),msg);
+            KVJSONMessage ret = migrationModule.clusterExternalMigration(server.getStorageNode(),msg);
             assertEquals(MIGRATION_COMPLETE,ret.getExtendStatusType());
         }
         KVCommandGet getCommand = new KVCommandGet();
@@ -83,7 +82,7 @@ public class KVMigrationModuleTest extends TestCase {
                     msg.put(tag,server.getStorageNode().toString());
                     KVJSONMessage ret = null;
                     try {
-                        ret = migrationModule.migrate(server.getStorageNode(),msg);
+                        ret = migrationModule.clusterExternalMigration(server.getStorageNode(),msg);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

@@ -100,6 +100,9 @@ public class KVStorageCluster extends KVStorageNode {
     public KVStorageNode getPrimaryNode() {
         return childNodes.get(this.primaryNodeUID);
     }
+    public String getPrimaryNodeUID(){
+        return primaryNodeUID;
+    }
     public KVStorageNode getRandomMember(){
         int index = ThreadLocalRandom.current().nextInt(0,childNodes.size());
         int counter = 0;

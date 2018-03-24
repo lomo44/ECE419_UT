@@ -17,7 +17,6 @@ import logger.KVOut;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -358,13 +357,16 @@ public class KVServer implements IKVServer {
             KVRange<BigInteger> range = KVRange.fromString(hashRange[0],hashRange[1],true,false);
             KVMigrationMessage migrationMessage = new KVMigrationMessage();
             Set<String> keys = database.getKeys();
+            HashMap<String, String> migrationEntries = new HashMap<>();
             for (String key: keys
                     ) {
                 if(range.inRange(metadataController.hash(key))){
-                    migrationMessage.put(key,database.getKV(key));
+                    migrationEntries.put(key,database.getKV(key));
                 }
             }
-            KVJSONMessage response = migrationModule.migrate(node,migrationMessage);
+            migrationMessage.setEntries(migrationEntries);
+            migrationMessage.setTargetName(targetName);
+            KVJSONMessage response = migrationModule.clusterExternalMigration(node,migrationMessage);
             if(response.getExtendStatusType()== eKVExtendStatusType.MIGRATION_COMPLETE){
                 ret = true;
             }
@@ -405,28 +407,23 @@ public class KVServer implements IKVServer {
                 List<KVStorageNode> storageNodes = metadataController.getStorageNodes();
                 for(KVStorageNode node: msgtable.keySet()){
                     KVMigrationMessage msg = new KVMigrationMessage();
-                    msg.putAll(msgtable.get(node));
+                    msg.setEntries(msgtable.get(node));
+                    msg.setTargetName(node.getUID());
                     KVJSONMessage ret = new KVJSONMessage();
                     ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
                     try {
-                        ret = migrationModule.migrate(node,msg);
-                    } catch (IOException e) {
-                    }
-                    if(ret.getExtendStatusType()==eKVExtendStatusType.MIGRATION_INCOMPLETE){
-                        for (KVStorageNode possibleNode: storageNodes
-                                ) {
-                            try {
-                                ret = migrationModule.migrate(possibleNode,msg);
+                        ret = migrationModule.clusterExternalMigration(node,msg);
+                        if(ret.getExtendStatusType()==eKVExtendStatusType.MIGRATION_INCOMPLETE){
+                            for (KVStorageNode possibleNode: storageNodes
+                                    ) {
+                                ret = migrationModule.clusterExternalMigration(possibleNode,msg);
                                 if(ret.getExtendStatusType() == eKVExtendStatusType.MIGRATION_COMPLETE){
-                                    return;
+                                    break;
                                 }
-                                else{
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
                             }
+                            System.out.println("Migration Incomplete, possible data lost");
                         }
-                        System.out.println("Migration Incomplete, possible data lost");
+                    } catch (IOException e) {
                     }
                 }
                 //System.out.println("Migration Sender ends.");
@@ -550,5 +547,9 @@ public class KVServer implements IKVServer {
 
     public KVClusterCommunicationModule getClusterCommunicationModule() {
         return clusterCommunicationModule;
+    }
+
+    public KVMigrationModule getMigrationModule() {
+        return migrationModule;
     }
 }

@@ -45,21 +45,21 @@ public class KVMigrationModule {
      * @return server response
      * @throws IOException thrown if the connection between the servers cannot be made
      */
-    public KVJSONMessage migrate(KVNetworkNode outputNode, KVMigrationMessage msg) throws IOException {
+    public KVJSONMessage clusterExternalMigration(KVNetworkNode outputNode, KVMigrationMessage msg) throws IOException {
         switch (outputNode.getNodeType()){
             case NETWORK_NODE:
             case STORAGE_NODE:
             case STORAGE_CLUSTER:{
-                return migrate((KVStorageNode)outputNode,msg);
+                return clusterExternalMigration((KVStorageNode)outputNode,msg);
             }
         }
         return null;
     }
 
-    private KVJSONMessage migrate(KVStorageNode outputNode, KVMigrationMessage msg) throws SocketException {
+    private KVJSONMessage clusterExternalMigration(KVStorageNode outputNode, KVMigrationMessage msg) throws SocketException {
         if(outputNode.getNodeType() == eKVNetworkNodeType.STORAGE_CLUSTER){
             KVStorageNode primary = ((KVStorageCluster)(outputNode)).getPrimaryNode();
-            return migrate(primary,msg);
+            return clusterExternalMigration(primary,msg);
         }
         else{
             if(!connectionTable.containsKey(outputNode)){
@@ -73,5 +73,9 @@ public class KVMigrationModule {
             return module.receive();
         }
     }
-
+    public void clusterInternalMigration(KVStorageCluster targetCluster, KVMigrationMessage msg){
+        KVJSONMessage outputmsg = msg.toKVJSONMessage();
+        outputmsg.setExtendStatus(eKVExtendStatusType.PRIMARY_MIGRATE);
+        connectionTable.asyncBroadcastSend(outputmsg,targetCluster.getChildNodesWithoutPrimary());
+    }
 }

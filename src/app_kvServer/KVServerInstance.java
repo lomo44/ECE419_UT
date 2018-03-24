@@ -3,10 +3,13 @@ package app_kvServer;
 import common.communication.KVCommunicationModule;
 import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
+import common.enums.eKVNetworkNodeType;
 import common.messages.KVClusterOperationMessage;
 import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
 import common.messages.KVPrimaryDeclarationMessage;
+import common.networknode.KVStorageCluster;
+import common.networknode.KVStorageNode;
 import logger.KVOut;
 
 import static common.KVMessage.StatusType.*;
@@ -143,6 +146,11 @@ public class KVServerInstance implements Runnable {
             }
             case CLUSTER_OPERATION:{
                 retMessage = handleClusterOperation(in_message);
+                break;
+            }
+            case PRIMARY_MIGRATE:{
+                handlePrimaryMigration(in_message);
+                break;
             }
             default:{
                 retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
@@ -260,20 +268,20 @@ public class KVServerInstance implements Runnable {
             ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
             // Migration process started
             KVMigrationMessage migrationMessage = KVMigrationMessage.fromKVJSONMessage(msg);
-            for(String key: migrationMessage.keySet()){
+            HashMap<String,String> entries = migrationMessage.getEntries();
+            for(String entry : entries.keySet()){
                 try {
-                    serverinstance.putKV(key,migrationMessage.get(key));
+                    serverinstance.putKV(entry,entries.get(entry));
                 } catch (Exception e) {
                     kv_out.println_fatal("Incorrect migration data. Key is not in range");
                     ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
                 }
             }
+            KVStorageNode targetNode = serverinstance.getMetadataController().getStorageNode(migrationMessage.getTargetNodeUID());
+            if(targetNode!=null&& targetNode.getNodeType()== eKVNetworkNodeType.STORAGE_CLUSTER){
+                serverinstance.getMigrationModule().clusterInternalMigration((KVStorageCluster) targetNode,migrationMessage);
+            }
         }
-        if(msg.getExtendStatusType()==eKVExtendStatusType.MIGRATION_DATA){
-            msg.setExtendStatus(eKVExtendStatusType.PRIMARY_MIGRATE);
-            this.serverinstance.getClusterCommunicationModule().queueClusterUpdate(msg);
-        }
-        //System.out.println("Migration ends.");
         return ret;
     }
     private KVJSONMessage handleStop(KVJSONMessage msg){
@@ -344,6 +352,17 @@ public class KVServerInstance implements Runnable {
     private KVJSONMessage handlePrimaryDeclaration(KVJSONMessage msg){
         KVPrimaryDeclarationMessage declarationMessage = KVPrimaryDeclarationMessage.fromKVJSONMessage(msg);
         serverinstance.getMetadataController().setPrimary(declarationMessage.getClusterID(),declarationMessage.getPrimaryID());
+        return null;
+    }
+    private KVJSONMessage handlePrimaryMigration(KVJSONMessage msg){
+        KVMigrationMessage realMsg = KVMigrationMessage.fromKVJSONMessage(msg);
+        KVStorageNode node = serverinstance.getMetadataController().getStorageNode(realMsg.getTargetNodeUID());
+        if(node.getNodeType()==eKVNetworkNodeType.STORAGE_CLUSTER){
+            KVStorageCluster cluster = (KVStorageCluster)node;
+            if(!cluster.getPrimaryNodeUID().matches(this.serverinstance.getUID())){
+                handleMigration(msg);
+            }
+        }
         return null;
     }
     /**
