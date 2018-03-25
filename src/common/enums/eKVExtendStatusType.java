@@ -55,6 +55,7 @@ public enum eKVExtendStatusType {
     PRIMARY_OK(50),
     PRIMARY_FAIL(51),
     TEST_TIMEOUT(52),
+    PRIMARY_FORWARD_MIGRATE(53),
     UNKNOWN_ERROR(0);
     private final int value;
 
@@ -126,6 +127,7 @@ public enum eKVExtendStatusType {
             case 50: return PRIMARY_OK;
             case 51: return PRIMARY_FAIL;
             case 52: return TEST_TIMEOUT;
+            case 53: return PRIMARY_FORWARD_MIGRATE;
 
         }
         return null;

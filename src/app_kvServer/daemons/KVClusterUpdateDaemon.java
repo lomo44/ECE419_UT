@@ -25,6 +25,7 @@ public class KVClusterUpdateDaemon implements Runnable{
         this.serverInstance = serverInstance;
         this.checkAckEnable = checkAckEnable;
         this.communicationModuleSet = new KVCommunicationModuleSet();
+        updateThread.setName(String.format("%s-updateDaemon",serverInstance.getUID()));
     }
     public KVClusterUpdateDaemon(KVServer serverInstance){
         this(serverInstance,false);
