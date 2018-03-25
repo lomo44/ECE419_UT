@@ -45,6 +45,7 @@ public class ECSClient implements IECSClient {
     private final static Pattern config_parser = Pattern.compile("(.*) (.*) (\\d*)");
 
     private String deployedServerJarPath = "~/ECE419_UT/m2-server.jar";
+    private String SSHKeyPath = "~/.ssh/id_rsa";
     private HashMap<String, KVStorageNode> sleepingServer = new HashMap<>();
     private HashMap<String, KVStorageNode> runningServer = new HashMap<>();
     private List<Process> createdProcess = new ArrayList<>();
@@ -85,6 +86,10 @@ public class ECSClient implements IECSClient {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+    
+    public void setKeyPath(String path) {
+    		SSHKeyPath = path;
     }
 
     @Override
@@ -437,7 +442,7 @@ public class ECSClient implements IECSClient {
     }
 
     private Process runServerViaSSH(String name, String zkhost, int zkport) throws IOException {
-        String[] args = new String[]{"ssh", "-n", LOCAL_HOST_IP, "nohup",
+        String[] args = new String[]{"ssh","-i", SSHKeyPath, "-n", LOCAL_HOST_IP, "nohup",
                 "java", "-jar", deployedServerJarPath, name, zkhost, Integer.toString(zkport)};
         System.out.println("start init server...");
         Process builder = new ProcessBuilder().inheritIO().command(args).start();

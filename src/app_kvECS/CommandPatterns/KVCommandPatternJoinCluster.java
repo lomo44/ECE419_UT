@@ -30,6 +30,6 @@ public class KVCommandPatternJoinCluster extends KVCommandPattern {
     @Override
     public String getHelpMessageString() {
         return String.format("joinCluster <NodeName> <ClusterName>\n" +
-                "    Force the node named <NodeName> to join the cluster named <ClusterName>");
+                "    Force the node named <NodeName> to join the cluster named <ClusterName>\n");
     }
 }
