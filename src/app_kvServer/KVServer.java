@@ -492,6 +492,9 @@ public class KVServer implements IKVServer {
 
     public void handleChangeInMetadata(KVMetadata newMetadata) throws Exception {
 	    //metadataController.getMetaData().print();
+        if(metadataController.getStorageNode(this.getUID())==null){
+            metadataController.addStorageNode(newMetadata.getStorageNodeFromHash(metadataController.hash(this.getUID())));
+        }
         metadataController.addStorageNodes(newMetadata.getIrrelevantNodes(this.getUID()));
         lockWrite();
         //metadataController.getMetaData().print();
@@ -526,7 +529,8 @@ public class KVServer implements IKVServer {
                 }
              }
              else{
-                 return node.getUID().matches(this.getUID());
+                 boolean ret = node.getUID().matches(this.getUID());
+                 return ret;
              }
          }
          else{

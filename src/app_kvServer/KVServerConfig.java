@@ -74,11 +74,14 @@ public class KVServerConfig extends KVExclusiveMessage {
         put(KEY_BELONGED_CLUSTER,newObject.toString());
     }
     public Collection<String> getBelongedCluster(){
-        HashSet<String> hashSet = new HashSet<>();
-        JSONObject newObject = new JSONObject(get(KEY_BELONGED_CLUSTER));
-        JSONArray arrays = newObject.getJSONArray(KEY_BELONGED_CLUSTER_TAG);
-        for(int i = 0 ; i <arrays.length(); i++){
-            hashSet.add(arrays.getString(i));
+        HashSet<String> hashSet = null;
+        if(get(KEY_BELONGED_CLUSTER)!=null){
+            hashSet = new HashSet<>();
+            JSONObject newObject = new JSONObject(get(KEY_BELONGED_CLUSTER));
+            JSONArray arrays = newObject.getJSONArray(KEY_BELONGED_CLUSTER_TAG);
+            for(int i = 0 ; i <arrays.length(); i++){
+                hashSet.add(arrays.getString(i));
+            }
         }
         return hashSet;
     }

@@ -149,8 +149,11 @@ public class KVServerInstance implements Runnable {
                 break;
             }
             case PRIMARY_MIGRATE:{
-                handlePrimaryMigration(in_message);
+                retMessage = handlePrimaryMigration(in_message);
                 break;
+            }
+            case REPLICA_FORWARD_MIGRATE:{
+                retMessage = handleForwardMigration(in_message);
             }
             default:{
                 retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
@@ -304,8 +307,11 @@ public class KVServerInstance implements Runnable {
                 }
 
             }
-
-
+            else {
+                if(!intergratKVMigrationMessage(migrationMessage)){
+                    ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+                }
+            }
         }
         if(requireAck){
             return ret;

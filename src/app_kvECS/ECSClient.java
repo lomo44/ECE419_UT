@@ -265,42 +265,44 @@ public class ECSClient implements IECSClient {
         List<KVStorageNode> ret = new ArrayList<>();
         for(KVStorageNode node : nodes){
             KVServerConfig config = configs.get(serverCount);
-            HashSet<String> clusters = new HashSet<>();
-            switch (nodeCreationMode){
-                case INDIVIDUAL_CLUSTER:{
-                    String targetClusterName = "cluster"+metadataController.getStorageNodes().size();
-                    switch (createCluster(targetClusterName)){
-                        case CREATED:{
-                            KVStorageCluster targetClusterNode = (KVStorageCluster) metadataController.getStorageNode(targetClusterName);
-                            targetClusterNode.addNode(node);
-                            ret.add(node);
-                            ret.add(targetClusterNode);
-                            clusters.add(targetClusterName);
-                            break;
+            if(config.getBelongedCluster()==null){
+                HashSet<String> clusters = new HashSet<>();
+                switch (nodeCreationMode){
+                    case INDIVIDUAL_CLUSTER:{
+                        String targetClusterName = "cluster"+metadataController.getStorageNodes().size();
+                        switch (createCluster(targetClusterName)){
+                            case CREATED:{
+                                KVStorageCluster targetClusterNode = (KVStorageCluster) metadataController.getStorageNode(targetClusterName);
+                                targetClusterNode.addNode(node);
+                                ret.add(node);
+                                ret.add(targetClusterNode);
+                                clusters.add(targetClusterName);
+                                break;
+                            }
+                            case EXIST:{
+                                KVStorageCluster targetClusterNode = (KVStorageCluster) metadataController.getStorageNode(targetClusterName);
+                                targetClusterNode.addNode(node);
+                                ret.add(node);
+                                clusters.add(targetClusterName);
+                                break;
+                            }
+                            case INVALID:{
+                                rewindeNodes(ret);
+                                return null;
+                            }
                         }
-                        case EXIST:{
-                            KVStorageCluster targetClusterNode = (KVStorageCluster) metadataController.getStorageNode(targetClusterName);
-                            targetClusterNode.addNode(node);
-                            ret.add(node);
-                            clusters.add(targetClusterName);
-                            break;
-                        }
-                        case INVALID:{
-                            rewindeNodes(ret);
-                            return null;
-                        }
+                        break;
                     }
-                    break;
+                    case FREE_NODE:{
+                        this.metadataController.addStorageNode(node);
+                        break;
+                    }
+                    case JOIN_CLUSTER_MAX_SIZE_3:{
+                        //TODO:
+                    }
                 }
-                case FREE_NODE:{
-                    this.metadataController.addStorageNode(node);
-                    break;
-                }
-                case JOIN_CLUSTER_MAX_SIZE_3:{
-                    //TODO:
-                }
+                config.setBelongedCluster(clusters);
             }
-            config.setBelongedCluster(clusters);
             zkAdmin.setupNodeInZookeeper(node,configs.get(serverCount));
             serverCount++;
         }
@@ -331,7 +333,7 @@ public class ECSClient implements IECSClient {
         }
     }
 
-    private KVServerConfig createServerConfig(KVStorageNode node, String cacheStrategy, int cacheSize, String targetCluster){
+    public KVServerConfig createServerConfig(KVStorageNode node, String cacheStrategy, int cacheSize, String targetCluster){
         KVServerConfig config = new KVServerConfig();
         config.setCacheSize(cacheSize);
         config.setCacheStratagy(cacheStrategy);
@@ -379,7 +381,7 @@ public class ECSClient implements IECSClient {
     }
 
     //random pick 'count' servers from idle server pool
-    private List<KVStorageNode> selectServerToSetup(int count) {
+    public List<KVStorageNode> selectServerToSetup(int count) {
         List<KVStorageNode> serverToAdd = new ArrayList<>();
         while(serverToAdd.size()!=count && sleepingServer.size()!=0){
             int index = ThreadLocalRandom.current().nextInt(0, sleepingServer.size());
