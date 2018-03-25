@@ -178,7 +178,7 @@ public class KVMetadataController {
 
     public KVStorageNode getStorageNode(String UID){
         if(metaData==null){
-            this.metaData = new KVMetadata();
+            update(new KVMetadata());
         }
         return this.metaData.getStorageNodeFromHash(this.hash(UID));
     }

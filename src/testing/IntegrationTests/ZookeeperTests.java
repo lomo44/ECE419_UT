@@ -47,7 +47,7 @@ public class ZookeeperTests extends TestCase{
     public void setUp() throws Exception {
         zkProcess = new ProcessBuilder().inheritIO().command("./zookeeper-3.4.11/bin/zkServer.sh","start-foreground").start();
         Thread.sleep(1000);
-        ecsClient = new ECSClient(ZK_HOST_NAME,ZK_PORT_NUMBER,ECS_CONFIG_PATH);
+        ecsClient = new ECSClient(ECS_CONFIG_PATH,ZK_HOST_NAME,ZK_PORT_NUMBER);
         ecsClient.setDeployedServerJarPath("./code/ECE419_UT/m2-server.jar");
     }
 

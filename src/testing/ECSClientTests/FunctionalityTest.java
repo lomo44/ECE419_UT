@@ -29,7 +29,7 @@ public class FunctionalityTest extends ZookeeperTestBase{
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        this.ecsClient = new ECSClient(this.zkHostname, this.zkPort, configFile);
+        this.ecsClient = new ECSClient(configFile,this.zkHostname, this.zkPort);
         nodes = new HashMap<>();
         Collection<IECSNode> nodesC = ecsClient.setupNodes(2, "LFU", 5);
         for (IECSNode node : nodesC) {
@@ -47,6 +47,7 @@ public class FunctionalityTest extends ZookeeperTestBase{
         ecsClient.stop();
         ecsClient.clearAllStorage();
         this.ecsClient.shutdown();
+        Thread.sleep(3000);
     }
 
     @Test
@@ -109,4 +110,5 @@ public class FunctionalityTest extends ZookeeperTestBase{
             }
         }
     }
+
 }
