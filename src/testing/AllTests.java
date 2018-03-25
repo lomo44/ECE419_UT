@@ -1,16 +1,10 @@
 package testing;
 
-import common.networknode.KVNetworkNode;
-import common.networknode.KVStorageCluster;
-import common.networknode.KVStorageNode;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import testing.ClientTests.KVClientCommandPatternTest;
 import testing.ClientTests.KVECSCommandPatternTest;
-import testing.CommonModuleTests.KVNetworkNodeTest;
-import testing.CommonModuleTests.KVRangeTest;
-import testing.CommonModuleTests.KVStorageClusterTest;
-import testing.CommonModuleTests.KVStorageNodeTest;
+import testing.CommonModuleTests.*;
 import testing.CommunicationTests.*;
 import testing.DatabaseTests.*;
 import testing.IntegrationTests.*;

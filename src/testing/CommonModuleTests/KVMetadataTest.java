@@ -1,4 +1,4 @@
-package testing.CommunicationTests;
+package testing.CommonModuleTests;
 
 import common.networknode.KVNetworkNode;
 import common.metadata.KVMetadata;

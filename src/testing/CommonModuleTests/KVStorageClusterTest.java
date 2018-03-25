@@ -55,4 +55,24 @@ public class KVStorageClusterTest extends TestCase {
         KVNetworkNode nodeB = KVNetworkNode.fromJSONObject(clusterA.toJSONObject());
         assertEquals(eKVNetworkNodeType.STORAGE_CLUSTER,nodeB.getNodeType());
     }
+
+    @Test
+    public void testKVStorageCluster_multipeStorageNode(){
+        KVStorageCluster clusterA = new KVStorageCluster("123_456");
+        clusterA.setPrimaryNodeUID("11111");
+        clusterA.setHashRange(new KVRange<>(BigInteger.valueOf(1),BigInteger.valueOf(5),true,false));
+        clusterA.addNode(new KVStorageNode("123",5,"11111"));
+        clusterA.addNode(new KVStorageNode("456",8,"11112"));
+        KVStorageCluster nodeB = KVStorageCluster.fromJSONObject(clusterA.toJSONObject());
+        assertEquals(eKVNetworkNodeType.STORAGE_CLUSTER,nodeB.getNodeType());
+        assertEquals("11111",nodeB.getPrimaryNodeUID());
+        assertTrue(nodeB.contain("11111"));
+        assertTrue(nodeB.contain("11112"));
+        KVStorageNode replicaA = nodeB.getNode("11111");
+        KVStorageNode replicaB = nodeB.getNode("11112");
+        assertNotNull(replicaA);
+        assertNotNull(replicaB);
+        assertEquals(5,replicaA.getPortNumber());
+        assertEquals(8,replicaB.getPortNumber());
+    }
 }

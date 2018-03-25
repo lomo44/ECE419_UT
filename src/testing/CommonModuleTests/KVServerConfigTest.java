@@ -1,4 +1,4 @@
-package testing.CommunicationTests;
+package testing.CommonModuleTests;
 
 import junit.framework.TestCase;
 import org.junit.Test;

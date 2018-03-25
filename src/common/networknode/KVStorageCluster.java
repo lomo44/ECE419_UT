@@ -130,6 +130,9 @@ public class KVStorageCluster extends KVStorageNode {
     public boolean isEmpty(){
         return getChildNodes().size()==0;
     }
+    public KVStorageNode getNode(String UID){
+        return childNodes.get(UID);
+    }
     @Override
     public boolean equals(Object o) {
         return super.equals(o);
