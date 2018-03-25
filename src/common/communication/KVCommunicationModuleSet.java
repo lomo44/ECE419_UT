@@ -40,7 +40,7 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
         for(KVNetworkNode node: nodes){
             try {
                 received.add(getCommunicationModule(node).receive());
-            } catch (SocketException e) {
+            } catch (IllegalArgumentException | IOException e) {
             }
         }
         return received;
@@ -55,7 +55,7 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
             if(initialConnection(node)){
                 try {
                     msg.add(get(node).receive());
-                } catch (SocketException e) {
+                } catch (IllegalArgumentException | IOException e) {
                     remove(node);
                 }
             }
@@ -88,7 +88,7 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
                     get(node).send(msg);
                     ret = get(node).receive();
                     break;
-                } catch (SocketException e) {
+                } catch (IllegalArgumentException | IOException e) {
                     // Socket exception, reset connection
                     remove(node);
                 }
@@ -146,7 +146,7 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
                 module.send(msg);
                 ret = module.receive();
             }
-        } catch (SocketException e) {
+        } catch (IllegalArgumentException | IOException e) {
 
         }
         return ret;

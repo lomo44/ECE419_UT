@@ -414,10 +414,6 @@ public class KVServer implements IKVServer {
 		return ret;
 	}
     
-    public void updateReplicas(List<String> Replicas) {
-    		
-    }
-    
 
 	private void migrateData(){
         // Filter out migrating data
