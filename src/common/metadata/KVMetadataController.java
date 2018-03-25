@@ -36,10 +36,8 @@ public class KVMetadataController {
         if(metaData == null){
             metaData = new KVMetadata();
         }
-        else {
-            metaData.clear();
-            metaData.addAll(newData);
-        }
+        metaData.clear();
+        metaData.addAll(newData);
         this.keys = new TreeSet<>(this.metaData.getStorageNodeHashes());
         generateHashRange();
     }
@@ -67,9 +65,9 @@ public class KVMetadataController {
         return getResponsibleStorageNode(hash(key));
     }
 
-    public List<KVStorageNode> getStorageNodes(){
+    public Collection<KVStorageNode> getStorageNodes(){
         if(metaData==null){
-            update(metaData = new KVMetadata());
+            update(new KVMetadata());
         }
         return metaData.getStorageNodes();
     }
@@ -119,7 +117,7 @@ public class KVMetadataController {
         }
     }
 
-    public void addStorageNodes(List<KVStorageNode> nodes){
+    public void addStorageNodes(Collection<KVStorageNode> nodes){
         if(this.metaData == null){
             update(new KVMetadata());
         }
@@ -138,7 +136,7 @@ public class KVMetadataController {
         if(metaData!=null)
     		metaData.clear();
         if(keys!=null)
-        keys.clear();
+            keys.clear();
     }
 
     public void setPrimary(String clusterUID, String serverUID){
@@ -187,7 +185,7 @@ public class KVMetadataController {
 
     public int getNodeCountByType(eKVNetworkNodeType type){
         int counter = 0;
-        List<KVStorageNode> nodes = getStorageNodes();
+        Collection<KVStorageNode> nodes = getStorageNodes();
         if(nodes!=null){
             for(KVStorageNode node : nodes){
                 if(node.getNodeType() == type){
@@ -200,7 +198,7 @@ public class KVMetadataController {
 
     public List<KVStorageNode> getStorageNodesByType(eKVNetworkNodeType type){
         List<KVStorageNode> ret =new ArrayList<>();
-        List<KVStorageNode> currentNode = getStorageNodes();
+        Collection<KVStorageNode> currentNode = getStorageNodes();
         for(KVStorageNode node : currentNode){
             if(node.getNodeType() == type){
                 ret.add(node);
@@ -209,8 +207,8 @@ public class KVMetadataController {
         return ret;
     }
 
-    public List<KVStorageNode> getReleventNodes(String nodeUID){
-        List<KVStorageNode> allNodes = getStorageNodes();
+    public Collection<KVStorageNode> getReleventNodes(String nodeUID){
+        Collection<KVStorageNode> allNodes = getStorageNodes();
         List<KVStorageNode> ret = new ArrayList<>();
         for(KVStorageNode node : allNodes){
             switch (node.getNodeType()){
@@ -231,4 +229,6 @@ public class KVMetadataController {
         }
         return ret;
     }
+
+
 }

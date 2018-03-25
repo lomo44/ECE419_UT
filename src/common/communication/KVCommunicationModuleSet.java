@@ -151,4 +151,13 @@ public class KVCommunicationModuleSet extends HashMap<KVNetworkNode,KVCommunicat
         }
         return ret;
     }
+    public void close(){
+        for(KVCommunicationModule module: this.values()){
+            try {
+                module.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

@@ -12,10 +12,12 @@ import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
 import common.zookeeper.ZKClient;
 import database.KVDatabase;
+import database.storage.KVStorage;
 import logger.KVOut;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +31,6 @@ public class KVServer implements IKVServer {
     private KVDatabase database;
     private KVServerConfig config;
     private KVStorageNode node;
-    private KVCommunicationModuleSet serverCommunicationSet = new KVCommunicationModuleSet();
     private KVMetadataController metadataController = new KVMetadataController();
     private KVMigrationModule migrationModule = new KVMigrationModule();
     private KVClusterCommunicationModule clusterCommunicationModule = new KVClusterCommunicationModule(this);
@@ -37,7 +38,6 @@ public class KVServer implements IKVServer {
     private Thread serverDaemonThread;
     private eKVServerStatus serverStatus = eKVServerStatus.STOPPED;
 	private ZKClient zkClient;
-	private List<String> replicas;
     /**
      * Start KV Server at given port
      * @param port given port for storage server to operate
@@ -49,7 +49,7 @@ public class KVServer implements IKVServer {
      *           and "LFU".
      */
      
-    public KVServer(int port, int cacheSize, String strategy, String serverName) throws IOException, ClassNotFoundException {
+    public KVServer(int port, int cacheSize, String strategy, String serverName){
         KVServerConfig config = new KVServerConfig();
         config.setCacheSize(cacheSize);
         config.setServerPort(port);
@@ -283,6 +283,8 @@ public class KVServer implements IKVServer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        this.clusterCommunicationModule.close();
+        this.migrationModule.close();
         kv_out.println_debug("Server Killed.");
     }
 
@@ -460,7 +462,7 @@ public class KVServer implements IKVServer {
             }
             if(msgtable.size()>0){
                 // Formulate migration msg and start migration
-                List<KVStorageNode> storageNodes = metadataController.getStorageNodes();
+                Collection<KVStorageNode> storageNodes = metadataController.getStorageNodes();
                 for(KVStorageNode node: msgtable.keySet()){
                     KVMigrationMessage msg = new KVMigrationMessage();
                     msg.setEntries(msgtable.get(node));
@@ -489,17 +491,17 @@ public class KVServer implements IKVServer {
     }
 
     public void handleChangeInMetadata(KVMetadata newMetadata) throws Exception {
-        metadataController.update(newMetadata);
+	    //metadataController.getMetaData().print();
+        metadataController.addStorageNodes(newMetadata.getIrrelevantNodes(this.getUID()));
         lockWrite();
-        metadataController.getMetaData().print();
+        //metadataController.getMetaData().print();
         migrateData();
         unlockWrite();
     }
 
     public void handleChangeInCluster(String clusterName, KVStorageNode newReplica) throws Exception{
-    		KVStorageCluster cluster = (KVStorageCluster)metadataController.getResponsibleStorageNode(clusterName);
-    		moveData(cluster.getHashRange(),newReplica);
-    		
+        KVStorageCluster cluster = (KVStorageCluster)metadataController.getResponsibleStorageNode(clusterName);
+        moveData(cluster.getHashRange(),newReplica);
     }
 
 
@@ -510,11 +512,18 @@ public class KVServer implements IKVServer {
          KVStorageNode node = metadataController.getResponsibleStorageNode(key);
          if(node!=null){
              if(node.getNodeType() == eKVNetworkNodeType.STORAGE_CLUSTER){
-                 KVStorageCluster cluster = (KVStorageCluster) node;
-                if(isWrite){
-                    return cluster.getPrimaryNode().getUID().matches(this.getUID());
+                KVStorageCluster cluster = (KVStorageCluster) node;
+                if(cluster.contain(this.getUID())){
+                    if(isWrite){
+                        return cluster.getPrimaryNode().getUID().matches(this.getUID());
+                    }
+                    else{
+                        return true;
+                    }
                 }
-                return cluster.contain(this.getUID());
+                else{
+                    return false;
+                }
              }
              else{
                  return node.getUID().matches(this.getUID());
@@ -574,6 +583,7 @@ public class KVServer implements IKVServer {
         }
         if(cluster!=null){
             this.metadataController.addStorageNode(cluster);
+            this.metadataController.getMetaData().print();
             if(cluster.getPrimaryNode().getUID().matches(this.getUID())){
                 // primary node, need to declare victory
                 this.clusterCommunicationModule.announcePrimary(this.getUID(),cluster.getUID());
@@ -598,10 +608,6 @@ public class KVServer implements IKVServer {
             }
         }
         return false;
-    }
-
-    public KVCommunicationModuleSet getServerCommunicationSet() {
-        return serverCommunicationSet;
     }
 
     public KVClusterCommunicationModule getClusterCommunicationModule() {

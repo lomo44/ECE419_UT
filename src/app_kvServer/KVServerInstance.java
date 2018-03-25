@@ -346,7 +346,7 @@ public class KVServerInstance implements Runnable {
     }
     private KVJSONMessage handleIrresponsibleRequest(){
         KVJSONMessage ret =  serverinstance.getCurrentMetadata().toKVJSONMessage();
-        serverinstance.getCurrentMetadata().print();
+        //serverinstance.getCurrentMetadata().print();
         ret.setStatus(SERVER_NOT_RESPONSIBLE);
         return ret;
     }

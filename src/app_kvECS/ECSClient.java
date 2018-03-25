@@ -132,6 +132,7 @@ public class ECSClient implements IECSClient {
             process.destroyForcibly();
         }
         isRunning = false;
+        this.serverCommunicationModules.close();
         return ret;
     }
 
@@ -166,7 +167,7 @@ public class ECSClient implements IECSClient {
             }
             this.runningServer.remove(node);
             this.sleepingServer.put(node.getUID(),node);
-            List<KVStorageNode> relevantNodes = metadataController.getReleventNodes(nodeName);
+            Collection<KVStorageNode> relevantNodes = metadataController.getReleventNodes(nodeName);
             for(KVStorageNode relevantNode : relevantNodes){
                 switch (relevantNode.getNodeType()){
                     case STORAGE_NODE:{
@@ -303,6 +304,11 @@ public class ECSClient implements IECSClient {
             zkAdmin.setupNodeInZookeeper(node,configs.get(serverCount));
             serverCount++;
         }
+        for(KVStorageNode node : ret){
+            if(node.getNodeType()==eKVNetworkNodeType.STORAGE_NODE){
+                this.runningServer.put(node.getUID(),node);
+            }
+        }
         return ret;
     }
 
@@ -352,13 +358,24 @@ public class ECSClient implements IECSClient {
 
     @Override
     public boolean awaitNodes(int count, int timeout){
+        boolean ret = false;
         long startTime = System.currentTimeMillis();
         while (System.currentTimeMillis()-startTime <= timeout){
-            if(zkAdmin.getCurrentSetupNodesNames().size() >= count){
-                return true;
+            Set<String> curretSetupNodesNames = zkAdmin.getCurrentSetupNodesNames();
+            for(String name: curretSetupNodesNames){
+                if(sleepingServer.containsKey(name)){
+                    runningServer.put(name,sleepingServer.get(name));
+                    sleepingServer.remove(name);
+                }
+            }
+            if(curretSetupNodesNames.size() >= count){
+                ret = true;
+                break;
             }
         }
-        return false;
+        //this.metadataController.getMetaData().print();
+        zkAdmin.broadcastMetadata(runningServer.values(),this.metadataController.getMetaData());
+        return ret;
     }
 
     //random pick 'count' servers from idle server pool

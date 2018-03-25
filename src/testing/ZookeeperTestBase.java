@@ -10,7 +10,7 @@ public class ZookeeperTestBase extends TestCase {
     @Override
     protected void setUp() throws Exception {
         super.setUp();
-        zkProcess = new ProcessBuilder().inheritIO().command("./zookeeper-3.4.11/bin/zkServer.sh","start-foreground").start();
+        zkProcess = new ProcessBuilder().inheritIO().command("./zookeeper-3.4.11/bin/zkServer.sh","start").start();
         Thread.sleep(1000);
     }
 
@@ -18,6 +18,7 @@ public class ZookeeperTestBase extends TestCase {
     protected void tearDown() throws Exception {
         super.tearDown();
         deleteDirectoryAndContent(new File(ZK_DATA_DIR));
+        new ProcessBuilder().inheritIO().command("./zookeeper-3.4.11/bin/zkServer.sh","stop").start();
         zkProcess.destroyForcibly();
     }
 

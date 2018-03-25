@@ -107,9 +107,8 @@ public class ZKadmin extends ZKInstance {
 				) {
 			String path = SERVER_BASE_PATH + "/" + node.getUID();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
-			DataHandler.setDataSync(metadatapath,metadata.toKVJSONMessage().toBytes(),metadataVersion);
+			DataHandler.setDataSync(metadatapath,metadata.toKVJSONMessage().toBytes(),-1);
 		}
-		metadataVersion++;
 	}
 
 	@Override

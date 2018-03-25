@@ -21,6 +21,7 @@ public class KVClusterCommunicationModule {
         if(this.clusterUpdateDaemon.isRunning()){
             stopUpdateDaemon();
         }
+        this.communicationModuleSet.close();
     }
     public void startUpdateDaemon(){
         if(!this.clusterUpdateDaemon.isRunning()){

@@ -27,7 +27,7 @@ public class KVStorageNode extends KVNetworkNode{
     }
 
     public KVStorageNode(KVServerConfig config){
-        super(config.getServerHostAddress(),config.getServerPort(),config.getServerName());
+        this(config.getServerHostAddress(),config.getServerPort(),config.getServerName());
     }
 
     public KVStorageNode(KVNetworkNode node){

@@ -24,10 +24,10 @@ public class KVClusterUpdateDaemon implements Runnable{
     public KVClusterUpdateDaemon(KVServer serverInstance, boolean checkAckEnable){
         this.serverInstance = serverInstance;
         this.checkAckEnable = checkAckEnable;
-        this.communicationModuleSet = serverInstance.getServerCommunicationSet();
+        this.communicationModuleSet = new KVCommunicationModuleSet();
     }
     public KVClusterUpdateDaemon(KVServer serverInstance){
-        this.serverInstance = serverInstance;
+        this(serverInstance,false);
     }
 
     @Override
@@ -47,6 +47,7 @@ public class KVClusterUpdateDaemon implements Runnable{
         this.running = false;
         this.updateThread.interrupt();
         this.updateThread.join();
+        this.communicationModuleSet.close();
     }
 
     public void start(){
@@ -66,23 +67,25 @@ public class KVClusterUpdateDaemon implements Runnable{
         if(node.getNodeType()== eKVNetworkNodeType.STORAGE_CLUSTER){
             KVStorageCluster cluster = (KVStorageCluster)node;
             Collection<KVStorageNode> children = cluster.getChildNodes();
-            if(checkAckEnable){
-                Vector<KVJSONMessage> acks = communicationModuleSet.syncBroadcast(msg,children);
-                if(acks.size()==children.size()){
-                    for (KVJSONMessage ack: acks
-                         ) {
-                        if(ack.getExtendStatusType()!=eKVExtendStatusType.REPLICA_OK){
-                            ret = false;
-                            break;
+            if(children!=null){
+                if(checkAckEnable){
+                    Vector<KVJSONMessage> acks = communicationModuleSet.syncBroadcast(msg,children);
+                    if(acks.size()==children.size()){
+                        for (KVJSONMessage ack: acks
+                                ) {
+                            if(ack.getExtendStatusType()!=eKVExtendStatusType.REPLICA_OK){
+                                ret = false;
+                                break;
+                            }
                         }
                     }
+                    else {
+                        ret = false;
+                    }
                 }
-                else {
-                    ret = false;
+                else{
+                    communicationModuleSet.asyncBroadcastSend(msg,children);
                 }
-            }
-            else{
-                communicationModuleSet.asyncBroadcastSend(msg,children);
             }
         }
         return ret;

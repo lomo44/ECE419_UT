@@ -27,15 +27,7 @@ public class KVMigrationModule {
      */
     public void close(){
         //Iterate through the cocmmunication module and stop the connection
-        for (KVNetworkNode node: connectionTable.keySet()
-             ) {
-            KVCommunicationModule module = connectionTable.get(node);
-            try {
-                module.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+       connectionTable.close();
     }
 
     /**

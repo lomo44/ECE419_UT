@@ -2,7 +2,6 @@ package common.metadata;
 
 import common.messages.KVExclusiveMessage;
 import common.messages.KVJSONMessage;
-import common.networknode.KVNetworkNode;
 import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
 import org.json.JSONObject;
@@ -58,10 +57,8 @@ public class KVMetadata {
         return data;
     }
 
-    public List<KVStorageNode> getStorageNodes(){
-        List<KVStorageNode> ret = new ArrayList<>();
-        ret.addAll(storageNodes.values());
-        return ret;
+    public Collection<KVStorageNode> getStorageNodes(){
+        return storageNodes.values();
     }
 
     /**
@@ -167,8 +164,31 @@ public class KVMetadata {
     public void print(){
         for (BigInteger hash: storageNodes.keySet()
              ) {
-            System.out.println(String.format("Hash: %s, Node: %s, Range: %s",
-                    hash,storageNodes.get(hash).toString(),storageNodes.get(hash).getHashRange().toString()));
+            System.out.println(String.format("Hash: %s, Node: %s",
+                    hash,storageNodes.get(hash).toJSONObject().toString()));
         }
+    }
+
+    public List<KVStorageNode> getIrrelevantNodes(String nodeUID){
+        Collection<KVStorageNode> allNodes = getStorageNodes();
+        List<KVStorageNode> ret = new ArrayList<>();
+        for(KVStorageNode node : allNodes){
+            switch (node.getNodeType()){
+                case STORAGE_NODE:{
+                    if(!node.getUID().matches(nodeUID)){
+                        ret.add(node);
+                    }
+                    break;
+                }
+                case STORAGE_CLUSTER:{
+                    KVStorageCluster cluster = (KVStorageCluster) node;
+                    if(!cluster.contain(nodeUID)){
+                        ret.add(node);
+                    }
+                    break;
+                }
+            }
+        }
+        return ret;
     }
 }
