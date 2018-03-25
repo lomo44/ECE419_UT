@@ -265,7 +265,7 @@ public class ECSClient implements IECSClient {
         }
         return null;
     }
-    private List<KVStorageNode> setupNodes(List<KVStorageNode> nodes, List<KVServerConfig> configs){
+    public List<KVStorageNode> setupNodes(List<KVStorageNode> nodes, List<KVServerConfig> configs){
         int serverCount = 0;
         List<KVStorageNode> ret = new ArrayList<>();
         for(KVStorageNode node : nodes){
@@ -345,7 +345,11 @@ public class ECSClient implements IECSClient {
         config.setServerPort(node.getPortNumber());
         config.setServerHostAddress(node.getHostName());
         config.setServerName(node.getUID());
-        // initialize cluster information
+        if(!targetCluster.isEmpty()){
+            HashSet<String> clusterNames = new HashSet<>();
+            clusterNames.add(targetCluster);
+            config.setBelongedCluster(clusterNames);
+        }
         return config;
     }
 

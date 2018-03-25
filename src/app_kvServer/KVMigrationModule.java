@@ -71,7 +71,13 @@ public class KVMigrationModule {
         msg.setIsRequiredAck(false);
         connectionTable.asyncBroadcastSend(outputmsg,targetCluster.getChildNodesWithoutPrimary());
     }
-    public boolean syncDirectMigration(KVStorageCluster targetCluster, KVMigrationMessage msg){
+    public KVJSONMessage syncPrimaryForwardMigration(KVStorageNode targetNode, KVMigrationMessage msg){
+        KVJSONMessage outputmsg = msg.toKVJSONMessage();
+        outputmsg.setExtendStatus(eKVExtendStatusType.PRIMARY_FORWARD_MIGRATE);
+        return connectionTable.syncSend(outputmsg,targetNode);
+    }
+
+    public boolean syncReplicaForwardMigration(KVStorageCluster targetCluster, KVMigrationMessage msg){
         //TODO: added timeout for failure protection.
         KVJSONMessage outputmsg = msg.toKVJSONMessage();
         outputmsg.setExtendStatus(eKVExtendStatusType.REPLICA_FORWARD_MIGRATE);

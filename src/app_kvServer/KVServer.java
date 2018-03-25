@@ -1,7 +1,6 @@
 package app_kvServer;
 
 import app_kvServer.daemons.KVServerShutdownDaemon;
-import common.communication.KVCommunicationModuleSet;
 import common.datastructure.KVRange;
 import common.enums.*;
 import common.messages.KVJSONMessage;
@@ -12,14 +11,12 @@ import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
 import common.zookeeper.ZKClient;
 import database.KVDatabase;
-import database.storage.KVStorage;
 import logger.KVOut;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -33,7 +30,7 @@ public class KVServer implements IKVServer {
     private KVStorageNode node;
     private KVMetadataController metadataController = new KVMetadataController();
     private KVMigrationModule migrationModule = new KVMigrationModule();
-    private KVClusterCommunicationModule clusterCommunicationModule = new KVClusterCommunicationModule(this);
+    private KVClusterCommunicationModule clusterCommunicationModule;
     private Thread handlerThread;
     private Thread serverDaemonThread;
     private eKVServerStatus serverStatus = eKVServerStatus.STOPPED;
@@ -88,7 +85,7 @@ public class KVServer implements IKVServer {
 	public void initializeServer(KVServerConfig config, KVMetadata metadata, ZKClient client) throws InterruptedException {
 	    this.kv_out = new KVOut(config.getServerHostAddress());
 	    this.config = config;
-	    System.out.println(new String(config.toKVJSONMessage().toBytes()));
+	    //System.out.println(new String(config.toKVJSONMessage().toBytes()));
 		database = new KVDatabase(config.getCacheSize(),50000000,config.getCacheStratagy(),config.getServerName());
         this.serverExitDaemon = new KVServerShutdownDaemon(this);
         this.serverDaemonThread = new Thread(this.serverExitDaemon);
@@ -104,6 +101,7 @@ public class KVServer implements IKVServer {
                 e.printStackTrace();
             }
         }
+        this.clusterCommunicationModule = new KVClusterCommunicationModule(this);
         this.serverDaemonThread.start();
         this.config.setServerPort(serverHandler.getPort());
         //metadataController.addStorageNode(new KVStorageNode(getHostAddress(),getPort(),getServername()));
@@ -402,7 +400,7 @@ public class KVServer implements IKVServer {
             }
             migrationMessage.setEntries(migrationEntries);
             migrationMessage.setTargetName(node.getUID());
-            KVJSONMessage response = migrationModule.clusterExternalMigration(node,migrationMessage);
+            KVJSONMessage response = migrationModule.syncPrimaryForwardMigration(node,migrationMessage);
             if(response.getExtendStatusType()== eKVExtendStatusType.MIGRATION_COMPLETE){
                 ret = true;
             }
@@ -488,7 +486,7 @@ public class KVServer implements IKVServer {
 
     public void handleChangeInMetadata(KVMetadata newMetadata) throws Exception {
 	    //metadataController.getMetaData().print();
-        if(metadataController.getStorageNode(this.getUID())==null){
+        if(metadataController.getStorageNode(this.getUID())==null && newMetadata.getStorageNodeFromHash(metadataController.hash(this.getUID()))!=null){
             metadataController.addStorageNode(newMetadata.getStorageNodeFromHash(metadataController.hash(this.getUID())));
         }
         metadataController.addStorageNodes(newMetadata.getIrrelevantNodes(this.getUID()));
@@ -501,8 +499,8 @@ public class KVServer implements IKVServer {
     public void handleChangeInCluster(String clusterName, KVStorageNode newReplica) throws Exception{
         KVStorageCluster cluster = (KVStorageCluster)metadataController.getResponsibleStorageNode(clusterName);
         moveData(cluster.getHashRange(),newReplica);
+        cluster.addNode(newReplica);
     }
-
 
 	public boolean isKeyResponsible(String key, boolean isWrite){
 //	    System.out.println(String.format("Upper: %s",metadataController.getStorageNode(getNetworkNode()).getHashRangeString().getUpperBound().toString()));
@@ -583,11 +581,14 @@ public class KVServer implements IKVServer {
         }
         if(cluster!=null){
             this.metadataController.addStorageNode(cluster);
-            this.metadataController.getMetaData().print();
+            //this.metadataController.getMetaData().print();
             if(cluster.getPrimaryNode().getUID().matches(this.getUID())){
                 // primary node, need to declare victory
                 this.clusterCommunicationModule.announcePrimary(this.getUID(),cluster.getUID());
                 this.clusterCommunicationModule.startUpdateDaemon();
+            }
+            else{
+                System.out.printf("Server %s join cluster %s, primary is %s\n", this.getUID(),clusterpath,cluster.getPrimaryNodeUID());
             }
             return true;
         }
