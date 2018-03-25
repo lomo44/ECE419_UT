@@ -30,6 +30,6 @@ public class KVCommandPatternLeaveCluster extends KVCommandPattern {
     @Override
     public String getHelpMessageString() {
         return String.format("leaveCluster <NodeName> <ClusterName>\n" +
-                               "    Force the node named <NodeName> to leave the cluster named <ClusterName>");
+                               "    Force the node named <NodeName> to leave the cluster named <ClusterName>\n");
     }
 }

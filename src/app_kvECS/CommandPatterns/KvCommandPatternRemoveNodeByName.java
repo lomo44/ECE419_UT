@@ -27,6 +27,6 @@ public class KvCommandPatternRemoveNodeByName extends KVCommandPattern {
     @Override
     public String getHelpMessageString() {
         return String.format("removeNode <NodeName>\n" +
-                               "    remove the node/cluster by name");
+                               "    remove the node/cluster by name\n");
     }
 }

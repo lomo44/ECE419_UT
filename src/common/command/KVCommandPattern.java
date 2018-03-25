@@ -27,7 +27,8 @@ public abstract class KVCommandPattern {
         LEAVE_CLUSTER,
         JOIN_CLUSTER,
         CREATE_CLUSTER,
-        REMOVE_CLUSTER
+        REMOVE_CLUSTER,
+        SET_KEYPATH
     }
     protected KVCommandType commandType;
     protected Pattern commandRegex;

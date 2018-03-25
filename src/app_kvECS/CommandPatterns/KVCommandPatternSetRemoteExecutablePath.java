@@ -23,6 +23,6 @@ public class KVCommandPatternSetRemoteExecutablePath extends KVCommandPattern {
     @Override
     public String getHelpMessageString() {
         return "setServerJarPath <path>: \n" +
-                "   set the executable path to the server jar file on the remote";
+                "   set the executable path to the server jar file on the remote\n";
     }
 }
