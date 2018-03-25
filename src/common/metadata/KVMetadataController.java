@@ -208,26 +208,7 @@ public class KVMetadataController {
     }
 
     public Collection<KVStorageNode> getReleventNodes(String nodeUID){
-        Collection<KVStorageNode> allNodes = getStorageNodes();
-        List<KVStorageNode> ret = new ArrayList<>();
-        for(KVStorageNode node : allNodes){
-            switch (node.getNodeType()){
-                case STORAGE_NODE:{
-                    if(node.getUID().matches(nodeUID)){
-                        ret.add(node);
-                    }
-                    break;
-                }
-                case STORAGE_CLUSTER:{
-                    KVStorageCluster cluster = (KVStorageCluster) node;
-                    if(cluster.contain(nodeUID)){
-                        ret.add(cluster);
-                    }
-                    break;
-                }
-            }
-        }
-        return ret;
+        return metaData.getReleventNodes(nodeUID);
     }
 
 

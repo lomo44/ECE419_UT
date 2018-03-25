@@ -111,4 +111,40 @@ public class FunctionalityTest extends ZookeeperTestBase{
         }
     }
 
+    @Test
+    public void testFunctionality_PutGetOnReplica() throws Exception{
+        // Create 1 more server
+        List<KVStorageNode> selectedServer = ecsClient.selectServerToSetup(1);
+        List<KVServerConfig> configs = new ArrayList<>();
+        for(KVStorageNode node :selectedServer){
+            configs.add(ecsClient.createServerConfig(node,"FIFO",10,"cluster0"));
+        }
+        ecsClient.setupNodes(selectedServer,configs);
+        for (KVStorageNode node : selectedServer) {
+            KVServer server = new KVServer(node.getUID(), this.zkHostname, this.zkPort);
+            nodes.put(node.getUID(), server);
+        }
+        ecsClient.awaitNodes(3,15*1000);
+        assertTrue(ecsClient.start());
+
+        KVClient client = new KVClient();
+        KVStorageNode server = (KVStorageNode) selectedServer.toArray()[ThreadLocalRandom.current().nextInt(0,selectedServer.size())];
+        client.newConnection(server.getHostName(),server.getPortNumber());
+        assertEquals(true,client.isConnected());
+        for(int i = 0; i < 50; i++){
+            KVCommand command = generator.getNextCommand();
+            KVJSONMessage ret = client.executeCommand(command);
+            switch (command.getCommandType()){
+                case GET:{
+                    assertEquals(GET_SUCCESS,ret.getExtendStatusType());
+                    assertTrue(generator.verify(ret.getKey(),ret.getValue()));
+                    break;
+                }
+                case PUT:{
+                    assertEquals(PUT_SUCCESS,ret.getExtendStatusType());
+                    break;
+                }
+            }
+        }
+    }
 }

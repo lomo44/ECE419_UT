@@ -2,6 +2,7 @@ package common.networknode;
 
 import app_kvServer.KVServerConfig;
 import common.enums.eKVNetworkNodeType;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -35,16 +36,17 @@ public class KVStorageCluster extends KVStorageNode {
     }
     public static KVStorageCluster fromJSONObject(JSONObject obj){
         KVStorageCluster cluster =  new KVStorageCluster(KVStorageNode.fromJSONObject(obj));
-        JSONObject listObject = obj.getJSONObject(JSON_KEY_NODELIST);
-        for(String key:listObject.keySet()){
-            eKVNetworkNodeType type = eKVNetworkNodeType.fromInt(Integer.parseInt(key));
-            switch (type){
+        JSONArray listObject = obj.getJSONArray(JSON_KEY_NODELIST);
+        for(int i = 0; i < listObject.length(); i++){
+            JSONObject object = listObject.getJSONObject(i);
+            KVNetworkNode node = KVNetworkNode.fromJSONObject(object);
+            switch (node.getNodeType()){
                 case STORAGE_NODE:{
-                    cluster.addNode(KVStorageNode.fromJSONObject(listObject.getJSONObject(key)));
+                    cluster.addNode(KVStorageNode.fromJSONObject(object));
                     break;
                 }
                 case STORAGE_CLUSTER:{
-                    KVStorageCluster subCluster =  KVStorageCluster.fromJSONObject(listObject.getJSONObject(key));
+                    KVStorageCluster subCluster =  KVStorageCluster.fromJSONObject(object);
                     cluster.addNode(subCluster);
                     break;
                 }
@@ -78,12 +80,10 @@ public class KVStorageCluster extends KVStorageNode {
     @Override
     public JSONObject toJSONObject() {
         JSONObject jsonObject = super.toJSONObject();
-        JSONObject listObject = new JSONObject();
+        JSONArray listObject = new JSONArray();
         for (String nodeName: childNodes.keySet()
                 ) {
-            listObject.put(
-                    Integer.toString(childNodes.get(nodeName).getNodeType().toInt()),
-                    childNodes.get(nodeName).toJSONObject());
+            listObject.put(childNodes.get(nodeName).toJSONObject());
         }
         jsonObject.put(JSON_KEY_NODELIST,listObject);
         jsonObject.put(JSON_KEY_PRIMARY, primaryNodeUID);
@@ -129,5 +129,13 @@ public class KVStorageCluster extends KVStorageNode {
     }
     public boolean isEmpty(){
         return getChildNodes().size()==0;
+    }
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

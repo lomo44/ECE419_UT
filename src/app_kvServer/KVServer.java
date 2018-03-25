@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -485,11 +486,21 @@ public class KVServer implements IKVServer {
     }
 
     public void handleChangeInMetadata(KVMetadata newMetadata) throws Exception {
-	    //metadataController.getMetaData().print();
         if(metadataController.getStorageNode(this.getUID())==null && newMetadata.getStorageNodeFromHash(metadataController.hash(this.getUID()))!=null){
+            // Metadata has more information than I do
             metadataController.addStorageNode(newMetadata.getStorageNodeFromHash(metadataController.hash(this.getUID())));
         }
+        Collection<KVStorageNode> irrelevantNodes = newMetadata.getIrrelevantNodes(this.getUID());
+        newMetadata.getStorageNodes().size();
+        System.out.printf("Size of nodes needed to be added : %d\n",irrelevantNodes.size());
+        for(KVStorageNode node : irrelevantNodes){
+            System.out.printf("Node will be added: %s\n",node.toJSONObject().toString());
+        }
+        // Add irrelevant nodes into the metadata
         metadataController.addStorageNodes(newMetadata.getIrrelevantNodes(this.getUID()));
+        System.out.println("Final metadata: \n");
+        metadataController.getMetaData().print();
+        // Add relevant nodes additional information into metadata
         lockWrite();
         //metadataController.getMetaData().print();
         migrateData();
@@ -497,7 +508,7 @@ public class KVServer implements IKVServer {
     }
 
     public void handleChangeInCluster(String clusterName, KVStorageNode newReplica) throws Exception{
-        KVStorageCluster cluster = (KVStorageCluster)metadataController.getResponsibleStorageNode(clusterName);
+        KVStorageCluster cluster = (KVStorageCluster)metadataController.getStorageNode(clusterName);
         moveData(cluster.getHashRange(),newReplica);
         cluster.addNode(newReplica);
     }
