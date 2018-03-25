@@ -56,7 +56,7 @@ public class KVMigrationModule {
         return null;
     }
 
-    private KVJSONMessage clusterExternalMigration(KVStorageNode outputNode, KVMigrationMessage msg) throws SocketException {
+    private KVJSONMessage clusterExternalMigration(KVStorageNode outputNode, KVMigrationMessage msg) throws IllegalArgumentException, IOException {
         if(outputNode.getNodeType() == eKVNetworkNodeType.STORAGE_CLUSTER){
             KVStorageNode primary = ((KVStorageCluster)(outputNode)).getPrimaryNode();
             return clusterExternalMigration(primary,msg);

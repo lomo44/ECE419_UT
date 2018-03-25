@@ -345,7 +345,7 @@ public class ECSClient implements IECSClient {
                 kv_out.println_error("Failed to start server");
                 return false;
             }
-        } catch (SocketException e) {
+        } catch ( IllegalArgumentException | IOException e) {
             kv_out.println_error("Failed to start server, socket exception");
             return false;
         }

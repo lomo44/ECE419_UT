@@ -49,7 +49,7 @@ public class KVServerInstance implements Runnable {
                     communicationModule.send(response);
                 }
             }
-            catch (SocketException e){
+            catch (IllegalArgumentException | IOException e){
                 isRunning = false;
             }
         }
@@ -107,6 +107,10 @@ public class KVServerInstance implements Runnable {
                     serverinstance.unlockRead();
                 }
                 break;
+            }
+            case TEST_TIMEOUT:{
+            		retMessage = null;
+            		break;
             }
             case ECHO:{
                 retMessage = in_message;

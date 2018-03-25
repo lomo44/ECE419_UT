@@ -1,5 +1,7 @@
 package testing.CommunicationTests;
 
+import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
 import app_kvServer.KVServer;
@@ -42,6 +44,19 @@ public class ConnectionTest extends TestCase {
 			ex = e;
 		}
 		assertNull(ex);
+	}
+	
+	@Test
+	public void testConnectionTimeOut(){
+		Exception ex = null;
+		KVStore kvClient = new KVStore("localhost", port);
+		try {
+		kvClient.connect();
+		kvClient.testtimeout();
+		} catch (Exception e) {
+			ex = e;
+		}
+		assertSame(SocketTimeoutException.class, ex.getClass());
 	}
 	
 	@Test

@@ -2,6 +2,7 @@ package client;
 
 import java.io.IOException;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.lang.System;
 
 import common.communication.KVCommunicationModuleSet;
@@ -50,6 +51,7 @@ public class KVStore implements KVCommInterface {
         kv_out.println_debug("KV Store connect");
         KVNetworkNode newNetworkNode = new KVNetworkNode(serverAddress,serverPort,"default");
         KVCommunicationModule newModule = newNetworkNode.createCommunicationModule();
+        newModule.setTimeOut(10);
         newModule.setLogLevel(outputlevel,logLevel);
         setRunning(true);
         setLogLevel(outputlevel,logLevel);
@@ -118,7 +120,8 @@ public class KVStore implements KVCommInterface {
                     try{
                         module.send(newmessage);
                         response = module.receive();
-                    } catch (SocketException e) {
+                    } catch ( IllegalArgumentException | IOException e) {
+                    		e.printStackTrace();
                         connectionMap.values().remove(module);
                         if(connectionMap.size()==0){
                             running = false;
@@ -154,6 +157,19 @@ public class KVStore implements KVCommInterface {
         return response;
     }
 
+    public void testtimeout() throws IllegalArgumentException, IOException {
+    		 KVJSONMessage response = new KVJSONMessage();
+    		 KVJSONMessage newmessage = createEmptyMessage();
+         newmessage.setValue("blah");
+         newmessage.setKey("blah");
+         newmessage.setExtendStatus(eKVExtendStatusType.TEST_TIMEOUT);;
+         KVCommunicationModule module = getResponsibleCommunicationModule("blah",true);
+         if(module!=null){
+                 module.send(newmessage);
+                 response = module.receive();
+         }
+    }
+    
     /**
      * Updates metadata with version provided by server
      * @param msg response from server containing metadata
@@ -221,7 +237,8 @@ public class KVStore implements KVCommInterface {
                         module.send(newmessage);
                         response = module.receive();
                     }
-                    catch (SocketException e){
+                    catch ( IllegalArgumentException | IOException e){
+                			e.printStackTrace();
                         connectionMap.values().remove(module);
                         if(connectionMap.size()==0){
                             running = false;

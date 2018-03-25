@@ -39,6 +39,9 @@ public class KVCommunicationModule extends IKVCommunicationModule {
 		return new KVJSONMessage();
 	}
 
+	public void setTimeOut(int second) throws SocketException {
+		privateSocket.setSoTimeout(second*1000);	
+	}
     /**
      * Send a KVMessage through the module
      * @param in_Message outbound message
@@ -65,22 +68,23 @@ public class KVCommunicationModule extends IKVCommunicationModule {
     /**
      * receive message
      * @return KVMessage
-     * @throws SocketException thrown if socket is closed
+     * @throws IOException 
+     * @throws IllegalArgumentException 
      */
     @Override
-    public KVJSONMessage receive() throws SocketException{
+    public KVJSONMessage receive() throws IllegalArgumentException, IOException{
         if(!privateSocket.isClosed()){
-            try {
+            //try {
                 KVJSONMessage ret = new KVJSONMessage();
                 ret.fromBytes(internalBuffer,0,bufferedRead());
                 //kv_out.println_info("Received message from "+getSocket().getInetAddress().getHostName()+" at port "+getSocket().getPort());
                 return ret;
-
-            }
-            catch (IOException e) {
-                //e.printStackTrace();
-                throw new SocketException();
-            }
+//
+//            }
+//            catch (IOException e) {
+//                //e.printStackTrace();
+//                throw new SocketException();
+//            }
         }
         else {
             throw new SocketException();
