@@ -13,10 +13,12 @@ import org.apache.zookeeper.KeeperException;
 import app_kvServer.KVServerConfig;
 import common.networknode.KVStorageNode;
 
+
+
 public class ZKadmin extends ZKInstance {
 
-	// private List<KVStorageNode> sleepingServer;
-	// private List<KVStorageNode> runningServer;
+//	private List<KVStorageNode> sleepingServer;
+//	private List<KVStorageNode> runningServer;
 
 	private Set<String> currentSetupNodes = new ConcurrentHashMap().newKeySet();
 
@@ -44,72 +46,75 @@ public class ZKadmin extends ZKInstance {
 		System.out.println(String.format("Current Setup Nodes: %d", names.size()));
 	}
 
-	public void setupNodes(List<KVStorageNode> nodes, String cacheStrategy, int cacheSize) {
-		for (KVStorageNode server : nodes) {
-			KVServerConfig config = new KVServerConfig();
-			config.setCacheSize(cacheSize);
-			config.setCacheStratagy(cacheStrategy);
-			config.setServerPort(server.getPortNumber());
-			config.setServerHostAddress(server.getHostName());
-			String path = SERVER_BASE_PATH + "/" + server.getUID();
-			String metadatapath = path + "/" + SERVER_METADATA_NAME;
-			String configpath = path + "/" + SERVER_CONFIG_NAME;
-			createNodeHandler.createNodeSync(path, "", 0);
-			// We don't need to populate meta data for now since we are not doing migration
-			createNodeHandler.createNodeSync(metadatapath, "", 0);
-			createNodeHandler.createNodeSync(configpath, new String(config.toKVJSONMessage().toBytes()), 1);
-		}
+
+	public void setupNodeInZookeeper(KVStorageNode node, KVServerConfig config){
+		String path = SERVER_BASE_PATH + "/" + node.getUID();
+		String metadatapath = path + "/" + SERVER_METADATA_NAME;
+		String configpath = path + "/" + SERVER_CONFIG_NAME;
+		createNodeHandler.createNodeSync(path, "", 0);
+		// We don't need to populate meta data for now since we are not doing migration
+		createNodeHandler.createNodeSync(metadatapath, "", 0);
+		createNodeHandler.createNodeSync(configpath,new String(config.toKVJSONMessage().toBytes()),1);
 	}
 
+
 	public boolean createCluster(String clusterName) throws KeeperException, InterruptedException {
-		List<String> clusters = zk.getChildren(CLUSTER_PATH, false);
-		for (String cluster : clusters) {
-			if (cluster.matches(clusterName)) {
+		List<String> clusters = zk.getChildren(SERVER_CLUSTER_PATH,false);
+		for(String cluster: clusters){
+			if(cluster.matches(clusterName)){
 				return true;
 			}
 		}
-		createNodeHandler.createNodeSync(CLUSTER_PATH + "/" + clusterName, "", 0);
-		createNodeHandler.createNodeAsync(CLUSTER_PATH + "/" + clusterName + "/newreplicas", "", 0);
+		createNodeHandler.createNodeSync(SERVER_CLUSTER_PATH +"/"+clusterName,"",0);
+		createNodeHandler.createNodeSync(SERVER_CLUSTER_PATH + "/" + clusterName, "", 0);
+		createNodeHandler.createNodeAsync(getNewReplicasPath(clusterName), "", 0);
+        createNodeHandler.createNodeAsync(getOldReplciaPath(clusterName), "", 0);
 		return true;
 	}
 
 	public boolean removeCluster(String clusterName) throws KeeperException, InterruptedException {
-		List<String> clusters = zk.getChildren(CLUSTER_PATH, false);
-		for (String cluster : clusters) {
-			if (cluster.matches(clusterName)) {
-				deleteAll(CLUSTER_PATH + "/" + cluster);
+		List<String> clusters = zk.getChildren(SERVER_CLUSTER_PATH,false);
+		for(String cluster: clusters){
+			if(cluster.matches(clusterName)){
+				deleteAll(SERVER_CLUSTER_PATH +"/"+cluster);
 				return true;
 			}
 		}
 		return true;
 	}
 
-	public void removeNodes(List<KVStorageNode> nodes) throws KeeperException, InterruptedException {
+
+	public void removeNodesInZookeeper(List<KVStorageNode> nodes) throws KeeperException, InterruptedException {
 		for (KVStorageNode server : nodes) {
-			removeNodes(server);
+			removeNodeInZookeeper(server.getUID());
 		}
 	}
 
-	public void removeNodes(KVStorageNode nodes) throws KeeperException, InterruptedException {
-		String path = SERVER_BASE_PATH + "/" + nodes.getUID();
-		String metadatapath = path + "/" + SERVER_METADATA_NAME;
-		String configpath = path + "/" + SERVER_CONFIG_NAME;
-		zk.delete(path, -1);
+
+	public void removeNodeInZookeeper(String nodeUID){
+		String path = SERVER_BASE_PATH + "/" + nodeUID;
+		try {
+			zk.delete(path,-1);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (KeeperException e) {
+			e.printStackTrace();
+		}
 	}
 
-	public void broadcastMetadata(List<KVStorageNode> nodes, KVMetadata metadata) {
-		for (KVStorageNode node : nodes) {
+	public void broadcastMetadata(Collection<KVStorageNode> nodes, KVMetadata metadata){
+		for (KVStorageNode node: nodes
+				) {
 			String path = SERVER_BASE_PATH + "/" + node.getUID();
 			String metadatapath = path + "/" + SERVER_METADATA_NAME;
-			DataHandler.setDataSync(metadatapath, metadata.toKVJSONMessage().toBytes(), metadataVersion);
+			DataHandler.setDataSync(metadatapath,metadata.toKVJSONMessage().toBytes(),-1);
 		}
-		metadataVersion++;
 	}
 
 	@Override
 	protected void init() {
 		try {
-			List<String> childServers = zk.getChildren(SERVER_POOL_BASE_PATH, false);
+			List<String> childServers=zk.getChildren(SERVER_POOL_BASE_PATH,false);
 			System.out.println("server root found, active servers #: " + childServers.size());
 		} catch (KeeperException e) {
 			switch (e.code()) {
@@ -127,13 +132,15 @@ public class ZKadmin extends ZKInstance {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		createNodeHandler.createNodeSync(SERVER_BASE_PATH, "", 0);
+		createNodeHandler.createNodeSync(SERVER_BASE_PATH,"",0);
+		createNodeHandler.createNodeSync(SERVER_CLUSTER_PATH,"",0);
 		serverMonitorHandler.monitorServers(SERVER_POOL_BASE_PATH);
 	}
 
 	public void close() throws KeeperException, InterruptedException {
 		deleteAll(SERVER_BASE_PATH);
 		deleteAll(SERVER_POOL_BASE_PATH);
+		deleteAll(SERVER_CLUSTER_PATH);
 	}
 
 	private void deleteAll(String path) throws KeeperException, InterruptedException {
@@ -146,3 +153,5 @@ public class ZKadmin extends ZKInstance {
 		zk.delete(path, -1);
 	}
 }
+
+

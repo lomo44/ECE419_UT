@@ -104,6 +104,7 @@ public class KVStorageCluster extends KVStorageNode {
         return primaryNodeUID;
     }
     public KVStorageNode getRandomMember(){
+        System.out.printf("Current childnode size: %d\n",childNodes.size());
         int index = ThreadLocalRandom.current().nextInt(0,childNodes.size());
         int counter = 0;
         for(KVStorageNode node: childNodes.values()){
@@ -125,5 +126,8 @@ public class KVStorageCluster extends KVStorageNode {
     }
     public int getNumOfMembers(){
         return childNodes.size();
+    }
+    public boolean isEmpty(){
+        return getChildNodes().size()==0;
     }
 }

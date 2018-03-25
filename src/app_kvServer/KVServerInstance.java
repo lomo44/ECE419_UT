@@ -308,11 +308,7 @@ public class KVServerInstance implements Runnable {
                 }
 
             }
-            else{
-                if(!intergratKVMigrationMessage(migrationMessage)){
-                    ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
-                }
-            }
+
 
         }
         if(requireAck){
@@ -354,7 +350,7 @@ public class KVServerInstance implements Runnable {
     }
     private KVJSONMessage handleIrresponsibleRequest(){
         KVJSONMessage ret =  serverinstance.getCurrentMetadata().toKVJSONMessage();
-        serverinstance.getCurrentMetadata().print();
+        //serverinstance.getCurrentMetadata().print();
         ret.setStatus(SERVER_NOT_RESPONSIBLE);
         return ret;
     }

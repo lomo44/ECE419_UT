@@ -69,7 +69,7 @@ public class ZKClient extends ZKInstance{
 			switch (event.getType()){
 				case NodeDeleted:{
 					// proceding node got deleted, reevalutate the leader situation
-					String clusterpath = getClusterPathFromClusterMemberPath(event.getPath());
+					String clusterpath = getClusterPathFromPath(event.getPath());
 					try {
 						createClusterInstance(clusterpath);
 					} catch (Exception e){
@@ -98,7 +98,7 @@ public class ZKClient extends ZKInstance{
 		System.out.println("Try to initialize metadata");
 		// Retain server initial metadata file;
 		obtainMetadataFromZK();
-		serverInstance.initializeServer(serverConfig, null);
+		serverInstance.initializeServer(serverConfig, null,this);
 		signalInitialization();
 	}
 
@@ -110,22 +110,24 @@ public class ZKClient extends ZKInstance{
 
 	/**
 	 * join a cluster based on cluster path. This function will not initialize any server part
-	 * @param clusterPath zookeeper cluster path
+	 * @param clusterName zookeeper cluster path
 	 * @return KVStorageCluster if joining is successfull
 	 * @throws Exception 
 	 */
-	public KVStorageCluster joinCluster(String clusterPath) throws Exception {
+	public KVStorageCluster joinCluster(String clusterName) throws Exception {
 		// Create a node on the cluster path;
-		zk.create(clusterPath+"/n_",
+		zk.create(getOldReplciaPath(clusterName)+"/n_",
 				serverConfig.toKVJSONMessage().toBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL);
-		KVStorageCluster cluster = createClusterInstance(clusterPath);
+		KVStorageCluster cluster = createClusterInstance(clusterName);
 		if(cluster.getPrimaryNode().getUID().matches(this.serverInstance.getUID())){
 			// setup watch for the cluster;
-			System.out.printf("Server: %s is selected as leader of cluster %s\n",serverInstance.getUID(),clusterPath);
-			migrateNewReplicas(clusterPath + "/newreplicas");
+			System.out.printf("Server: %s is selected as leader of cluster: %s\n",serverInstance.getUID(),clusterName);
+			migrateNewReplicas(getNewReplicasPath(clusterName));
 		}
-		else zk.create(clusterPath + "/newreplicas" + "/n_", 
-				serverConfig.toKVJSONMessage().toBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL);
+		else {
+            zk.create(getNewReplicasPath(clusterName) + "/n_",
+                    serverConfig.toKVJSONMessage().toBytes(),ZooDefs.Ids.OPEN_ACL_UNSAFE,CreateMode.EPHEMERAL_SEQUENTIAL);
+        }
 		return cluster;
 	}
 	
@@ -137,7 +139,7 @@ public class ZKClient extends ZKInstance{
 			for (String name : children) {
 				String subPath=path + "/" + name;
 				KVServerConfig config = getServerConfigFromPath(subPath);
-				serverInstance.handleChangeInCluster(getClusterNameFromClusterPath(path),new KVStorageNode(config));
+				serverInstance.handleChangeInCluster(getClusterPathFromPath(path),new KVStorageNode(config));
 				zk.delete(subPath, -1);
 			}
 		}
@@ -145,29 +147,31 @@ public class ZKClient extends ZKInstance{
 
 	/**
 	 * Exit a cluster. This function assume that the caller has remove the local node from the cluster
-	 * @param clusterPath
+	 * @param clusterName
 	 */
-	public void exitCluster(String clusterPath) throws KeeperException, InterruptedException {
+	public void exitCluster(String clusterName) throws KeeperException, InterruptedException {
 		// remove local node from local metadata
-		List<String> children = zk.getChildren(clusterPath,false);
+        String path = getOldReplciaPath(clusterName);
+		List<String> children = zk.getChildren(path,false);
 		for(String child: children){
-			KVServerConfig config = getServerConfigFromPath(clusterPath+"/"+child);
+			KVServerConfig config = getServerConfigFromPath(path+"/"+child);
 			if(config.getServerName().matches(this.serverInstance.getUID())){
 				//server node find, remove the node
-				zk.delete(clusterPath+"/"+child,-1);
+				zk.delete(path+"/"+child,-1);
 			}
 		}
 	}
 
-	private KVStorageCluster createClusterInstance(String clusterPath) throws KeeperException, InterruptedException {
-		List<String> sortedChildren = zk.getChildren(clusterPath,false);
+	private KVStorageCluster createClusterInstance(String clusterName) throws KeeperException, InterruptedException {
+		String path = getOldReplciaPath(clusterName);
+		List<String> sortedChildren = zk.getChildren(path,false);
 		Collections.sort(sortedChildren);
-		KVServerConfig primaryConfig = getServerConfigFromPath(clusterPath+"/"+sortedChildren.get(0));
+		KVServerConfig primaryConfig = getServerConfigFromPath(path+"/"+sortedChildren.get(0));
 		if(primaryConfig.getServerName() != this.serverConfig.getServerName()){
-			setupPrecedingPrimary(clusterPath,sortedChildren);
+			setupPrecedingPrimary(path,sortedChildren);
 		}
-		List<KVServerConfig> memberConfig = getServerConfigsFromCluster(clusterPath,sortedChildren);
-		return new KVStorageCluster(getClusterNameFromClusterPath(clusterPath),primaryConfig,memberConfig);
+		List<KVServerConfig> memberConfig = getServerConfigsFromClusterName(clusterName,sortedChildren);
+		return new KVStorageCluster(clusterName,primaryConfig,memberConfig);
 	}
 
 	private KVServerConfig getServerConfigFromPath(String clusterPath) throws KeeperException, InterruptedException {
@@ -177,12 +181,12 @@ public class ZKClient extends ZKInstance{
 		return KVServerConfig.fromKVJSONMessage(msg);
 	}
 
-	private List<KVServerConfig> getServerConfigsFromCluster(String clusterPath, List<String> sortedChildren)
+	private List<KVServerConfig> getServerConfigsFromClusterName(String clusterName, List<String> sortedChildren)
 			throws KeeperException, InterruptedException {
 		List<KVServerConfig> ret = new ArrayList<>();
 		for (String child: sortedChildren
 			 ) {
-			ret.add(getServerConfigFromPath(clusterPath+"/"+child));
+			ret.add(getServerConfigFromPath(getOldReplciaPath(clusterName)+"/"+child));
 		}
 		return ret;
 	}
@@ -192,6 +196,7 @@ public class ZKClient extends ZKInstance{
 		for (int i = 0; i < sortedChildren.size(); i++) {
 			if(sortedChildren.get(i).matches(this.serverConfig.getServerName())){
 				zk.getData(clusterpaths+"/"+previous,primaryWatcher,null);
+				break;
 			}
 			previous = sortedChildren.get(i);
 		}
