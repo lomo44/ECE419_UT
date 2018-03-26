@@ -43,7 +43,7 @@ public class KVClusterCommunicationModule {
         }
     }
     public void announcePrimary(String primaryUID, String clusterUID){
-        KVStorageNode node = serverInstance.getResponsibleNode(clusterUID);
+        KVStorageNode node = serverInstance.getMetadataController().getStorageNode(clusterUID);
         if(node.getNodeType()== eKVNetworkNodeType.STORAGE_CLUSTER){
             KVStorageCluster cluster = (KVStorageCluster)node;
             KVPrimaryDeclarationMessage msg = new KVPrimaryDeclarationMessage();

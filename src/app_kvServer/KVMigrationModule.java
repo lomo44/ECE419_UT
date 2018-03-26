@@ -51,7 +51,13 @@ public class KVMigrationModule {
     private KVJSONMessage clusterExternalMigration(KVStorageNode outputNode, KVMigrationMessage msg) throws IllegalArgumentException, IOException {
         if(outputNode.getNodeType() == eKVNetworkNodeType.STORAGE_CLUSTER){
             KVStorageNode primary = ((KVStorageCluster)(outputNode)).getPrimaryNode();
-            return clusterExternalMigration(primary,msg);
+            if(primary==null){
+                KVStorageCluster cluster = (KVStorageCluster) outputNode;
+                return clusterExternalMigration(cluster.getRandomMember(),msg);
+            }
+            else{
+                return clusterExternalMigration(primary,msg);
+            }
         }
         else{
             if(!connectionTable.containsKey(outputNode)){

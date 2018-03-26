@@ -167,10 +167,7 @@ public class ECSClient implements IECSClient {
     public boolean removeNode(String nodeName) throws IOException {
         KVStorageNode node = this.runningServer.get(nodeName);
         if(node!=null){
-            if(!shutdownNode(node)){
-                return false;
-            }
-            this.runningServer.remove(node);
+            this.runningServer.remove(node.getUID());
             this.sleepingServer.put(node.getUID(),node);
             Collection<KVStorageNode> relevantNodes = metadataController.getReleventNodes(nodeName);
             for(KVStorageNode relevantNode : relevantNodes){
@@ -190,6 +187,7 @@ public class ECSClient implements IECSClient {
                 }
             }
             zkAdmin.broadcastMetadata(runningServer.values(),metadataController.getMetaData());
+            return shutdownNode(node);
         }
         zkAdmin.removeNodeInZookeeper(nodeName);
         return true;
@@ -671,6 +669,10 @@ public class ECSClient implements IECSClient {
 
     public void setDeployedServerJarPath(String deployedServerJarPath) {
         this.deployedServerJarPath = deployedServerJarPath;
+    }
+
+    public KVMetadataController getMetadataController() {
+        return metadataController;
     }
 
     public static void main(String[] args) throws IOException {

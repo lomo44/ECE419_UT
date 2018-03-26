@@ -121,7 +121,7 @@ public class KVStore implements KVCommInterface {
                         module.send(newmessage);
                         response = module.receive();
                     } catch ( IllegalArgumentException | IOException e) {
-                    		e.printStackTrace();
+                    		//e.printStackTrace();
                         connectionMap.values().remove(module);
                         if(connectionMap.size()==0){
                             running = false;
@@ -237,8 +237,8 @@ public class KVStore implements KVCommInterface {
                         module.send(newmessage);
                         response = module.receive();
                     }
-                    catch ( IllegalArgumentException | IOException e){
-                			e.printStackTrace();
+                    catch ( IllegalArgumentException | IOException  e){
+                			//e.printStackTrace();
                         connectionMap.values().remove(module);
                         if(connectionMap.size()==0){
                             running = false;

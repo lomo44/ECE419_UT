@@ -268,8 +268,28 @@ public class KVServer implements IKVServer {
         try {
             serverHandler.stop();
             handlerThread.join();
-            metadataController.removeStorageNode(this.getUID());
-            migrateData();
+            Collection<KVStorageNode> nodes = metadataController.getReleventNodes(this.getUID());
+            boolean needMigrateData = false;
+            for(KVStorageNode node : nodes){
+                switch (node.getNodeType()){
+                    case STORAGE_NODE:{
+                        metadataController.removeStorageNode(this.getUID());
+                        needMigrateData = true;
+                        break;
+                    }
+                    case STORAGE_CLUSTER:{
+                        KVStorageCluster cluster = (KVStorageCluster) node;
+                        cluster.removeNodeByUID(this.getUID());
+                        if(cluster.isEmpty()){
+                            metadataController.removeStorageNode(cluster.getUID());
+                            needMigrateData = true;
+                        }
+                    }
+                }
+            }
+            if(needMigrateData){
+                migrateData();
+            }
             unlockWrite();
             database.close();
             if(zkClient!=null){
@@ -490,16 +510,16 @@ public class KVServer implements IKVServer {
             // Metadata has more information than I do
             metadataController.addStorageNode(newMetadata.getStorageNodeFromHash(metadataController.hash(this.getUID())));
         }
-        Collection<KVStorageNode> irrelevantNodes = newMetadata.getIrrelevantNodes(this.getUID());
-        newMetadata.getStorageNodes().size();
-        System.out.printf("Size of nodes needed to be added : %d\n",irrelevantNodes.size());
-        for(KVStorageNode node : irrelevantNodes){
-            System.out.printf("Node will be added: %s\n",node.toJSONObject().toString());
-        }
+//        Collection<KVStorageNode> irrelevantNodes = newMetadata.getIrrelevantNodes(this.getUID());
+//        newMetadata.getStorageNodes().size();
+//        System.out.printf("Size of nodes needed to be added : %d\n",irrelevantNodes.size());
+//        for(KVStorageNode node : irrelevantNodes){
+//            System.out.printf("Node will be added: %s\n",node.toJSONObject().toString());
+//        }
         // Add irrelevant nodes into the metadata
         metadataController.addStorageNodes(newMetadata.getIrrelevantNodes(this.getUID()));
-        System.out.println("Final metadata: \n");
-        metadataController.getMetaData().print();
+        //System.out.println("Final metadata: \n");
+        //metadataController.getMetaData().print();
         // Add relevant nodes additional information into metadata
         lockWrite();
         //metadataController.getMetaData().print();

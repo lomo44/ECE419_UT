@@ -71,8 +71,15 @@ public class ZKClient extends ZKInstance{
 					// proceding node got deleted, reevalutate the leader situation
 					String clusterpath = getClusterPathFromPath(event.getPath());
 					try {
-						createClusterInstance(clusterpath);
+						KVStorageCluster cluster =  createClusterInstance(clusterpath);
+						serverInstance.getMetadataController().addStorageNode(cluster);
+						if(cluster.isPrimary(serverInstance.getUID())){
+							System.out.printf("Server: %s is selected as leader of cluster: %s\n",serverInstance.getUID(),cluster.getUID());
+							serverInstance.getClusterCommunicationModule().announcePrimary(serverInstance.getUID(),cluster.getUID());
+							serverInstance.getClusterCommunicationModule().startUpdateDaemon();
+						}
 					} catch (Exception e){
+						e.printStackTrace();
 					}
 				}
 			}
@@ -167,7 +174,7 @@ public class ZKClient extends ZKInstance{
 		List<String> sortedChildren = zk.getChildren(path,false);
 		Collections.sort(sortedChildren);
 		KVServerConfig primaryConfig = getServerConfigFromPath(path+"/"+sortedChildren.get(0));
-		if(primaryConfig.getServerName() != this.serverConfig.getServerName()){
+		if(!primaryConfig.getServerName().matches(this.serverConfig.getServerName())){
 			setupPrecedingPrimary(path,sortedChildren);
 		}
 		List<KVServerConfig> memberConfig = getServerConfigsFromClusterName(clusterName,sortedChildren);
@@ -191,10 +198,11 @@ public class ZKClient extends ZKInstance{
 		return ret;
 	}
 
-	private void setupPrecedingPrimary( String clusterpaths,List<String> sortedChildren) throws KeeperException, InterruptedException {
+	private void setupPrecedingPrimary(String clusterpaths,List<String> sortedChildren) throws KeeperException, InterruptedException {
 		String previous = "";
 		for (int i = 0; i < sortedChildren.size(); i++) {
-			if(sortedChildren.get(i).matches(this.serverConfig.getServerName())){
+			KVServerConfig config = getServerConfigFromPath(clusterpaths+"/"+sortedChildren.get(i));
+			if(config.getServerName().matches(this.serverConfig.getServerName())){
 				zk.getData(clusterpaths+"/"+previous,primaryWatcher,null);
 				break;
 			}

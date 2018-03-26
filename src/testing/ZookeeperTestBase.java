@@ -20,6 +20,7 @@ public class ZookeeperTestBase extends TestCase {
         deleteDirectoryAndContent(new File(ZK_DATA_DIR));
         new ProcessBuilder().inheritIO().command("./zookeeper-3.4.11/bin/zkServer.sh","stop").start();
         zkProcess.destroyForcibly();
+
     }
 
     private void deleteDirectoryAndContent(File path){

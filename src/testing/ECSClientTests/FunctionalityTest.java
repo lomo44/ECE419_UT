@@ -6,6 +6,7 @@ import app_kvServer.KVServer;
 import app_kvServer.KVServerConfig;
 import common.command.KVCommand;
 import common.messages.KVJSONMessage;
+import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
 import ecs.IECSNode;
 import org.junit.Test;
@@ -41,7 +42,6 @@ public class FunctionalityTest extends ZookeeperTestBase{
 
         ecsClient.start();
     }
-
     @Override
     protected void tearDown() throws Exception {
         ecsClient.stop();
@@ -49,7 +49,6 @@ public class FunctionalityTest extends ZookeeperTestBase{
         this.ecsClient.shutdown();
         Thread.sleep(3000);
     }
-
     @Test
     public void testFunctionality_PutGet() throws Exception {
         KVClient client = new KVClient();
@@ -73,7 +72,6 @@ public class FunctionalityTest extends ZookeeperTestBase{
             }
         }
     }
-
     @Test
     public void testFunctionality_AddNodePutGet() throws Exception{
         // Create 1 more server
@@ -110,7 +108,6 @@ public class FunctionalityTest extends ZookeeperTestBase{
             }
         }
     }
-
     @Test
     public void testFunctionality_PutGetOnReplica() throws Exception{
         // Create 1 more server
@@ -134,6 +131,114 @@ public class FunctionalityTest extends ZookeeperTestBase{
         for(int i = 0; i < 50; i++){
             KVCommand command = generator.getNextCommand();
             KVJSONMessage ret = client.executeCommand(command);
+            switch (command.getCommandType()){
+                case GET:{
+                    assertEquals(GET_SUCCESS,ret.getExtendStatusType());
+                    assertTrue(generator.verify(ret.getKey(),ret.getValue()));
+                    break;
+                }
+                case PUT:{
+                    assertEquals(PUT_SUCCESS,ret.getExtendStatusType());
+                    break;
+                }
+            }
+        }
+    }
+    @Test
+    public void testFunctionality_PutGet_AddReplica() throws Exception{
+        // Create 1 more server
+        KVClient client = new KVClient();
+        KVServer server = (KVServer) nodes.values().toArray()[ThreadLocalRandom.current().nextInt(0,nodes.size())];
+        assertTrue(!server.isStopped());
+        client.newConnection(server.getHostname(),server.getPort());
+        for(int i = 0; i < 50; i++){
+            KVCommand command = generator.getNextCommand();
+            KVJSONMessage ret = client.executeCommand(command);
+            switch (command.getCommandType()){
+                case GET:{
+                    assertEquals(GET_SUCCESS,ret.getExtendStatusType());
+                    assertTrue(generator.verify(ret.getKey(),ret.getValue()));
+                    break;
+                }
+                case PUT:{
+                    assertEquals(PUT_SUCCESS,ret.getExtendStatusType());
+                    break;
+                }
+            }
+        }
+        List<KVStorageNode> selectedServer = ecsClient.selectServerToSetup(1);
+        List<KVServerConfig> configs = new ArrayList<>();
+        for(KVStorageNode node :selectedServer){
+            configs.add(ecsClient.createServerConfig(node,"FIFO",10,"cluster0"));
+        }
+        ecsClient.setupNodes(selectedServer,configs);
+        for (KVStorageNode node : selectedServer) {
+            nodes.put(node.getUID(), new KVServer(node.getUID(), this.zkHostname, this.zkPort));
+        }
+        ecsClient.awaitNodes(3,15*1000);
+        assertTrue(ecsClient.start());
+        KVClient clientB = new KVClient();
+        KVStorageNode targetServer = (KVStorageNode) selectedServer.toArray()[ThreadLocalRandom.current().nextInt(0,selectedServer.size())];
+        clientB.newConnection(targetServer.getHostName(),targetServer.getPortNumber());
+        assertEquals(true,clientB.isConnected());
+        for(int i = 0; i < 50; i++){
+            KVCommand command = generator.getNextCommand();
+            KVJSONMessage ret = clientB.executeCommand(command);
+            switch (command.getCommandType()){
+                case GET:{
+                    assertEquals(GET_SUCCESS,ret.getExtendStatusType());
+                    assertTrue(generator.verify(ret.getKey(),ret.getValue()));
+                    break;
+                }
+                case PUT:{
+                    assertEquals(PUT_SUCCESS,ret.getExtendStatusType());
+                    break;
+                }
+            }
+        }
+    }
+    @Test
+    public void testFunctionality_RemoveLeader() throws Exception {
+        List<KVStorageNode> selectedServer = ecsClient.selectServerToSetup(1);
+        List<KVServerConfig> configs = new ArrayList<>();
+        for(KVStorageNode node :selectedServer){
+            configs.add(ecsClient.createServerConfig(node,"FIFO",10,"cluster0"));
+        }
+        ecsClient.setupNodes(selectedServer,configs);
+        for (KVStorageNode node : selectedServer) {
+            nodes.put(node.getUID(), new KVServer(node.getUID(), this.zkHostname, this.zkPort));
+        }
+        ecsClient.awaitNodes(3,15*1000);
+        assertTrue(ecsClient.start());
+        KVClient clientB = new KVClient();
+        KVStorageNode targetServer = (KVStorageNode) selectedServer.toArray()[ThreadLocalRandom.current().nextInt(0,selectedServer.size())];
+        clientB.newConnection(targetServer.getHostName(),targetServer.getPortNumber());
+        assertEquals(true,clientB.isConnected());
+        for(int i = 0; i < 50; i++){
+            KVCommand command = generator.getNextCommand();
+            KVJSONMessage ret = clientB.executeCommand(command);
+            switch (command.getCommandType()){
+                case GET:{
+                    assertEquals(GET_SUCCESS,ret.getExtendStatusType());
+                    assertTrue(generator.verify(ret.getKey(),ret.getValue()));
+                    break;
+                }
+                case PUT:{
+                    assertEquals(PUT_SUCCESS,ret.getExtendStatusType());
+                    break;
+                }
+            }
+        }
+        KVStorageCluster cluster = (KVStorageCluster) ecsClient.getMetadataController().getStorageNode("cluster0");
+        for(KVStorageNode node : cluster.getChildNodes()){
+            if(!node.getUID().matches(selectedServer.get(0).getUID())){
+                ecsClient.removeNode(node.getUID());
+                break;
+            }
+        }
+        for(int i = 0; i < 50; i++){
+            KVCommand command = generator.getNextCommand();
+            KVJSONMessage ret = clientB.executeCommand(command);
             switch (command.getCommandType()){
                 case GET:{
                     assertEquals(GET_SUCCESS,ret.getExtendStatusType());
