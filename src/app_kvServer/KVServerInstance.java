@@ -1,17 +1,20 @@
 package app_kvServer;
 
-import common.KVMessage;
 import common.communication.KVCommunicationModule;
 import common.enums.eKVExtendStatusType;
 import common.enums.eKVLogLevel;
+import common.enums.eKVNetworkNodeType;
+import common.messages.KVClusterOperationMessage;
 import common.messages.KVJSONMessage;
 import common.messages.KVMigrationMessage;
+import common.messages.KVPrimaryDeclarationMessage;
+import common.networknode.KVStorageCluster;
+import common.networknode.KVStorageNode;
 import logger.KVOut;
 
 import static common.KVMessage.StatusType.*;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 
@@ -39,12 +42,20 @@ public class KVServerInstance implements Runnable {
         isRunning = true;
         while(communicationModule.isConnected() && isRunning){
             try {
-                KVJSONMessage in_msg = communicationModule.receiveMessage();
-                communicationModule.send(handleMessage(in_msg));
+                KVJSONMessage in_msg = communicationModule.receive();
+                KVJSONMessage response = handleMessage(in_msg);
+                if(response!=null){
+                    communicationModule.send(response);
+                }
             }
-            catch (SocketException e){
+            catch (IllegalArgumentException | IOException e){
                 isRunning = false;
             }
+        }
+        try {
+            communicationModule.close();
+        } catch (IOException e) {
+
         }
         kv_out.println_debug("Instance exit");
 
@@ -52,8 +63,8 @@ public class KVServerInstance implements Runnable {
 
     /**
      * Stop the current server instance. This function will try to stop the thread stub and
-     * close the communication module
-     * @throws IOException thrown when communication module fail to close
+     * stop the communication module
+     * @throws IOException thrown when communication module fail to stop
      */
     public void stop() throws IOException {
         isRunning = false;
@@ -66,10 +77,11 @@ public class KVServerInstance implements Runnable {
      * @param in_message inbound message
      * @return KVMessage outbound message
      */
-    public KVMessage handleMessage(KVJSONMessage in_message) {
+    public KVJSONMessage handleMessage(KVJSONMessage in_message) {
         String out = String.format("Received inbound message, key: %s, value: %s,Operator: %d",
                 in_message.getKey(),in_message.getValue(),in_message.getExtendStatusType().getValue());
         kv_out.println_debug(out);
+        System.out.printf("Server: %s serving %s\n",this.serverinstance.getUID(),new String(in_message.toBytes()));
         eKVExtendStatusType statusType = in_message.getExtendStatusType();
         KVJSONMessage retMessage = communicationModule.getEmptyMessage();
         switch (statusType){
@@ -93,6 +105,10 @@ public class KVServerInstance implements Runnable {
                     retMessage = handlePut(in_message);
                     serverinstance.unlockRead();
                 }
+                break;
+            }
+            case TEST_TIMEOUT:{
+                retMessage = null;
                 break;
             }
             case ECHO:{
@@ -123,10 +139,37 @@ public class KVServerInstance implements Runnable {
                 serverinstance.unlockWrite();
                 break;
             }
+            case PRIMARY_UPDATE:{
+                retMessage = handleIncomingPrimaryUpdate(in_message);
+                break;
+            }
+            case PRIMARY_DECLARE:{
+                retMessage = handlePrimaryDeclaration(in_message);
+                break;
+            }
+            case CLUSTER_OPERATION:{
+                retMessage = handleClusterOperation(in_message);
+                break;
+            }
+            case PRIMARY_MIGRATE:{
+                retMessage = handlePrimaryMigration(in_message);
+                break;
+            }
+            case REPLICA_FORWARD_MIGRATE:{
+                retMessage = handleReplicaForwardMigration(in_message);
+                break;
+            }
+            case PRIMARY_FORWARD_MIGRATE:{
+                retMessage = handlePrimaryForwardMigration(in_message);
+                break;
+            }
             default:{
                 retMessage.setExtendStatus(eKVExtendStatusType.UNKNOWN_ERROR);
                 break;
             }
+        }
+        if(retMessage!=null){
+            System.out.printf("Server %s reply %s\n", serverinstance.getUID(),new String(retMessage.toBytes()));
         }
         return retMessage;
     }
@@ -145,7 +188,7 @@ public class KVServerInstance implements Runnable {
     private KVJSONMessage handleDelete(KVJSONMessage msg){
         KVJSONMessage emptyMessage = communicationModule.getEmptyMessage();
         if(isKeyValid(msg.getKey())){
-            if(isKeyResponsible(msg.getKey())){
+            if(isKeyResponsible(msg.getKey(),true)){
                 try {
                     serverinstance.getKV(msg.getKey());
                 } catch (Exception e) {
@@ -154,6 +197,8 @@ public class KVServerInstance implements Runnable {
                 }
                 try {
                     serverinstance.putKV(msg.getKey(),msg.getValue());
+                    msg.setExtendStatus(eKVExtendStatusType.PRIMARY_UPDATE);
+                    this.serverinstance.getClusterCommunicationModule().queueClusterUpdate(msg);
                     emptyMessage.setStatus(DELETE_SUCCESS);
                 } catch (Exception e) {
                     emptyMessage.setStatus(DELETE_ERROR);
@@ -175,7 +220,7 @@ public class KVServerInstance implements Runnable {
         else{
             KVJSONMessage response = communicationModule.getEmptyMessage();
             if(isKeyValid(msg.getKey())){
-                if(isKeyResponsible(msg.getKey())){
+                if(isKeyResponsible(msg.getKey(),true)){
                     try {
                         serverinstance.getKV(msg.getKey());
                         response.setStatus(PUT_UPDATE);
@@ -187,6 +232,8 @@ public class KVServerInstance implements Runnable {
                     }
                     try {
                         serverinstance.putKV(msg.getKey(),msg.getValue());
+                        msg.setExtendStatus(eKVExtendStatusType.PRIMARY_UPDATE);
+                        this.serverinstance.getClusterCommunicationModule().queueClusterUpdate(msg);
                     } catch (Exception e1) {
                         kv_out.println_error(String.format("Key $s is not in range of this server",msg.getKey()));
                         response.setStatus(SERVER_NOT_RESPONSIBLE);
@@ -205,13 +252,14 @@ public class KVServerInstance implements Runnable {
     private KVJSONMessage handleGet(KVJSONMessage msg){
         KVJSONMessage response = communicationModule.getEmptyMessage();
         if(isKeyValid(msg.getKey())){
-            if(isKeyResponsible(msg.getKey())){
+            if(isKeyResponsible(msg.getKey(),false)){
                 try {
                     String ret = serverinstance.getKV(msg.getKey());
                     response.setKey(msg.getKey());
                     response.setValue(ret);
                     response.setStatus(GET_SUCCESS);
                 } catch (Exception e) {
+                    System.out.printf("Server %s, cannot find %s \n",this.serverinstance.getUID(),msg.getKey());
                     response.setStatus(GET_ERROR);
                 }
             }
@@ -227,25 +275,62 @@ public class KVServerInstance implements Runnable {
     private KVJSONMessage handleMigration(KVJSONMessage msg){
         //System.out.println("Migration Received, processing start.");
         KVJSONMessage ret = communicationModule.getEmptyMessage();
-        if(serverinstance.isStopped()){
-            ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
-        }
-        else{
-            ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
+        ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
+        KVMigrationMessage migrationMessage = KVMigrationMessage.fromKVJSONMessage(msg);
+        boolean requireAck = migrationMessage.getIsRequiredAck();
+        if(!serverinstance.isStopped()){
             // Migration process started
-            KVMigrationMessage migrationMessage = KVMigrationMessage.fromKVJSONMessage(msg);
-            HashMap<String, String> entries = migrationMessage.getEntries();
-            for(String key: entries.keySet()){
-                try {
-                    serverinstance.putKV(key,entries.get(key));
-                } catch (Exception e) {
-                    kv_out.println_fatal("Incorrect migration data. Key is not in range");
+            KVStorageNode targetNode = serverinstance.getMetadataController().getStorageNode(migrationMessage.getTargetNodeUID());
+            if(targetNode!=null){
+                switch (targetNode.getNodeType()){
+                    case STORAGE_CLUSTER:{
+                        /**
+                         * target is a cluster, need to determine if current node is a primary or a replica
+                         * if current node is a replica, then need to forward this message to primary.
+                         * if this node is primary, need to forward this message to all of the replica
+                         */
+                        KVStorageCluster cluster = (KVStorageCluster)targetNode;
+                        if(cluster.isPrimary(this.serverinstance.getUID())){
+                            if(!intergratKVMigrationMessage(migrationMessage)){
+                                ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+                            }
+                            /**
+                             * Initiate internal migration, no acknowledge is needed
+                             */
+                            this.serverinstance.getMigrationModule().clusterInternalMigration(cluster,migrationMessage);
+                        }
+                        else{
+                            /**
+                             * Keep try to forward migration to leader.
+                             */
+                            while(!this.serverinstance.getMigrationModule().syncReplicaForwardMigration(cluster,migrationMessage)){
+                                cluster = (KVStorageCluster) serverinstance.getMetadataController().getStorageNode(migrationMessage.getTargetNodeUID());
+                            }
+                        }
+                        break;
+                    }
+                    case STORAGE_NODE:{
+                        if(!intergratKVMigrationMessage(migrationMessage)){
+                            ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+                        }
+                        break;
+                    }
+                }
+
+            }
+            else {
+                if(!intergratKVMigrationMessage(migrationMessage)){
                     ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
                 }
             }
         }
-        //System.out.println("Migration ends.");
-        return ret;
+        if(requireAck){
+            return ret;
+        }
+        else{
+            return null;
+        }
+
     }
     private KVJSONMessage handleStop(KVJSONMessage msg){
         KVJSONMessage ret = new KVJSONMessage();
@@ -278,21 +363,96 @@ public class KVServerInstance implements Runnable {
     }
     private KVJSONMessage handleIrresponsibleRequest(){
         KVJSONMessage ret =  serverinstance.getCurrentMetadata().toKVJSONMessage();
+        //serverinstance.getCurrentMetadata().print();
         ret.setStatus(SERVER_NOT_RESPONSIBLE);
         return ret;
+    }
+    private KVJSONMessage handleIncomingPrimaryUpdate(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        ret.setExtendStatus(eKVExtendStatusType.REPLICA_OK);
+        try {
+            serverinstance.putKV(msg.getKey(),msg.getValue());
+        } catch (Exception e) {
+            ret.setExtendStatus(eKVExtendStatusType.REPLICA_FAIL);
+        }
+        return ret;
+    }
+    private KVJSONMessage handleClusterOperation(KVJSONMessage msg){
+        KVClusterOperationMessage clusterMsg = KVClusterOperationMessage.fromKVJSONMessage(msg);
+        KVJSONMessage ret = new KVJSONMessage();
+        ret.setExtendStatus(eKVExtendStatusType.REPLICA_FAIL);
+        switch (clusterMsg.getOperationType()){
+            case EXIT:{
+                if(serverinstance.joinCluster(clusterMsg.getTargetCluster())){
+                    ret.setExtendStatus(eKVExtendStatusType.REPLICA_OK);
+                }
+                break;
+            }
+            case JOIN:{
+                if(serverinstance.exitCluster(clusterMsg.getTargetCluster())){
+                    ret.setExtendStatus(eKVExtendStatusType.REPLICA_OK);
+                }
+                break;
+            }
+        }
+        return ret;
+    }
+    private KVJSONMessage handlePrimaryDeclaration(KVJSONMessage msg){
+        KVPrimaryDeclarationMessage declarationMessage = KVPrimaryDeclarationMessage.fromKVJSONMessage(msg);
+        serverinstance.getMetadataController().setPrimary(declarationMessage.getClusterID(),declarationMessage.getPrimaryID());
+        return null;
+    }
+    private KVJSONMessage handlePrimaryMigration(KVJSONMessage msg){
+        KVMigrationMessage realMsg = KVMigrationMessage.fromKVJSONMessage(msg);
+        KVStorageNode node = serverinstance.getMetadataController().getStorageNode(realMsg.getTargetNodeUID());
+        if(node.getNodeType()==eKVNetworkNodeType.STORAGE_CLUSTER){
+            KVStorageCluster cluster = (KVStorageCluster)node;
+            if(!cluster.contain(serverinstance.getUID())){
+                intergratKVMigrationMessage(realMsg);
+            }
+        }
+        return null;
     }
     /**
      * Check if the key is valid
      * @param key
      * @return
      */
+    private KVJSONMessage handleReplicaForwardMigration(KVJSONMessage msg){
+        /**
+         * received migration from replica, send the migration message to myself since I need to
+         * act the replica as well
+         */
+        return handleMigration(msg);
+    }
+    private KVJSONMessage handlePrimaryForwardMigration(KVJSONMessage msg){
+        KVJSONMessage ret = new KVJSONMessage();
+        ret.setExtendStatus(eKVExtendStatusType.MIGRATION_INCOMPLETE);
+        if(intergratKVMigrationMessage(KVMigrationMessage.fromKVJSONMessage(msg))){
+            ret.setExtendStatus(eKVExtendStatusType.MIGRATION_COMPLETE);
+        }
+        return ret;
+    }
     private  boolean isKeyValid(String key){
         return !key.matches("") && !whitespacechecker.matcher(key).find() && key.length() <= 20;
     }
     private boolean isValidDeleteIdentifier(String value){
         return value.matches(DELETE_IDENTIFIER) || value.matches("");
     }
-    private boolean isKeyResponsible(String key){
-        return serverinstance.isKeyResponsible(key);
+    private boolean isKeyResponsible(String key, boolean isWrite){
+        return serverinstance.isKeyResponsible(key, isWrite);
+    }
+    private boolean intergratKVMigrationMessage(KVMigrationMessage migrationMessage){
+        HashMap<String,String> entries = migrationMessage.getEntries();
+        boolean ret = true;
+        for(String entry : entries.keySet()){
+            try {
+                serverinstance.putKV(entry,entries.get(entry));
+            } catch (Exception e) {
+                kv_out.println_fatal("Incorrect migration data. Key is not in range");
+                ret = false;
+            }
+        }
+        return ret;
     }
 }

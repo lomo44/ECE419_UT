@@ -21,7 +21,14 @@ public abstract class KVCommandPattern {
         REMOVE_NODE,
         SHUT_DOWN,
         START,
-        STOP
+        STOP,
+        SET_SERVER_JAR_PATH,
+        REMOVE_NODE_BY_NAME,
+        LEAVE_CLUSTER,
+        JOIN_CLUSTER,
+        CREATE_CLUSTER,
+        REMOVE_CLUSTER,
+        SET_KEYPATH
     }
     protected KVCommandType commandType;
     protected Pattern commandRegex;

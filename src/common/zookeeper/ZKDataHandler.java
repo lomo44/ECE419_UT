@@ -15,7 +15,7 @@ public class ZKDataHandler {
 	public void setDataSync(String path, byte[] content, int version) {
 		try {
 			zk.setData(path, content, version);
-			System.out.println("Data " + content.toString() + "set successfully");
+			//System.out.println("Data " + content.toString() + "set successfully");
 		} catch (KeeperException e) {
 			switch(e.code()) {
 			case CONNECTIONLOSS:

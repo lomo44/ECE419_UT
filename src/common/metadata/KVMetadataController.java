@@ -1,19 +1,16 @@
 package common.metadata;
 
 import common.datastructure.KVRange;
-import common.networknode.KVNetworkNode;
+import common.enums.eKVNetworkNodeType;
+import common.networknode.KVStorageCluster;
 import common.networknode.KVStorageNode;
-import database.storage.KVStorage;
 
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public class KVMetadataController {
     KVMetadata metaData;
@@ -35,21 +32,14 @@ public class KVMetadataController {
      * @param newData new KVMetadata
      * @return True if there are any changes compared to the previous metadata, False if not
      */
-    public boolean update(KVMetadata newData){
-        boolean changed;
+    public void update(KVMetadata newData){
         if(metaData == null){
-            metaData = newData;
-            changed = true;
+            metaData = new KVMetadata();
         }
-        else {
-            changed = metaData.merge(newData);
-        }
-        if (changed) {
-            // Rebuild the sorted key set
-            this.keys = new TreeSet<>(this.metaData.getStorageNodeHashes());
-            generateHashRange();
-        }
-        return changed;
+        metaData.clear();
+        metaData.addAll(newData);
+        this.keys = new TreeSet<>(this.metaData.getStorageNodeHashes());
+        generateHashRange();
     }
     
     public KVMetadata getMetaData() {
@@ -75,7 +65,10 @@ public class KVMetadataController {
         return getResponsibleStorageNode(hash(key));
     }
 
-    public List<KVStorageNode> getStorageNodes(){
+    public Collection<KVStorageNode> getStorageNodes(){
+        if(metaData==null){
+            update(new KVMetadata());
+        }
         return metaData.getStorageNodes();
     }
 
@@ -98,8 +91,7 @@ public class KVMetadataController {
      * @param node new KVNetworkNode;
      */
     public void addStorageNode(KVStorageNode node) {
-        String idString = node.toString();
-        BigInteger hash = hash(idString);
+        BigInteger hash = hash(node.getUID());
         if(this.metaData==null){
             update(new KVMetadata());
         }
@@ -108,11 +100,13 @@ public class KVMetadataController {
             this.keys.add(hash);
             generateHashRange();
         }
+        else{
+            this.metaData.addStorageNodeHashPair(hash,node);
+        }
     }
 
-    public void removeStorageNode(KVNetworkNode node){
-        String idString = node.toString();
-        BigInteger hash = hash(idString);
+    public void removeStorageNode(String UID){
+        BigInteger hash = hash(UID);
         if(this.metaData==null){
             update(new KVMetadata());
         }
@@ -123,14 +117,13 @@ public class KVMetadataController {
         }
     }
 
-    public void addStorageNodes(List<KVStorageNode> nodes){
+    public void addStorageNodes(Collection<KVStorageNode> nodes){
         if(this.metaData == null){
             update(new KVMetadata());
         }
         for (KVStorageNode node: nodes
              ) {
-            String idString = node.toString();
-            BigInteger hash = hash(idString);
+            BigInteger hash = hash(node.getUID());
             if(!metaData.hasStorageNodeByHash(hash)){
                 this.metaData.addStorageNodeHashPair(hash,node);
                 this.keys.add(hash);
@@ -143,7 +136,15 @@ public class KVMetadataController {
         if(metaData!=null)
     		metaData.clear();
         if(keys!=null)
-        keys.clear();
+            keys.clear();
+    }
+
+    public void setPrimary(String clusterUID, String serverUID){
+        KVStorageNode node = getStorageNode(clusterUID);
+        if(node.getNodeType()== eKVNetworkNodeType.STORAGE_CLUSTER){
+            KVStorageCluster cluster = (KVStorageCluster)node;
+            cluster.setPrimaryNodeUID(serverUID);
+        }
     }
 
     /**
@@ -168,22 +169,47 @@ public class KVMetadataController {
             BigInteger previous = itor.next();
             while(itor.hasNext()){
                 BigInteger current = itor.next();
-                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(current,previous.subtract(BigInteger.valueOf(1)),true,true));
+                metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(previous,current.subtract(BigInteger.valueOf(1)),true,true));
                 previous = current;
             }
-            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(keys.first(),previous.subtract(BigInteger.valueOf(1)),true,true));
+            metaData.getStorageNodeFromHash(previous).setHashRange(new KVRange<>(previous,keys.first().subtract(BigInteger.valueOf(1)),true,true));
         }
     }
 
-    public KVStorageNode getStorageNode(String hostname, int portNumber){
-        return getStorageNode(new KVNetworkNode(hostname,portNumber));
+    public KVStorageNode getStorageNode(String UID){
+        if(metaData==null){
+            update(new KVMetadata());
+        }
+        return this.metaData.getStorageNodeFromHash(this.hash(UID));
     }
 
-    public KVStorageNode getStorageNode(String targetName){
-        return getStorageNode(KVNetworkNode.fromString(targetName));
+    public int getNodeCountByType(eKVNetworkNodeType type){
+        int counter = 0;
+        Collection<KVStorageNode> nodes = getStorageNodes();
+        if(nodes!=null){
+            for(KVStorageNode node : nodes){
+                if(node.getNodeType() == type){
+                    counter++;
+                }
+            }
+        }
+        return counter;
     }
 
-    public KVStorageNode getStorageNode(KVNetworkNode node){
-        return getMetaData().getStorageNodeFromHash(hash(node.toString()));
+    public List<KVStorageNode> getStorageNodesByType(eKVNetworkNodeType type){
+        List<KVStorageNode> ret =new ArrayList<>();
+        Collection<KVStorageNode> currentNode = getStorageNodes();
+        for(KVStorageNode node : currentNode){
+            if(node.getNodeType() == type){
+                ret.add(node);
+            }
+        }
+        return ret;
     }
+
+    public Collection<KVStorageNode> getReleventNodes(String nodeUID){
+        return metaData.getReleventNodes(nodeUID);
+    }
+
+
 }

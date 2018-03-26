@@ -64,16 +64,17 @@ public class KVTestClient {
      * @throws SocketException thrown if the connection is closed
      */
     public void send(KVMessage msg) throws SocketException {
-        communicationModule.send(msg);
+        //communicationModule.send(msg);
     }
 
     /**
      * Retrieve a message from server
      * @return KVMessage instance send from server
-     * @throws SocketException thrown when socket is closed
+     * @throws IOException 
+     * @throws IllegalArgumentException 
      */
-    public KVMessage get() throws SocketException, InterruptedException {
-        return communicationModule.receiveMessage();
+    public KVMessage get() throws InterruptedException, IllegalArgumentException, IOException {
+        return communicationModule.receive();
     }
 
     /**

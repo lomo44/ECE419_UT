@@ -16,20 +16,7 @@ public class KVCommandGet extends KVCommand<KVClient> {
 
     @Override
     public KVJSONMessage execute(KVClient clientInstance) {
-        KVJSONMessage ret = KVStore.createEmptyMessage();
-        if (clientInstance.getStore() == null) {
-            kv_out.println_error("Client not connected to a server.");
-            ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
-        }
-        try {
-            ret = (KVJSONMessage) clientInstance.getStore().get(getKey());
-            //System.out.println(String.format("ret: %s",ret.getValue()));
-        }
-        catch (SocketException e) {
-            ret.setExtendStatus(eKVExtendStatusType.NO_RESPONSE);
-            clientInstance.disconnect();
-        }
-        return ret;
+        return (KVJSONMessage) clientInstance.getStore().get(getKey());
     }
 
 

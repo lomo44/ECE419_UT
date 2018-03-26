@@ -3,6 +3,13 @@ package app_kvServer;
 
 import common.messages.KVExclusiveMessage;
 import common.messages.KVJSONMessage;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+
 public class KVServerConfig extends KVExclusiveMessage {
     public final static String KVCONFIGRATION_KEY = "e12c8b50-2089-11e8-9066-539b234d1994";
     public final static String KVCONFIGRATION_PAYLOADID= "e92c6cd0-2089-11e8-84ec-b367095a8790";
@@ -11,6 +18,9 @@ public class KVServerConfig extends KVExclusiveMessage {
     public final static String KEY_CACHE_SIZE = "cache_size";
     public final static String KEY_SERVER_PORT = "server_port";
     public final static String KEY_SERVER_HOST = "server_host";
+    public final static String KEY_SERVER_NAME = "server_name";
+    public final static String KEY_BELONGED_CLUSTER = "belonged_cluster";
+    public static final String KEY_BELONGED_CLUSTER_TAG = "clusters";
 
     public KVServerConfig() {
         super(KVCONFIGRATION_KEY, KVCONFIGRATION_PAYLOADID);
@@ -28,7 +38,7 @@ public class KVServerConfig extends KVExclusiveMessage {
         return get(KEY_CACHE_STRATAGY);
     }
     public void setCacheStratagy(String stratagy){
-        add(KEY_CACHE_STRATAGY,stratagy);
+        put(KEY_CACHE_STRATAGY,stratagy);
     }
 
     public int getCacheSize(){
@@ -36,20 +46,43 @@ public class KVServerConfig extends KVExclusiveMessage {
     }
 
     public void setCacheSize(int cacheSize){
-        add(KEY_CACHE_SIZE,Integer.toString(cacheSize));
+        put(KEY_CACHE_SIZE,Integer.toString(cacheSize));
     }
     
     public int getServerPort() {
     		return Integer.valueOf(get(KEY_SERVER_PORT));
     }
     public void setServerPort(int port) {
-    		add(KEY_SERVER_PORT,Integer.toString(port));
+        put(KEY_SERVER_PORT,Integer.toString(port));
     }
 
-    public void setServerHost(String host){
-        add(KEY_SERVER_HOST,host);
+    public void setServerHostAddress(String host){
+        put(KEY_SERVER_HOST,host);
     }
-    public String getServerHost(){
+    public String getServerHostAddress(){
         return get(KEY_SERVER_HOST);
+    }
+
+    public void setServerName(String name) {put(KEY_SERVER_NAME,name);}
+    public String getServerName(){
+        return get(KEY_SERVER_NAME);
+    }
+
+    public void setBelongedCluster(Collection<String> clusterNames){
+        JSONObject newObject =new JSONObject();
+        newObject.put(KEY_BELONGED_CLUSTER_TAG,clusterNames);
+        put(KEY_BELONGED_CLUSTER,newObject.toString());
+    }
+    public Collection<String> getBelongedCluster(){
+        HashSet<String> hashSet = null;
+        if(get(KEY_BELONGED_CLUSTER)!=null){
+            hashSet = new HashSet<>();
+            JSONObject newObject = new JSONObject(get(KEY_BELONGED_CLUSTER));
+            JSONArray arrays = newObject.getJSONArray(KEY_BELONGED_CLUSTER_TAG);
+            for(int i = 0 ; i <arrays.length(); i++){
+                hashSet.add(arrays.getString(i));
+            }
+        }
+        return hashSet;
     }
 }

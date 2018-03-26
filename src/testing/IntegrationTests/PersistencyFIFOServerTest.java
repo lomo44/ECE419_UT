@@ -60,7 +60,7 @@ public class PersistencyFIFOServerTest extends TestCase {
         cmdGet.setKey("Hello");
         response = client.executeCommand(cmdGet);
 
-        assertEquals(eKVExtendStatusType.NO_RESPONSE,response.getExtendStatusType());
+        assertEquals(eKVExtendStatusType.GET_ERROR,response.getExtendStatusType());
         assertTrue(!client.isConnected());
 
         client.newConnection("localhost",port);

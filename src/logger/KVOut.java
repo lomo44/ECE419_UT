@@ -68,7 +68,7 @@ public class KVOut {
             logger.debug("[DEBUG]:"+str);
         }
         if(shouldPrint(eKVLogLevel.DEBUG)){
-            System.out.println("[DEBUG]: "+str);
+            //System.out.println("[DEBUG]: "+str);
         }
     }
     public void println_info(String str){
@@ -76,7 +76,7 @@ public class KVOut {
             logger.info("[INFO]: "+str);
         }
         if(shouldPrint(eKVLogLevel.INFO)){
-            System.out.println("[INFO]: "+str);
+            //System.out.println("[INFO]: "+str);
         }
     }
     public void println_warn(String str){
@@ -84,7 +84,7 @@ public class KVOut {
             logger.warn("[WARN]"+ str);
         }
         if(shouldPrint(eKVLogLevel.WARN)){
-            System.out.println("[WARN]: "+str);
+            //System.out.println("[WARN]: "+str);
         }
     }
     public void println_error(String str){
@@ -92,7 +92,7 @@ public class KVOut {
             logger.error("[ERROR]: "+str);
         }
         if(shouldPrint(eKVLogLevel.ERROR)){
-            System.out.println("[ERROR]: "+str);
+            //System.out.println("[ERROR]: "+str);
         }
     }
     public void println_fatal(String str){
@@ -100,7 +100,7 @@ public class KVOut {
             logger.fatal("[FATAL]: "+str);
         }
         if(shouldPrint(eKVLogLevel.FATAL)){
-            System.out.println("[FATAL]: "+str);
+            //System.out.println("[FATAL]: "+str);
         }
     }
 }

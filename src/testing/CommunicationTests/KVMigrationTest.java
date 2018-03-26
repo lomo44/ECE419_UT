@@ -1,10 +1,9 @@
 package testing.CommunicationTests;
 
 import app_kvClient.Commands.KVCommandGet;
-import app_kvClient.Commands.KVCommandPut;
 import app_kvClient.KVClient;
 import app_kvServer.KVServer;
-import common.KVMessage;
+import common.enums.eKVLogLevel;
 import common.messages.KVJSONMessage;
 import common.metadata.KVMetadataController;
 import common.networknode.KVNetworkNode;
@@ -24,7 +23,7 @@ public class KVMigrationTest extends TestCase{
     private KVClient clientB;
     private KVPutGetGenerator generatorA = new KVPutGetGenerator(100,0);
     //private KVPutGetGenerator generatorB = new KVPutGetGenerator(100,0);
-    private final static int entryCount = 20;
+    private final static int entryCount = 10;
     private KVMetadataController mainController = new KVMetadataController();
 
     private void initializeData(KVClient client, KVPutGetGenerator generator){
@@ -41,13 +40,15 @@ public class KVMigrationTest extends TestCase{
         clientA = new KVClient();
         clientB = new KVClient();
 
-        mainController.addStorageNode(new KVStorageNode(serverA.getNetworkNode(),serverA.getServername()));
-        mainController.addStorageNode(new KVStorageNode(serverB.getNetworkNode(),serverB.getServername()));
+        mainController.addStorageNode(serverB.getStorageNode());
+        mainController.addStorageNode(serverA.getStorageNode());
         clientA.newConnection("localhost",serverA.getPort());
         clientB.newConnection("localhost",serverB.getPort());
 
         assertEquals(true,clientA.isConnected());
         assertEquals(true,clientB.isConnected());
+        clientA.setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
+        clientB.setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
         initializeData(clientA,generatorA);
         //initializeData(clientB,generatorB);
         super.setUp();
@@ -57,6 +58,8 @@ public class KVMigrationTest extends TestCase{
         super.tearDown();
         clientA.stop();
         clientB.stop();
+        serverA.clearStorage();
+        serverB.clearStorage();
         serverA.close();
         serverB.close();
     }
@@ -69,7 +72,7 @@ public class KVMigrationTest extends TestCase{
         HashMap<String,String> map = generatorA.getDataContent();
         Set<String> migratedSet = new HashSet<>();
         Set<String> persistedSet = new HashSet<>();
-        KVNetworkNode serverAnode = serverA.getNetworkNode();
+        KVNetworkNode serverAnode = serverA.getStorageNode();
         //System.out.println("Filter key");
         for (String key: map.keySet()
              ) {
@@ -121,6 +124,10 @@ public class KVMigrationTest extends TestCase{
         HashMap<String,String> map = generatorA.getDataContent();
         serverA.handleChangeInMetadata(mainController.getMetaData());
         serverB.handleChangeInMetadata(mainController.getMetaData());
+
+        serverA.printResponsibleKeyValuePair();
+        System.out.printf("\n");
+        serverB.printResponsibleKeyValuePair();
 
         KVCommandGet getCommand = new KVCommandGet();
         for(String key : map.keySet()){

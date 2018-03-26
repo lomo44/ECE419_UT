@@ -1,8 +1,15 @@
 package common.datastructure;
 
+import org.json.JSONObject;
+
 import java.math.BigInteger;
 
 public class KVRange<T extends Comparable> {
+    private final static String JSON_KEY_LOWERBOUND = "lower_bound";
+    private final static String JSON_KEY_UPPERBOUND = "upper_bound";
+    private final static String JSON_KEY_LOWERINCLUSIVE = "lower_inclusive";
+    private final static String JSON_KEY_UPPERINCLUSIVE = "upper_inclusive";
+
     private T lowerBound;
     private T upperBound;
     private boolean lowerInclusive;
@@ -41,9 +48,31 @@ public class KVRange<T extends Comparable> {
             String lowerBound, String upperBound, boolean LowerInclusive, boolean UpperInclusive){
         return new KVRange<>(new BigInteger(lowerBound),new BigInteger(upperBound),LowerInclusive,UpperInclusive);
     }
-    
+
+    public JSONObject toJSONObject(){
+        JSONObject object = new JSONObject();
+        object.put(JSON_KEY_LOWERBOUND,lowerBound.toString());
+        object.put(JSON_KEY_UPPERBOUND,upperBound.toString());
+        object.put(JSON_KEY_LOWERINCLUSIVE,lowerInclusive);
+        object.put(JSON_KEY_UPPERINCLUSIVE,upperInclusive);
+        return object;
+    }
+
+    public static KVRange<BigInteger> fromJSONObject(JSONObject obj){
+        return fromString(
+                obj.getString(JSON_KEY_LOWERBOUND),
+                obj.getString(JSON_KEY_UPPERBOUND),
+                obj.getBoolean(JSON_KEY_LOWERINCLUSIVE),
+                obj.getBoolean(JSON_KEY_UPPERINCLUSIVE));
+    }
+
     public String[] toStringArray() {
     			return new String[] {lowerBound.toString(),upperBound.toString()};
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Lower: %s, Upper: %s",lowerBound.toString(),upperBound.toString());
     }
 
     @Override
@@ -53,6 +82,11 @@ public class KVRange<T extends Comparable> {
                 a.lowerBound.compareTo(this.lowerBound) == 0 &&
                 a.upperInclusive == this.upperInclusive &&
                 a.lowerInclusive == this.lowerInclusive;
+    }
+
+    @Override
+    public int hashCode() {
+        return (upperBound.toString()+lowerBound.toString()+Boolean.toString(lowerInclusive)+Boolean.toString(upperInclusive)).hashCode();
     }
 
     public boolean isIntersect(KVRange<T> b){

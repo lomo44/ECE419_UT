@@ -15,9 +15,12 @@ import junit.framework.TestCase;
 import org.junit.Test;
 import utility.KVPutGetGenerator;
 
+
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class ZookeeperTests extends TestCase{
@@ -30,18 +33,30 @@ public class ZookeeperTests extends TestCase{
     public ECSClient ecsClient;
     public Process zkProcess;
 
+    private void deleteDirectoryAndContent(File path){
+        File[] contents = path.listFiles();
+        if(contents!=null){
+            for(File f: contents){
+                deleteDirectoryAndContent(f);
+            }
+        }
+        path.delete();
+    }
+
     @Override
     public void setUp() throws Exception {
         zkProcess = new ProcessBuilder().inheritIO().command("./zookeeper-3.4.11/bin/zkServer.sh","start-foreground").start();
         Thread.sleep(1000);
         ecsClient = new ECSClient(ECS_CONFIG_PATH,ZK_HOST_NAME,ZK_PORT_NUMBER);
+        ecsClient.setDeployedServerJarPath("./code/ECE419_UT/m2-server.jar");
     }
 
     @Override
     public void tearDown() throws Exception {
-        assertTrue(ecsClient.clearAllStorage());
-        assertTrue(ecsClient.shutdown());
-        Thread.sleep(5000);
+        ecsClient.clearAllStorage();
+        ecsClient.shutdown();
+        Thread.sleep(2000);
+        deleteDirectoryAndContent(new File(ZK_DATA_DIR));
         zkProcess.destroyForcibly();
     }
 
@@ -94,6 +109,44 @@ public class ZookeeperTests extends TestCase{
         client.newConnection(firstNode.getNodeHost(),firstNode.getNodePort());
         client.setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
         assertEquals(true, client.isConnected());
+
+        for(int i = 0; i < 100; i++){
+            KVCommand cmd = generator.getNextCommand();
+            if(cmd.getCommandType()== KVCommandPattern.KVCommandType.GET){
+                KVJSONMessage keyPair = client.executeCommand(cmd);
+                System.out.printf("Request %s, response %s\n",cmd.getValue("Key"),new String(keyPair.toBytes()));
+                assertEquals(true,generator.verify(keyPair.getKey(),keyPair.getValue()));
+            }
+            if(cmd.getCommandType() == KVCommandPattern.KVCommandType.PUT){
+                KVJSONMessage response = client.executeCommand(cmd);
+                assertEquals(KVMessage.StatusType.PUT_SUCCESS,response.getStatus());
+            }
+        }
+    }
+
+    public void testBasic_Communication_RemoveServer() throws Exception{
+        Collection<IECSNode> nodes = ecsClient.addNodes(3,"LFU",5);
+        Assert.assertEquals(true,ecsClient.start());
+
+        KVClient client = new KVClient();
+        IECSNode firstNode = nodes.iterator().next();
+        client.newConnection(firstNode.getNodeHost(),firstNode.getNodePort());
+        client.setLogLevel(eKVLogLevel.OFF,eKVLogLevel.OFF);
+        assertEquals(true, client.isConnected());
+
+        int removedNodes = 1;
+        int skipNode = 1;
+        Iterator<IECSNode> itor = nodes.iterator();
+        while (removedNodes > 0){
+            if(skipNode > 0){
+                skipNode--;
+                itor.next();
+            }
+            else {
+                assertTrue(ecsClient.removeNode(itor.next().getNodeName()));
+                removedNodes -= 1;
+            }
+        }
 
         for(int i = 0; i < 100; i++){
             KVCommand cmd = generator.getNextCommand();

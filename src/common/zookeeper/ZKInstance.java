@@ -2,7 +2,10 @@ package common.zookeeper;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -16,6 +19,10 @@ public abstract class ZKInstance implements Watcher {
 	protected final static String SERVER_CONFIG_NAME = "config";
 	protected final static String SERVER_METADATA_NAME = "metadata";
 	protected final static String SERVER_TASK_QUEUE_NAME = "taskQueue";
+	protected final static String SERVER_CLUSTER_PATH = "/clusters";
+	private static final Pattern regexClusterName = Pattern.compile("\\/clusters\\/([^/\\s]*)\\/(?:.*)");
+	private static final Pattern regexClusterPath = Pattern.compile("(.*)\\/n_(?:\\d*)");
+
 	protected ZooKeeper zk;
 	protected String connectionString;
 	final CountDownLatch connection = new CountDownLatch(1);
@@ -51,12 +58,33 @@ public abstract class ZKInstance implements Watcher {
 	
 	protected abstract void init();
 
-	
+	public String getNewReplicasPath(String clusterName){
+		return String.format("%s/%s/newReplicas", SERVER_CLUSTER_PATH,clusterName);
+	}
+
+	public String getOldReplciaPath(String clusterName){
+		return String.format("%s/%s/oldReplicas", SERVER_CLUSTER_PATH,clusterName);
+	}
+
+	public String getClusterPathFromPath(String path){
+		Matcher match = regexClusterName.matcher(path);
+		if(match.find()){
+			return match.group(1);
+		}
+		return null;
+	}
+
+
+
 	@Override
 	public void process(WatchedEvent event) {
 		System.out.println(event);
 		if (event.getState()==KeeperState.SyncConnected) {
 			connection.countDown();
 		}
+	}
+
+	public void close() throws InterruptedException, KeeperException {
+		this.zk.close();
 	}
 }

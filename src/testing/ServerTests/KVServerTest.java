@@ -30,7 +30,7 @@ public class KVServerTest extends TestCase {
 //    @Override
 //    public void tearDown() throws Exception{
 //        if(serverEcho!=null){
-//            serverEcho.close();
+//            serverEcho.stop();
 //            serverEcho = null;
 //        }
 //        if(client!=null){
@@ -45,7 +45,7 @@ public class KVServerTest extends TestCase {
 //    @Test
 //    public void testServerBasic_TearDown() throws InterruptedException, IOException, ClassNotFoundException {
 //        assertTrue(serverEcho.isHandlerRunning());
-//        serverEcho.close();
+//        serverEcho.stop();
 //        assertFalse(serverEcho.isHandlerRunning());
 //        serverEcho = null;
 //    }

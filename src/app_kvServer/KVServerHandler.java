@@ -4,6 +4,7 @@ package app_kvServer;
 import common.communication.KVCommunicationModule;
 import common.enums.eKVLogLevel;
 import common.networknode.KVNetworkNode;
+import common.networknode.KVStorageNode;
 import logger.KVOut;
 
 import java.io.IOException;
@@ -19,7 +20,7 @@ public class KVServerHandler implements Runnable {
     private int port;
     private ServerSocket serverSocket;
     private KVServer master;
-    private KVOut kv_out = new KVOut("server");
+    private KVOut kv_out;
     private boolean isRunning;
     /**
      * Common thread implementation
@@ -31,6 +32,7 @@ public class KVServerHandler implements Runnable {
             serverSocket = new ServerSocket(port);
             kv_out.println_info("Server listening on port "+port);
             kv_out.println_debug("Server IP:"+serverSocket.getLocalSocketAddress());
+            master.setNode(new KVStorageNode(serverSocket.getInetAddress().getHostAddress(),serverSocket.getLocalPort(),master.getUID()));
 
         }
         catch (SocketException e){
@@ -55,7 +57,7 @@ public class KVServerHandler implements Runnable {
                     kv_out.println_info("Server connected to "+client.getInetAddress().getHostName()+" on port "+client.getPort());
                 }
                 catch (SocketException e){
-                    // Socket close
+                    // Socket stop
                     isRunning = false;
                     kv_out.println_error("Unable to establish connection.");
                 }
@@ -90,8 +92,7 @@ public class KVServerHandler implements Runnable {
         aliveinstancethreads = new Vector<Thread>();
         aliveInstances = new Vector<KVServerInstance>();
         isRunning = false;
-        kv_out.changeLogLevel(eKVLogLevel.OFF);
-        kv_out.changeOutputLevel(eKVLogLevel.OFF);
+        kv_out = managerServer.getLogger();
     }
 
     /**

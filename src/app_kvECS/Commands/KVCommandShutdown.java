@@ -30,7 +30,7 @@ public class KVCommandShutdown extends KVCommand<ECSClient> {
         if (response.getExtendStatusType() == eKVExtendStatusType.SHUTDOWN_SUCCESS) {
             kv_out.println_info("Successfully shut down active servers.");
         } else {
-            kv_out.println_error("Failed to shut down active servers.");
+            kv_out.println_error("Failed to shut down active servers. Server data has not been fully cleaned");
         }
     }
 }
